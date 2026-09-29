@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { claimNick, setPassword } from '../api';
 import { passwordProblem, PASSWORD_MAX_LENGTH } from '../game/account';
 import type { Profile } from '../game/cosmetics';
+import { serverText, useI18n } from '../i18n';
 import type { Identity } from '../nick';
 import Turnstile from './Turnstile';
 
@@ -24,6 +25,7 @@ type SyncStatus = 'idle' | 'syncing' | 'done' | 'error';
  * Para contas, "Forçar sincronização" recarrega do servidor o que mudou em outro aparelho.
  */
 export default function SyncDevice({ identity, profile, onRefresh, onAccountCreated }: Props) {
+  const { t, lang } = useI18n();
   const [open, setOpen] = useState(false);
   const [password, setPasswordValue] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -39,7 +41,7 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
   if (!open) {
     return (
       <button className="link-button" onClick={() => setOpen(true)}>
-        Sincronizar dispositivo
+        {t('sync.title')}
       </button>
     );
   }
@@ -54,15 +56,15 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
     }
     const result = await claimNick(identity.name, null, password, turnstileToken);
     if (!result.ok) {
-      throw new Error(result.taken ? 'Esse nick acabou de virar conta de outra pessoa. Troque de nick.' : result.error);
+      throw new Error(result.taken ? t('sync.nickTaken') : result.error);
     }
     onAccountCreated({ name: result.name, token: result.token });
   };
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const problem = passwordProblem(password) ?? (password !== confirm ? 'As senhas não são iguais' : null);
-    if (problem) return setError(problem);
+    const problem = passwordProblem(password) ?? (password !== confirm ? t('password.mismatch') : null);
+    if (problem) return setError(serverText(problem, lang));
     setSaving(true);
     setError(null);
     save()
@@ -72,7 +74,7 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
         setConfirm('');
       })
       .catch((err) => {
-        setError(err instanceof TypeError ? 'Sem conexão com o servidor.' : err.message);
+        setError(err instanceof TypeError ? t('common.offline') : serverText(err.message, lang));
         // O token do anti-bot vale uma vez só: gera outro para a próxima tentativa.
         setTurnstileToken(null);
         setTurnstileKey((k) => k + 1);
@@ -92,19 +94,22 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
 
   return (
     <div className="panel sync-panel">
-      <p className="score-label">Sincronizar dispositivo</p>
+      <p className="score-label">{t('sync.title')}</p>
 
       {needsPassword ? (
         <form className="sync-password-form" onSubmit={onSubmit}>
           <p className="nick-screen-text">
             {isGuest ? (
               <>
-                Você está jogando como convidado. Crie uma conta para reservar o nick <strong>{identity.name}</strong>,
-                ganhar moedas e jogar em outros dispositivos.
+                {t('sync.guestBefore')}
+                <strong>{identity.name}</strong>
+                {t('sync.guestAfter')}
               </>
             ) : (
               <>
-                Crie uma senha para entrar como <strong>{identity.name}</strong> em outro dispositivo.
+                {t('sync.passwordBefore')}
+                <strong>{identity.name}</strong>
+                {t('sync.passwordAfter')}
               </>
             )}
           </p>
@@ -115,8 +120,8 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
             value={password}
             onChange={(e) => setPasswordValue(e.target.value)}
             maxLength={PASSWORD_MAX_LENGTH}
-            placeholder="Senha"
-            aria-label="Nova senha"
+            placeholder={t('password.placeholder')}
+            aria-label={t('password.new')}
             autoComplete="new-password"
             disabled={saving}
           />
@@ -125,8 +130,8 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             maxLength={PASSWORD_MAX_LENGTH}
-            placeholder="Confirmar senha"
-            aria-label="Repita a senha"
+            placeholder={t('password.confirm')}
+            aria-label={t('password.repeat')}
             autoComplete="new-password"
             disabled={saving}
           />
@@ -136,14 +141,16 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
             disabled={saving || !password || !confirm || (isGuest && turnstileRequired !== false && !turnstileToken)}
             aria-busy={saving}
           >
-            {isGuest ? 'Criar conta' : 'Criar senha'}
+            {isGuest ? t('sync.createAccount') : t('sync.createPassword')}
           </button>
           {error && <p className="error">{error}</p>}
         </form>
       ) : profile ? (
         <p className="nick-screen-text">
-          {created && 'Conta pronta! '}Em outro dispositivo, toque em <strong>Login</strong> e entre com o nick{' '}
-          <strong>{identity.name}</strong> e a sua senha.
+          {created && t('sync.ready')}
+          {t('sync.otherDeviceBefore')}
+          <strong>{identity.name}</strong>
+          {t('sync.otherDeviceAfter')}
         </p>
       ) : null}
 
@@ -155,20 +162,20 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
             disabled={sync === 'syncing'}
             aria-busy={sync === 'syncing'}
           >
-            Forçar sincronização
+            {t('sync.force')}
           </button>
           <p className="muted sync-note">
             {sync === 'done'
-              ? 'Pronto: saldo, itens e visual atualizados.'
+              ? t('sync.done')
               : sync === 'error'
-                ? 'Não foi possível sincronizar. Tente de novo.'
-                : 'Jogou em outro dispositivo? Traz o saldo, os itens e o visual salvos no servidor.'}
+                ? t('sync.error')
+                : t('sync.hint')}
           </p>
         </div>
       )}
 
       <button className="link-button" onClick={() => setOpen(false)}>
-        Fechar
+        {t('common.close')}
       </button>
     </div>
   );

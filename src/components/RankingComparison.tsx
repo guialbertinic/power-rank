@@ -1,5 +1,6 @@
 import { scoreGame, withRanks } from '../game/scoring';
 import type { CharacterInfo } from '../game/types';
+import { useI18n } from '../i18n';
 import Avatar from './Avatar';
 import RankBadge from './RankBadge';
 
@@ -18,12 +19,13 @@ function hitLevel(pairsWrong: number): number {
  * o que basta para a ordem e as cores de acerto.
  */
 export default function RankingComparison({ slots, ranks }: { slots: CharacterInfo[]; ranks: Record<string, number> }) {
+  const { t } = useI18n();
   const { results, correctOrder } = scoreGame(withRanks(slots, ranks));
 
   return (
     <div className="result-columns">
       <div className="panel">
-        <h3 className="section-title">Seu ranking</h3>
+        <h3 className="section-title">{t('result.yours')}</h3>
         <ol className="row-list">
           {results.map((r) => (
             <li key={r.position} className={`row row-yours hit-${hitLevel(r.pairsTotal - r.pairsRight)}`}>
@@ -36,7 +38,7 @@ export default function RankingComparison({ slots, ranks }: { slots: CharacterIn
       </div>
 
       <div className="panel">
-        <h3 className="section-title">Ranking correto</h3>
+        <h3 className="section-title">{t('result.correct')}</h3>
         <ol className="row-list">
           {correctOrder.map((c, i) => (
             <li key={c.id} className="row row-correct">

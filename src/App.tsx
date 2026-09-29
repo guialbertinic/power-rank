@@ -18,6 +18,8 @@ import PlayingScreen from './components/PlayingScreen';
 import ResultScreen from './components/ResultScreen';
 import ShopScreen from './components/ShopScreen';
 import CasinoScreen from './components/CasinoScreen';
+import SettingsMenu from './components/SettingsMenu';
+import { I18nProvider, useI18n } from './i18n';
 
 // Tela de revisão da base (http://localhost:5173/?review). Só existe em dev: sai do build de produção.
 const ReviewScreen = import.meta.env.DEV ? lazy(() => import('./components/ReviewScreen')) : null;
@@ -108,7 +110,7 @@ async function newGame(
 ): Promise<{ gameId: string; drawn: CharacterInfo[] } | 'unauthorized' | { error: string }> {
   const game = await createGame(identity.name, identity.token, mode);
   if (game === 'unauthorized') return game;
-  if (!game) return { error: 'Sem conexão com o servidor. Tente de novo.' };
+  if (!game) return { error: 'Sem conexão com o servidor. Tente de novo.' }; // traduzido na tela (serverText)
   if ('error' in game) return game;
   rememberCharacters(game.characters);
   await preloadImages(game.characters);
@@ -118,6 +120,7 @@ async function newGame(
 const isModeAvailable = (mode: Mode) => poolFor(mode, POOL).length >= SLOTS;
 
 function Game() {
+  const { t } = useI18n();
   const [identity, setIdentity] = useState(loadIdentity);
   const [state, dispatch] = useReducer(reducer, identity, initialState);
   const [pendingInvite, setPendingInvite] = useState(identity ? '' : INVITE_CODE);
@@ -179,7 +182,7 @@ function Game() {
       applyProfile(await fetchProfile({ name, token }));
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        dispatch({ type: 'nick', reason: 'Confirme seu nick de novo para continuar.' });
+        dispatch({ type: 'nick', reason: t('app.confirmNick') });
       }
       throw err;
     }
@@ -209,9 +212,7 @@ function Game() {
       const game = await newGame(identity, mode);
       if (game === 'unauthorized') {
         // Convidado cujo nick virou conta de outra pessoa, ou token que deixou de valer.
-        const reason = identity.token
-          ? 'Confirme seu nick de novo para continuar.'
-          : 'Esse nick agora é de uma conta. Entre com a senha ou escolha outro.';
+        const reason = identity.token ? t('app.confirmNick') : t('app.nickNowAccount');
         dispatch({ type: 'nick', reason });
       } else if ('error' in game) {
         setSoloError(game.error);
@@ -233,7 +234,7 @@ function Game() {
       rememberPartyPid(code, pid);
       dispatch({ type: 'party', code, pid });
     } catch (err) {
-      setPartyError(err instanceof Error ? err.message : 'Não foi possível criar a sala');
+      setPartyError(err instanceof Error ? err.message : t('app.roomError'));
     } finally {
       setStarting(false);
     }
@@ -249,9 +250,9 @@ function Game() {
     state.phase === 'party'
       ? 'Party'
       : state.phase === 'shop'
-        ? 'Loja'
+        ? t('profile.shop')
       : state.phase === 'casino'
-        ? 'Cassino'
+        ? t('profile.casino')
       : MODES.find((m) => m.id === (state.phase === 'playing' || state.phase === 'result' ? state.mode : mode))?.label;
 
   return (
@@ -268,6 +269,7 @@ function Game() {
           disabled={starting}
         />
       )}
+      <SettingsMenu />
       <header className={`app-header${isHome && !showReview ? ' hero' : ''}`}>
         {/* Na home o seletor de categoria fica no título; nas outras telas, só o nome da categoria/modo. */}
         {state.phase === 'intro' && !showReview && (
@@ -281,7 +283,7 @@ function Game() {
         </h1>
         {!isHome && !showReview && (
           <button className="home-button" onClick={() => dispatch({ type: 'home' })}>
-            Início
+            {t('app.home')}
           </button>
         )}
       </header>
@@ -348,11 +350,21 @@ function Game() {
 
 type CatalogStatus = 'loading' | 'ready' | 'error';
 
+/** Raiz: tradução (idioma escolhido) em volta de tudo. */
+export default function App() {
+  return (
+    <I18nProvider>
+      <CatalogGate />
+    </I18nProvider>
+  );
+}
+
 /**
  * Carrega o catálogo público de personagens (sem `power`) antes de montar o jogo: o sorteio, os avatares e a
  * loja dependem dele. Sem conexão, mostra a opção de tentar de novo.
  */
-export default function App() {
+function CatalogGate() {
+  const { t } = useI18n();
   const [status, setStatus] = useState<CatalogStatus>('loading');
   const load = () => {
     setStatus('loading');
@@ -368,12 +380,12 @@ export default function App() {
     <main className="app">
       <section className="panel catalog-status">
         {status === 'loading' ? (
-          <p className="muted">Carregando...</p>
+          <p className="muted">{t('app.loading')}</p>
         ) : (
           <>
-            <p className="error">Não foi possível conectar ao servidor.</p>
+            <p className="error">{t('app.connectError')}</p>
             <button className="btn btn-primary" onClick={load}>
-              Tentar de novo
+              {t('app.retry')}
             </button>
           </>
         )}

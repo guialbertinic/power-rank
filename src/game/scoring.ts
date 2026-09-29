@@ -88,11 +88,16 @@ export function withRanks<T extends { id: string }>(items: readonly T[], ranks: 
   return items.map((item) => ({ ...item, power: -(ranks[item.id] ?? 0) }));
 }
 
-/** Uma ordem aleatória acerta ~50% dos pares (~500 pontos), por isso os títulos começam acima disso. */
-export function rankTitle(total: number): string {
-  if (total >= 950) return 'Nerd esquisito';
-  if (total >= 850) return 'Tá cozinhando chefe';
-  if (total >= 750) return 'Brabo';
-  if (total >= 600) return 'Tente novamente';
-  return 'Kk Noob';
+export type RankLevel = 'nerd' | 'cooking' | 'brabo' | 'retry' | 'noob';
+
+/**
+ * Nível do título do resultado (o texto vem da tradução: `rank.<nível>`). Uma ordem aleatória acerta ~50% dos
+ * pares (~500 pontos), por isso os títulos começam acima disso.
+ */
+export function rankLevel(total: number): RankLevel {
+  if (total >= 950) return 'nerd';
+  if (total >= 850) return 'cooking';
+  if (total >= 750) return 'brabo';
+  if (total >= 600) return 'retry';
+  return 'noob';
 }

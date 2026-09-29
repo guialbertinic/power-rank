@@ -18,14 +18,15 @@ Avatar é sempre `AVATAR_PRICE` (50): preço por força revelaria o `power`.
 1. Entrada em `COSMETICS` (`src/game/cosmetics.ts`): `id` com prefixo do espaço (`name-`, `frame-`, `title-`),
    `label` em português, `price`. Títulos: helper `title('slug', 'Texto', preço, 'Categoria')` — o `label` é o
    texto exibido; a categoria (Iniciante, Otaku, Animes, Games, Lendário) agrupa na loja.
-2. Cor/moldura: classe `.cosmetic-<id>` em `src/styles.css`, junto das outras (seção "Cosméticos").
+2. Nome em inglês em `src/i18n/catalog.ts` (`COSMETICS_EN`, pelo id).
+3. Cor/moldura: classe `.cosmetic-<id>` em `src/styles.css`, junto das outras (seção "Cosméticos").
    - Cor: `color` + `text-shadow`, ou gradiente com `background-clip: text`.
    - Moldura: estilo em `.cosmetic-<id> .player-frame-border` (a borda) e brilho com `filter: drop-shadow`
      no wrapper `.cosmetic-<id>` (clip-path corta box-shadow). Anel girando: `conic-gradient(from
      var(--cosmetic-angle) …)` + `animation: cosmetic-spin`.
    - Animações já param com "reduzir movimento" (regra global); só cores/efeitos, nada de imagem.
-3. O servidor valida sozinho (preço e espaço vêm do catálogo). A loja ordena por preço.
-4. Teste: o e2e de UI acha itens por `[data-label="<label>"]`; não precisa de teste por item.
+4. O servidor valida sozinho (preço e espaço vêm do catálogo). A loja ordena por preço.
+5. Teste: o e2e de UI acha itens por `[data-label="<label>"]`; não precisa de teste por item.
 
 **Renomear:** pode trocar o `label` à vontade. **Nunca troque o `id`** de item já publicado: ele está gravado em
 `player_items` e no visual equipado (`players.name_color`/`frame`/`title`).

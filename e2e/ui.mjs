@@ -44,6 +44,21 @@ try {
   );
   check('SOLO/PARTY e ranking centralizados', centers.every((c) => Math.abs(c) <= 2), centers.join(', '));
 
+  // ---------- Idioma ----------
+  section('Idioma');
+  await ana.click('.settings-toggle');
+  await (await ana.waitForSelector('.settings-langs ::-p-text(English)')).click();
+  await ana.waitForSelector('.profile-bar ::-p-text(Shop)');
+  check('menu de configurações troca para inglês', (await text(ana, '.leaderboard .section-title'))?.startsWith('Ranking') && Boolean(await ana.$('.leaderboard-periods ::-p-text(Today)')));
+  check('html lang acompanha o idioma', (await ana.evaluate(() => document.documentElement.lang)) === 'en');
+  await ana.reload({ waitUntil: 'networkidle0' });
+  await ana.waitForSelector('.profile-bar');
+  check('idioma fica salvo no navegador', Boolean(await ana.$('.profile-bar ::-p-text(Shop)')));
+  await ana.click('.settings-toggle');
+  await (await ana.waitForSelector('.settings-langs ::-p-text(Português)')).click();
+  await ana.waitForSelector('.profile-bar ::-p-text(Loja)');
+  await ana.keyboard.press('Escape');
+
   // ---------- Party ----------
   section('Party');
   await ana.click('.btn-party');

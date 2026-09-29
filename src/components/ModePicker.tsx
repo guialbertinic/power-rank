@@ -1,4 +1,5 @@
 import { MODES, type Mode } from '../game/modes';
+import { useI18n } from '../i18n';
 
 interface Props {
   mode: Mode;
@@ -10,8 +11,9 @@ interface Props {
 
 /** Seletor de categoria (Animes / Games / Free for All), exibido no título da tela inicial. */
 export default function ModePicker({ mode, onChange, isAvailable, disabled }: Props) {
+  const { t } = useI18n();
   return (
-    <div className="mode-picker" role="radiogroup" aria-label="Categoria">
+    <div className="mode-picker" role="radiogroup" aria-label={t('mode.category')}>
       {MODES.map((m) => {
         const enabled = isAvailable(m.id);
         return (
@@ -25,7 +27,7 @@ export default function ModePicker({ mode, onChange, isAvailable, disabled }: Pr
             disabled={disabled || !enabled}
           >
             {m.label}
-            {!enabled && <small>em breve</small>}
+            {!enabled && <small>{t('mode.soon')}</small>}
           </button>
         );
       })}

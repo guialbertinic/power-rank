@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { submitScoreOnce, type SubmitResult } from '../api';
 import { MODES, type Mode } from '../game/modes';
-import { MAX_SCORE, rankTitle } from '../game/scoring';
+import { MAX_SCORE, rankLevel } from '../game/scoring';
+import { serverText, useI18n } from '../i18n';
 import type { CharacterInfo } from '../game/types';
 import Leaderboard from './Leaderboard';
 import RankingComparison from './RankingComparison';
@@ -23,6 +24,7 @@ type Status = { kind: 'sending' } | { kind: 'done'; result: SubmitResult } | { k
  * envia as posições ao montar e mostra tudo quando a resposta chega.
  */
 export default function ResultScreen({ mode, gameId, nick, slots, starting, onRestart }: Props) {
+  const { t, lang } = useI18n();
   const [status, setStatus] = useState<Status>({ kind: 'sending' });
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export default function ResultScreen({ mode, gameId, nick, slots, starting, onRe
         if (!cancelled) setStatus({ kind: 'done', result });
       })
       .catch((err: unknown) => {
-        if (!cancelled) setStatus({ kind: 'error', message: err instanceof Error ? err.message : 'erro desconhecido' });
+        if (!cancelled) setStatus({ kind: 'error', message: err instanceof Error ? err.message : 'Erro interno' });
       });
     return () => {
       cancelled = true;
@@ -48,24 +50,24 @@ export default function ResultScreen({ mode, gameId, nick, slots, starting, onRe
   return (
     <section className="result">
       <div className="panel score-panel" aria-busy={!result}>
-        <p className="score-label">Pontuação · {MODES.find((m) => m.id === mode)?.label}</p>
+        <p className="score-label">{t('result.scoreLabel', { mode: MODES.find((m) => m.id === mode)?.label ?? '' })}</p>
         {result ? (
           <>
             <p className="score-value">
               {result.score}
               <span>/{MAX_SCORE}</span>
             </p>
-            <p className="title-badge">{rankTitle(result.score)}</p>
+            <p className="title-badge">{t(`rank.${rankLevel(result.score)}`)}</p>
             <RankingStatus result={result} />
           </>
         ) : status.kind === 'error' ? (
-          <p className="ranking-status error">Não foi possível calcular o resultado: {status.message}</p>
+          <p className="ranking-status error">{t('result.error', { message: serverText(status.message, lang) })}</p>
         ) : (
-          <p className="muted score-pending">Calculando...</p>
+          <p className="muted score-pending">{t('result.calculating')}</p>
         )}
         <div className="score-actions">
           <button className="btn btn-primary" onClick={onRestart} disabled={starting} aria-busy={starting}>
-            Jogar de novo
+            {t('result.again')}
           </button>
         </div>
       </div>

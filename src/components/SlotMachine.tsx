@@ -13,6 +13,7 @@ import {
   type SymbolId,
 } from '../game/casino';
 import type { Profile } from '../game/cosmetics';
+import { serverText, symbolLabel, useI18n, type I18n, type Lang } from '../i18n';
 import type { Identity } from '../nick';
 import CasinoIcon, { preloadCasinoIcons } from './CasinoIcon';
 import Coins from './Coins';
@@ -28,17 +29,18 @@ const MIN_SPIN_MS = 700;
 const STOP_GAP_MS = 380;
 
 const pct = (n: number) => `${Math.round(n * 100)}%`;
-const coinsText = (n: number) => n.toLocaleString('pt-BR');
+const coinsText = (n: number, lang: Lang) => n.toLocaleString(lang === 'pt' ? 'pt-BR' : 'en-US');
 
 /** Texto do resultado de um giro. */
-function resultText(r: SpinResult): string {
-  if (r.jackpot) return `JACKPOT! +${coinsText(r.prize)}`;
-  if (r.outcome.kind === 'three') return `3× ${SYMBOLS_BY_ID.get(r.outcome.symbol)!.label}! +${coinsText(r.prize)}`;
+function resultText(r: SpinResult, t: I18n['t'], lang: Lang): string {
+  const prize = coinsText(r.prize, lang);
+  if (r.jackpot) return t('slots.jackpot', { prize });
+  if (r.outcome.kind === 'three') return t('slots.three', { symbol: symbolLabel(r.outcome.symbol, lang), prize });
   if (r.outcome.kind === 'pair') {
-    const label = SYMBOLS_BY_ID.get(r.outcome.symbol)!.label;
-    return r.outcome.multiplier === 1 ? `Par de ${label}: aposta de volta` : `Par de ${label}: +${coinsText(r.prize)}`;
+    const symbol = symbolLabel(r.outcome.symbol, lang);
+    return r.outcome.multiplier === 1 ? t('slots.pairBack', { symbol }) : t('slots.pair', { symbol, prize });
   }
-  return 'Não foi dessa vez';
+  return t('slots.none');
 }
 
 /**
@@ -46,6 +48,7 @@ function resultText(r: SpinResult): string {
  * a resposta chegar e param um a um no resultado. O saldo na tela só muda quando o último rolo para.
  */
 export default function SlotMachine({ identity, profile, onProfileChange }: Props) {
+  const { t, lang } = useI18n();
   const [casino, setCasino] = useState<CasinoState | null>(null);
   const [bet, setBet] = useState(BET_MIN);
   const [reels, setReels] = useState<SymbolId[]>(['seven', 'galactic', 'pikachu']);
@@ -60,7 +63,7 @@ export default function SlotMachine({ identity, profile, onProfileChange }: Prop
     preloadCasinoIcons();
     fetchCasino()
       .then(setCasino)
-      .catch(() => setError('Sem conexão com o servidor.'));
+      .catch(() => setError(t('common.offline')));
     return () => timers.current.forEach(clearTimeout);
   }, []);
 
@@ -93,7 +96,7 @@ export default function SlotMachine({ identity, profile, onProfileChange }: Prop
       })
       .catch((err) => {
         setStopped(3);
-        setError(err instanceof TypeError ? 'Sem conexão com o servidor.' : err.message);
+        setError(err instanceof TypeError ? t('common.offline') : serverText(err.message, lang));
       });
   };
 
@@ -116,7 +119,7 @@ export default function SlotMachine({ identity, profile, onProfileChange }: Prop
           className="leaderboard-help-toggle"
           onClick={() => setHelpOpen((open) => !open)}
           aria-expanded={helpOpen}
-          aria-label="Como funciona o cassino"
+          aria-label={t('slots.helpAria')}
         >
           ?
         </button>
@@ -127,16 +130,16 @@ export default function SlotMachine({ identity, profile, onProfileChange }: Prop
           <table className="casino-table">
             <thead>
               <tr>
-                <th>Símbolo</th>
-                <th>3 iguais</th>
-                <th>2 iguais</th>
+                <th>{t('slots.symbol')}</th>
+                <th>{t('slots.threeOf')}</th>
+                <th>{t('slots.twoOf')}</th>
               </tr>
             </thead>
             <tbody>
               {SYMBOLS.map((s) => (
                 <tr key={s.id}>
                   <td>
-                    <CasinoIcon id={s.id} size={28} /> {s.label}
+                    <CasinoIcon id={s.id} size={28} /> {symbolLabel(s.id, lang)}
                   </td>
                   <td>{s.id === JACKPOT_SYMBOL ? 'Jackpot' : `${s.three}×`}</td>
                   <td>{s.pair ? `${s.pair}×` : '—'}</td>
@@ -144,16 +147,18 @@ export default function SlotMachine({ identity, profile, onProfileChange }: Prop
               ))}
             </tbody>
           </table>
+          <p>{t('slots.helpBets', { min: BET_MIN, max: BET_MAX, pct: pct(POT_CONTRIBUTION) })}</p>
           <p>
-            Os prêmios multiplicam a aposta (de {BET_MIN} a {BET_MAX}); a chance é a mesma em qualquer aposta.{' '}
-            {pct(POT_CONTRIBUTION)} de cada aposta vai para o <strong>pote acumulado</strong>.
+            <strong>{t('slots.helpJackpotTitle')}</strong>{' '}
+            {t('slots.helpJackpot', {
+              max: BET_MAX,
+              share: pct(POT_PAYOUT_SHARE),
+              min: BET_MIN,
+              minShare: pct(BET_MIN / BET_MAX),
+              floor: SYMBOLS_BY_ID.get(JACKPOT_SYMBOL)!.three,
+            })}
           </p>
-          <p>
-            <strong>Jackpot (três 7):</strong> quem aposta {BET_MAX} leva {pct(POT_PAYOUT_SHARE)} do pote;
-            apostas menores levam uma parte proporcional (aposta {BET_MIN} = {pct(BET_MIN / BET_MAX)} disso). O jackpot
-            nunca paga menos que {SYMBOLS_BY_ID.get(JACKPOT_SYMBOL)!.three}× a aposta. O resto do pote continua acumulando.
-          </p>
-          <p className="muted">Em média, volta cerca de 95% do que é apostado. Moedas não valem dinheiro real.</p>
+          <p className="muted">{t('slots.helpReturn')}</p>
         </div>
       )}
 
@@ -184,37 +189,37 @@ export default function SlotMachine({ identity, profile, onProfileChange }: Prop
         </button>
 
         <p className={`casino-result${result && result.prize > 0 ? ' win' : ''}`} aria-live="polite">
-          {result ? resultText(result) : spinning ? 'Girando...' : 'Boa sorte!'}
+          {result ? resultText(result, t, lang) : spinning ? t('slots.spinning') : t('slots.goodLuck')}
         </p>
       </div>
 
       {/* Painel de baixo: pote de um lado, saldo + aposta + Spin do outro. */}
       <div className="casino-panel">
         <div className="casino-side casino-pot">
-          <span className="casino-label">Pote acumulado</span>
+          <span className="casino-label">{t('slots.pot')}</span>
           {/* Valor no meio do quadrado, com o payout pequeno logo embaixo. */}
           <div className="casino-pot-main">
             <Coins amount={casino?.pot ?? 0} />
             {casino && (
               <span className="casino-pot-payout">
-                Payout jackpot: <strong>{coinsText(jackpotPrize(bet, casino.pot))}</strong>
+                {t('slots.payout')} <strong>{coinsText(jackpotPrize(bet, casino.pot), lang)}</strong>
               </span>
             )}
           </div>
           {casino?.lastWinner && (
             <span className="casino-hint casino-last">
-              Último: <strong>{casino.lastWinner.name}</strong> +{coinsText(casino.lastWinner.prize)} em{' '}
-              {new Date(casino.lastWinner.at).toLocaleDateString('pt-BR')}
+              {t('slots.last')} <strong>{casino.lastWinner.name}</strong> +{coinsText(casino.lastWinner.prize, lang)}{' '}
+              {t('slots.lastOn', { date: new Date(casino.lastWinner.at).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US') })}
             </span>
           )}
         </div>
 
         <div className="casino-side casino-wallet">
-          <span className="casino-label">Saldo</span>
+          <span className="casino-label">{t('slots.balance')}</span>
           <span className="casino-balance">
             <Coins amount={profile.coins} />
           </span>
-          <div className="casino-bet" aria-label="Aposta">
+          <div className="casino-bet" aria-label={t('slots.bet')}>
             <button className="shop-filter-option" onClick={() => changeBet(-BET_STEP)} disabled={spinning || bet <= BET_MIN}>
               −
             </button>
@@ -225,10 +230,10 @@ export default function SlotMachine({ identity, profile, onProfileChange }: Prop
               +
             </button>
             <button className="shop-filter-option" onClick={() => setBet(BET_MAX)} disabled={spinning || bet === BET_MAX}>
-              Máx
+              {t('slots.max')}
             </button>
           </div>
-          {profile.coins < bet && !spinning && <span className="casino-hint">Moedas insuficientes para essa aposta.</span>}
+          {profile.coins < bet && !spinning && <span className="casino-hint">{t('slots.notEnough')}</span>}
         </div>
       </div>
       {error && <p className="error casino-error">{error}</p>}

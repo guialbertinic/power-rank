@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { CharacterInfo } from '../game/types';
+import { useI18n } from '../i18n';
 import { tierClass, tierForPosition } from '../ui/tiers';
 import Avatar from './Avatar';
 import PowerCard from './PowerCard';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function PlayingScreen({ current, index, slots, onPlace }: Props) {
+  const { t } = useI18n();
   // Atalho: teclas 1-9 e 0 (= posição 10).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -30,7 +32,7 @@ export default function PlayingScreen({ current, index, slots, onPlace }: Props)
     <section className="playing">
       <div className="playing-card">
         <PowerCard key={current.id} character={current} badge={counter} />
-        <p className="hint">Teclas 1–9 · 0 = 10</p>
+        <p className="hint">{t('playing.keysHint')}</p>
       </div>
 
       <ol className="rank-slots">
@@ -40,7 +42,11 @@ export default function PlayingScreen({ current, index, slots, onPlace }: Props)
               className={`rank-slot ${tierClass(tierForPosition(i + 1))}${character ? ' filled' : ''}`}
               disabled={character !== null}
               onClick={() => onPlace(i)}
-              aria-label={character ? `Posição ${i + 1}: ${character.name}` : `Colocar na posição ${i + 1}`}
+              aria-label={
+                character
+                  ? t('playing.slotFilled', { n: i + 1, name: character.name })
+                  : t('playing.slotEmpty', { n: i + 1 })
+              }
             >
               <RankBadge position={i + 1} />
               <span className="rank-slot-body">

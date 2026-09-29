@@ -4,25 +4,26 @@ import { AVATAR_PRICE, avatarItemId, COSMETICS, type Cosmetic, type Profile } fr
 import type { CharacterInfo } from '../game/types';
 import type { Identity } from '../nick';
 import { POOL } from '../data';
+import { cosmeticLabel, serverText, useI18n, type Key } from '../i18n';
 import Avatar from './Avatar';
 import Coins from './Coins';
 import PlayerTag from './PlayerTag';
 
 type Tab = 'nameColor' | 'frame' | 'title' | 'avatar';
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'nameColor', label: 'Cor do nick' },
-  { id: 'frame', label: 'Moldura' },
-  { id: 'title', label: 'Título' },
-  { id: 'avatar', label: 'Avatar' },
+const TABS: { id: Tab; label: Key }[] = [
+  { id: 'nameColor', label: 'shop.tab.nameColor' },
+  { id: 'frame', label: 'shop.tab.frame' },
+  { id: 'title', label: 'shop.tab.title' },
+  { id: 'avatar', label: 'shop.tab.avatar' },
 ];
 
 type Filter = 'all' | 'owned' | 'missing';
 
-const FILTERS: { id: Filter; label: string }[] = [
-  { id: 'all', label: 'Todos' },
-  { id: 'owned', label: 'Obtidos' },
-  { id: 'missing', label: 'Não obtidos' },
+const FILTERS: { id: Filter; label: Key }[] = [
+  { id: 'all', label: 'shop.filter.all' },
+  { id: 'owned', label: 'shop.filter.owned' },
+  { id: 'missing', label: 'shop.filter.missing' },
 ];
 
 interface Props {
@@ -33,6 +34,7 @@ interface Props {
 
 /** Loja e personalização do perfil: compra com moedas e equipa o visual que aparece no ranking e na party. */
 export default function ShopScreen({ identity, profile, onProfileChange }: Props) {
+  const { t, lang } = useI18n();
   const [tab, setTab] = useState<Tab>('nameColor');
   const [confirming, setConfirming] = useState<string | null>(null);
   /** Item cuja compra/equipar está esperando o servidor: só o botão dele mostra o loading. */
@@ -49,7 +51,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
     try {
       onProfileChange(await action());
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Algo deu errado');
+      setError(err instanceof Error ? serverText(err.message, lang) : t('common.error'));
     } finally {
       setPending(null);
       setConfirming(null);
@@ -74,7 +76,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
           disabled={busy}
           aria-busy={pending === itemId}
         >
-          Equipado
+          {t('shop.equipped')}
         </button>
       );
     }
@@ -86,7 +88,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
           disabled={busy}
           aria-busy={pending === itemId}
         >
-          Equipar
+          {t('shop.equip')}
         </button>
       );
     }
@@ -97,9 +99,9 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
         onClick={() => buy(itemId)}
         disabled={busy || !affordable}
         aria-busy={pending === itemId}
-        title={affordable ? undefined : 'Moedas insuficientes'}
+        title={affordable ? undefined : t('shop.notEnough')}
       >
-        {confirming === itemId ? 'Confirmar?' : <Coins amount={price} />}
+        {confirming === itemId ? t('shop.confirm') : <Coins amount={price} />}
       </button>
     );
   };
@@ -114,7 +116,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
   const cosmeticItem = (c: Cosmetic) => (
     <li key={c.id} className="shop-item" data-label={c.label}>
       {c.slot === 'nameColor' ? (
-        <span className={`shop-color-sample cosmetic-${c.id}`}>{c.label}</span>
+        <span className={`shop-color-sample cosmetic-${c.id}`}>{cosmeticLabel(c, lang)}</span>
       ) : (
         <>
           <span className={`player-frame cosmetic-${c.id}`}>
@@ -122,10 +124,10 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
               <span className="shop-frame-empty" />
             </span>
           </span>
-          <span className="shop-item-label">{c.label}</span>
+          <span className="shop-item-label">{cosmeticLabel(c, lang)}</span>
         </>
       )}
-      {c.exclusive && <span className="shop-exclusive">Exclusivo</span>}
+      {c.exclusive && <span className="shop-exclusive">{t('shop.exclusive')}</span>}
       {button(c)}
     </li>
   );
@@ -134,8 +136,8 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
   const titleRow = (c: Cosmetic) => (
     <li key={c.id} className="shop-row" data-label={c.label}>
       <span className="shop-title-text">
-        {c.label}
-        {c.exclusive && <span className="shop-exclusive">Exclusivo</span>}
+        {cosmeticLabel(c, lang)}
+        {c.exclusive && <span className="shop-exclusive">{t('shop.exclusive')}</span>}
       </span>
       {button(c)}
     </li>
@@ -147,7 +149,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
     const items = COSMETICS.filter((c) => c.slot === slot && visible(c.id) && (!c.exclusive || owned.has(c.id))).sort(
       (a, b) => Number(Boolean(a.exclusive)) - Number(Boolean(b.exclusive)) || a.price - b.price,
     );
-    if (!items.length) return <p className="muted shop-empty">Nenhum item aqui.</p>;
+    if (!items.length) return <p className="muted shop-empty">{t('shop.emptyItems')}</p>;
     if (slot !== 'title') return <ol className="shop-list">{items.map(cosmeticItem)}</ol>;
     const groups = [...new Set(items.map((c) => c.group))];
     return groups.map((group) => (
@@ -185,22 +187,22 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
         <p className="shop-balance">
           <Coins amount={profile.coins} />
         </p>
-        <p className="muted shop-hint">Ganhe moedas fazendo 500+ pontos. O visual aparece no ranking e na party.</p>
+        <p className="muted shop-hint">{t('shop.hint')}</p>
       </div>
 
       <div className="shop-tabs" role="tablist">
-        {TABS.map((t) => (
+        {TABS.map((item) => (
           <button
-            key={t.id}
+            key={item.id}
             role="tab"
-            aria-selected={tab === t.id}
-            className={`mode-option${tab === t.id ? ' selected' : ''}`}
+            aria-selected={tab === item.id}
+            className={`mode-option${tab === item.id ? ' selected' : ''}`}
             onClick={() => {
-              setTab(t.id);
+              setTab(item.id);
               setConfirming(null);
             }}
           >
-            {t.label}
+            {t(item.label)}
           </button>
         ))}
       </div>
@@ -208,7 +210,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
       {error && <p className="error shop-error">{error}</p>}
 
       <div className="panel">
-        <div className="shop-filter" role="radiogroup" aria-label="Mostrar">
+        <div className="shop-filter" role="radiogroup" aria-label={t('shop.filter.aria')}>
           {FILTERS.map((f) => (
             <button
               key={f.id}
@@ -217,7 +219,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
               className={`shop-filter-option${filter === f.id ? ' selected' : ''}`}
               onClick={() => setFilter(f.id)}
             >
-              {f.label}
+              {t(f.label)}
             </button>
           ))}
         </div>
@@ -227,13 +229,13 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
               className="shop-search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={`Buscar entre ${POOL.length} personagens`}
-              aria-label="Buscar personagem"
+              placeholder={t('shop.search', { n: POOL.length })}
+              aria-label={t('shop.searchAria')}
             />
             {avatars.length ? (
               <ol className="shop-avatars">{avatars.map(avatarItem)}</ol>
             ) : (
-              <p className="muted shop-empty">Nenhum personagem aqui.</p>
+              <p className="muted shop-empty">{t('shop.emptyAvatars')}</p>
             )}
           </>
         ) : (

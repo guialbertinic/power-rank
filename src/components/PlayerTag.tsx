@@ -1,4 +1,5 @@
 import { cosmeticById, type Look } from '../game/cosmetics';
+import { cosmeticLabel, useI18n } from '../i18n';
 import { POOL_BY_ID } from '../data';
 import { fallbackBackground, initials } from '../ui/fallback';
 import Avatar from './Avatar';
@@ -18,7 +19,9 @@ interface Props {
  */
 export default function PlayerTag({ name, look, size = 28, avatarOnly }: Props) {
   const character = look.avatar ? POOL_BY_ID.get(look.avatar) : undefined;
-  const title = look.title ? cosmeticById(look.title)?.label : undefined;
+  const { lang } = useI18n();
+  const titleItem = look.title ? cosmeticById(look.title) : undefined;
+  const title = titleItem ? cosmeticLabel(titleItem, lang) : undefined;
 
   const avatar = (
     <span className={`player-frame${look.frame ? ` cosmetic-${look.frame}` : ''}`}>

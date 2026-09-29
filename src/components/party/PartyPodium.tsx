@@ -1,5 +1,6 @@
 import { podiumOrder, type PartyPlayer, type PartyState } from '../../game/party';
-import { MAX_SCORE, rankTitle } from '../../game/scoring';
+import { MAX_SCORE, rankLevel } from '../../game/scoring';
+import { useI18n } from '../../i18n';
 import type { CharacterInfo } from '../../game/types';
 import Coins from '../Coins';
 import PlayerTag from '../PlayerTag';
@@ -24,6 +25,7 @@ const STEPS = [
 
 /** Resultado da rodada: pódio, classificação completa e a comparação do próprio ranking. */
 export default function PartyPodium({ state, you, charactersById, onRestart, onLeave }: Props) {
+  const { t } = useI18n();
   const [restarting, restart] = usePendingClick();
   const ranking = podiumOrder(state.players);
   const unfinished = state.players.filter((p) => !p.finished);
@@ -36,7 +38,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
 
   return (
     <section className="party party-podium">
-      <div className="podium" role="list" aria-label="Pódio">
+      <div className="podium" role="list" aria-label={t('podium.aria')}>
         {STEPS.map(({ place, className }) => {
           const player = step(place);
           if (!player) return <div key={place} className={`podium-step ${className} empty`} />;
@@ -46,7 +48,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
               <span className="podium-name">{player.name}</span>
               <span className="podium-score">{player.score}</span>
               <div className="podium-block">
-                <span className="podium-place">{place}º</span>
+                <span className="podium-place">{t(`podium.place${place as 1 | 2 | 3}`)}</span>
               </div>
             </div>
           );
@@ -54,7 +56,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
       </div>
 
       <div className="panel">
-        <h3 className="section-title">Classificação · rodada {state.round}</h3>
+        <h3 className="section-title">{t('podium.standings', { n: state.round })}</h3>
         <ol className="row-list">
           {ranking.map((p, i) => (
             <li
@@ -64,7 +66,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
               <RankBadge position={i + 1} small />
               <span className="row-name">
                 <PlayerTag name={p.name} look={p.look} />
-                {!p.connected && <span className="party-tag party-tag-left">saiu</span>}
+                {!p.connected && <span className="party-tag party-tag-left">{t('podium.left')}</span>}
               </span>
               <span className="row-score">{p.score}</span>
             </li>
@@ -73,7 +75,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
             <li key={p.id} className="row row-leader party-player offline">
               <span className="party-player-index">–</span>
               <span className="row-name">{p.name}</span>
-              <span className="party-status">não terminou</span>
+              <span className="party-status">{t('podium.unfinished')}</span>
             </li>
           ))}
         </ol>
@@ -81,18 +83,18 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
 
       {me?.finished && me.score !== undefined && (
         <div className="panel score-panel">
-          <p className="score-label">{myPlace ? `Você ficou em ${myPlace}º` : 'Sua pontuação'}</p>
+          <p className="score-label">{myPlace ? t('podium.yourPlace', { n: myPlace }) : t('podium.yourScore')}</p>
           <p className="score-value">
             {me.score}
             <span>/{MAX_SCORE}</span>
           </p>
-          <p className="title-badge">{rankTitle(me.score)}</p>
+          <p className="title-badge">{t(`rank.${rankLevel(me.score)}`)}</p>
           <p className="coins-earned">
             {me.guest
-              ? 'Crie uma conta para entrar no ranking e ganhar moedas'
+              ? t('coins.guest')
               : me.coinsEarned
                 ? <Coins amount={me.coinsEarned} prefix="+" />
-                : 'Faça 500+ pontos para ganhar moedas'}
+                : t('coins.min')}
           </p>
         </div>
       )}
@@ -105,13 +107,13 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
             disabled={restarting}
             aria-busy={restarting}
           >
-            Nova partida
+            {t('podium.next')}
           </button>
         ) : (
-          <p className="party-waiting-text">Aguardando o dono iniciar a próxima...</p>
+          <p className="party-waiting-text">{t('podium.waitingHost')}</p>
         )}
         <button className="link-button" onClick={onLeave}>
-          Sair da sala
+          {t('party.leave')}
         </button>
       </div>
 

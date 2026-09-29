@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { CharacterInfo } from '../../game/types';
+import { serverText, useI18n } from '../../i18n';
 import { usePartyRoom } from '../../party/usePartyRoom';
 import PartyLobby from './PartyLobby';
 import PartyPlay from './PartyPlay';
@@ -17,6 +18,7 @@ interface Props {
 
 /** Party (multiplayer): conecta na sala e mostra lobby → partida → espera → pódio conforme o estado da sala. */
 export default function PartyScreen({ code, pid, nick, token, charactersById, onExit }: Props) {
+  const { t, lang } = useI18n();
   const { state, you, status, fatalError, notice, send, leave } = usePartyRoom(code, pid, nick, token);
   // Ao completar o ranking, já mostra a espera sem aguardar a confirmação da sala.
   const [finishedRound, setFinishedRound] = useState(0);
@@ -35,9 +37,9 @@ export default function PartyScreen({ code, pid, nick, token, charactersById, on
     return (
       <section className="party">
         <div className="panel party-message">
-          <p className="party-waiting-title">{fatalError}</p>
+          <p className="party-waiting-title">{serverText(fatalError, lang)}</p>
           <button className="btn btn-primary" onClick={onExit}>
-            Voltar
+            {t('party.back')}
           </button>
         </div>
       </section>
@@ -48,7 +50,7 @@ export default function PartyScreen({ code, pid, nick, token, charactersById, on
     return (
       <section className="party">
         <div className="panel party-message">
-          <p className="party-waiting-title">Entrando na sala {code}...</p>
+          <p className="party-waiting-title">{t('party.joining', { code })}</p>
           <span className="party-spinner" aria-hidden="true" />
         </div>
       </section>
@@ -89,8 +91,8 @@ export default function PartyScreen({ code, pid, nick, token, charactersById, on
 
   return (
     <>
-      {status === 'reconnecting' && <p className="party-banner">Reconectando...</p>}
-      {notice && <p className="party-banner party-banner-notice">{notice}</p>}
+      {status === 'reconnecting' && <p className="party-banner">{t('party.reconnecting')}</p>}
+      {notice && <p className="party-banner party-banner-notice">{serverText(notice, lang)}</p>}
       {screen}
     </>
   );

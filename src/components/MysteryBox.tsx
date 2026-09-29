@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { equipItem, openBox, type BoxResult } from '../api';
 import { characterIdOfAvatar, cosmeticById, type Profile } from '../game/cosmetics';
 import { BOX_PRICE, COMMON_AVATAR_CHANCE, GACHA_POOLS, RARITIES, RARITIES_BY_ID } from '../game/gacha';
+import { cosmeticLabel, serverText, useI18n } from '../i18n';
 import type { Identity } from '../nick';
 import { POOL_BY_ID } from '../data';
 import Avatar from './Avatar';
@@ -22,13 +23,14 @@ type Phase = 'idle' | 'opening' | 'revealed';
 
 /** Prévia do item sorteado: avatar, nome da cor com o efeito, moldura vazia ou o texto do título. */
 function ItemPreview({ itemId }: { itemId: string }) {
+  const { t, lang } = useI18n();
   const characterId = characterIdOfAvatar(itemId);
   if (characterId !== null) {
     const character = POOL_BY_ID.get(characterId);
     return (
       <div className="gacha-item">
         {character && <Avatar character={character} size={96} />}
-        <span className="gacha-item-name">Avatar · {character?.name ?? characterId}</span>
+        <span className="gacha-item-name">{t('box.avatar', { name: character?.name ?? characterId })}</span>
       </div>
     );
   }
@@ -37,8 +39,8 @@ function ItemPreview({ itemId }: { itemId: string }) {
   if (item.slot === 'nameColor') {
     return (
       <div className="gacha-item">
-        <span className={`shop-color-sample gacha-color cosmetic-${item.id}`}>{item.label}</span>
-        <span className="gacha-item-name">Cor do nick</span>
+        <span className={`shop-color-sample gacha-color cosmetic-${item.id}`}>{cosmeticLabel(item, lang)}</span>
+        <span className="gacha-item-name">{t('shop.tab.nameColor')}</span>
       </div>
     );
   }
@@ -50,14 +52,14 @@ function ItemPreview({ itemId }: { itemId: string }) {
             <span className="shop-frame-empty gacha-frame-empty" />
           </span>
         </span>
-        <span className="gacha-item-name">Moldura · {item.label}</span>
+        <span className="gacha-item-name">{t('box.frame', { name: cosmeticLabel(item, lang) })}</span>
       </div>
     );
   }
   return (
     <div className="gacha-item">
-      <span className="gacha-title">{item.label}</span>
-      <span className="gacha-item-name">Título</span>
+      <span className="gacha-title">{cosmeticLabel(item, lang)}</span>
+      <span className="gacha-item-name">{t('shop.tab.title')}</span>
     </div>
   );
 }
@@ -67,6 +69,7 @@ function ItemPreview({ itemId }: { itemId: string }) {
  * espera, abre na cor da raridade e mostra o item (ou as moedas devolvidas, se já era seu).
  */
 export default function MysteryBox({ identity, profile, onProfileChange }: Props) {
+  const { t, lang } = useI18n();
   const [phase, setPhase] = useState<Phase>('idle');
   const [result, setResult] = useState<BoxResult | null>(null);
   const [equipped, setEquipped] = useState(false);
@@ -96,7 +99,7 @@ export default function MysteryBox({ identity, profile, onProfileChange }: Props
       })
       .catch((err) => {
         setPhase('idle');
-        setError(err instanceof TypeError ? 'Sem conexão com o servidor.' : err.message);
+        setError(err instanceof TypeError ? t('common.offline') : serverText(err.message, lang));
       });
   };
 
@@ -109,7 +112,7 @@ export default function MysteryBox({ identity, profile, onProfileChange }: Props
         onProfileChange(p);
         setEquipped(true);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Não foi possível equipar'))
+      .catch((err) => setError(err instanceof Error ? serverText(err.message, lang) : t('box.equipError')))
       .finally(() => setEquipping(false));
   };
 
@@ -124,7 +127,7 @@ export default function MysteryBox({ identity, profile, onProfileChange }: Props
           className="leaderboard-help-toggle"
           onClick={() => setHelpOpen((open) => !open)}
           aria-expanded={helpOpen}
-          aria-label="Como funciona a Mystery Box"
+          aria-label={t('box.helpAria')}
         >
           ?
         </button>
@@ -135,38 +138,35 @@ export default function MysteryBox({ identity, profile, onProfileChange }: Props
           <table className="casino-table">
             <thead>
               <tr>
-                <th>Raridade</th>
-                <th>Chance</th>
-                <th>O que sai</th>
+                <th>{t('box.rarity')}</th>
+                <th>{t('box.chance')}</th>
+                <th>{t('box.drops')}</th>
               </tr>
             </thead>
             <tbody>
               {RARITIES.map((r) => (
                 <tr key={r.id}>
                   <td>
-                    <span className={`gacha-dot rarity-${r.id}`} /> {r.label}
+                    <span className={`gacha-dot rarity-${r.id}`} /> {t(`rarity.${r.id}`)}
                   </td>
                   <td>{pct(r.chance)}</td>
                   <td>
                     {r.id === 'common'
-                      ? 'Itens até 149 ou avatar'
+                      ? t('box.dropsCommon')
                       : r.id === 'rare'
-                        ? 'Itens de 150 a 349'
+                        ? t('box.dropsRare')
                         : r.id === 'epic'
-                          ? 'Itens de 350+'
-                          : 'Exclusivos'}
+                          ? t('box.dropsEpic')
+                          : t('box.dropsLegendary')}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <p>{t('box.helpPrice', { price: BOX_PRICE, pct: pct(COMMON_AVATAR_CHANCE) })}</p>
           <p>
-            Cada caixa custa {BOX_PRICE}. Na raridade comum, {pct(COMMON_AVATAR_CHANCE)} das vezes sai um avatar de
-            personagem. Se o item já for seu, você recebe <strong>metade do preço dele em moedas</strong> (lendário
-            repetido: 300).
-          </p>
-          <p>
-            <strong>Exclusivos</strong> (não estão à venda na loja): {exclusives.map((c) => c.label).join(', ')}.
+            <strong>{t('box.dropsLegendary')}</strong>{' '}
+            {t('box.helpExclusives', { list: exclusives.map((c) => cosmeticLabel(c, lang)).join(', ') })}
           </p>
         </div>
       )}
@@ -174,11 +174,11 @@ export default function MysteryBox({ identity, profile, onProfileChange }: Props
       <div className="gacha-stage">
         {phase === 'revealed' && result && rarity ? (
           <div className={`gacha-reveal rarity-${result.rarity}`} aria-live="polite">
-            <span className="gacha-rarity">{rarity.label}</span>
+            <span className="gacha-rarity">{t(`rarity.${rarity.id}`)}</span>
             <ItemPreview itemId={result.itemId} />
             {result.duplicate ? (
               <p className="gacha-duplicate">
-                Você já tinha esse item: <Coins amount={result.refund} prefix="+" />
+                {t('box.duplicate')} <Coins amount={result.refund} prefix="+" />
               </p>
             ) : (
               <button
@@ -187,7 +187,7 @@ export default function MysteryBox({ identity, profile, onProfileChange }: Props
                 disabled={equipped || equipping}
                 aria-busy={equipping}
               >
-                {equipped ? 'Equipado!' : 'Equipar agora'}
+                {equipped ? t('box.equipped') : t('box.equipNow')}
               </button>
             )}
           </div>
@@ -200,13 +200,13 @@ export default function MysteryBox({ identity, profile, onProfileChange }: Props
 
       <div className="gacha-controls">
         <button className="btn btn-primary btn-lg gacha-open" onClick={onOpen} disabled={!canOpen}>
-          {phase === 'revealed' ? 'Abrir outra' : 'Abrir'} · <Coins amount={BOX_PRICE} />
+          {phase === 'revealed' ? t('box.openAnother') : t('box.open')} · <Coins amount={BOX_PRICE} />
         </button>
         <span className="casino-hint">
-          Saldo: <Coins amount={profile.coins} />
+          {t('box.balance')} <Coins amount={profile.coins} />
         </span>
         {profile.coins < BOX_PRICE && phase !== 'opening' && (
-          <span className="casino-hint">Moedas insuficientes para abrir uma caixa.</span>
+          <span className="casino-hint">{t('box.notEnough')}</span>
         )}
       </div>
       {error && <p className="error casino-error">{error}</p>}

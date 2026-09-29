@@ -36,7 +36,9 @@ npm run db:migrate:local
 
 ## Regras de trabalho
 
-- Interface, comentários e textos em **português**; nomes de código em inglês. Commits com a linha
+- Comentários em **português**; nomes de código em inglês. **Textos da tela nunca fixos no componente:** `t('chave')` de
+  `src/i18n` (`useI18n`), com a chave em `pt.ts` **e** `en.ts`; nomes do catálogo em inglês em `i18n/catalog.ts`;
+  mensagem nova do servidor (sempre em português) ganha tradução em `i18n/server.ts`. Commits com a linha
   `Co-Authored-By` pedida pelo harness.
 - **Produção é do usuário:** qualquer comando `--remote` (migração, rescore, SQL) ele roda. Push só quando pedir.
   Depois do push, não acompanhar o deploy. Mudança de schema: `migrations/000N_*.sql`, aplicar local, e avisar que

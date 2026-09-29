@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { nickStatus, renameNick } from '../api';
+import { serverText, useI18n } from '../i18n';
 import { NICK_MAX_LENGTH, sameNick, type Identity } from '../nick';
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
  * - convidado: só passa a usar outro nick, desde que não seja de uma conta.
  */
 export default function ChangeNick({ identity, onChanged }: Props) {
+  const { t, lang } = useI18n();
   const [open, setOpen] = useState(false);
   const [nick, setNick] = useState(identity.name);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export default function ChangeNick({ identity, onChanged }: Props) {
           setOpen(true);
         }}
       >
-        Trocar nick
+        {t('changeNick.title')}
       </button>
     );
   }
@@ -37,7 +39,7 @@ export default function ChangeNick({ identity, onChanged }: Props) {
     if (identity.token) return onChanged({ name: await renameNick(identity.token, name), token: identity.token });
     // Convidado: o mesmo nick com outras maiúsculas é sempre dele; outro nick precisa estar livre de contas.
     if (!sameNick(name, identity.name) && (await nickStatus(name)).exists) {
-      throw new Error('Esse nick é de uma conta. Escolha outro.');
+      throw new Error(t('changeNick.taken'));
     }
     onChanged({ name, token: null });
   };
@@ -50,18 +52,18 @@ export default function ChangeNick({ identity, onChanged }: Props) {
     setError(null);
     change(name)
       .then(() => setOpen(false))
-      .catch((err) => setError(err instanceof TypeError ? 'Sem conexão com o servidor.' : err.message))
+      .catch((err) => setError(err instanceof TypeError ? t('common.offline') : serverText(err.message, lang)))
       .finally(() => setBusy(false));
   };
 
   return (
     <form className="change-nick" onSubmit={onSubmit}>
-      <p className="score-label">Trocar nick</p>
+      <p className="score-label">{t('changeNick.title')}</p>
       <input
         value={nick}
         onChange={(e) => setNick(e.target.value)}
         maxLength={NICK_MAX_LENGTH}
-        aria-label="Novo nick"
+        aria-label={t('changeNick.newNick')}
         autoComplete="off"
         spellCheck={false}
         autoFocus
@@ -69,10 +71,10 @@ export default function ChangeNick({ identity, onChanged }: Props) {
       />
       <div className="change-nick-actions">
         <button className="btn btn-primary btn-sm" disabled={busy || !nick.trim()} aria-busy={busy}>
-          Salvar
+          {t('common.save')}
         </button>
         <button type="button" className="link-button" onClick={() => setOpen(false)} disabled={busy}>
-          Cancelar
+          {t('common.cancel')}
         </button>
       </div>
       {error && <p className="error">{error}</p>}

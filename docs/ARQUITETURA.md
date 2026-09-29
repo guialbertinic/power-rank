@@ -29,6 +29,19 @@ src/styles/tokens.css     design tokens · src/styles.css componentes
 src/ui/                   tiers (posição/poder → cor), fallback (URL de imagem, preload, iniciais)
 ```
 
+## Idiomas (`src/i18n`)
+
+- Português e inglês. `I18nProvider` (raiz do App) + `useI18n()` → `t(chave, { variáveis })`, `lang`, `setLang`.
+  `pt.ts` é a base (tipo `Key`); `en.ts` precisa ter todas as chaves (erro de TypeScript se faltar).
+- Idioma: salvo no navegador (`power-rank:lang`); na primeira visita, o do navegador (pt* → português, resto →
+  inglês). Troca no menu de configurações (engrenagem, `SettingsMenu`: canto superior esquerdo; no celular, botão
+  flutuante embaixo à direita). `<html lang>` acompanha.
+- Nomes do catálogo (cores, molduras, títulos, símbolos do cassino) em inglês por id em `i18n/catalog.ts`
+  (`cosmeticLabel`, `symbolLabel`); raridades e títulos do resultado (`rankLevel`) viram chaves.
+- O servidor responde em português; `serverText(mensagem, lang)` traduz pela tabela de `i18n/server.ts` (exatas +
+  padrões com variável). Mensagem sem tradução aparece em português.
+- Nomes de personagens e obras não são traduzidos. Os e2e começam em português (`lib.mjs` grava o idioma).
+
 ## Segurança (`server/security.ts`)
 
 - **Limite por IP** (bindings `RL_AUTH` 20/min, `RL_PLAY` 60/min, `RL_CASINO` 60/min no `wrangler.jsonc`): conta,

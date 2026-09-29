@@ -2949,6 +2949,79 @@ input:focus {
 
 /* ---------- Barra de perfil (canto superior direito da home) ---------- */
 
+/* ---------- Configurações (engrenagem): canto superior esquerdo; no celular, botão flutuante embaixo ---------- */
+
+.settings {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 30;
+}
+
+.settings-toggle {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  color: var(--text-2);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+.settings-toggle:hover,
+.settings-toggle[aria-expanded='true'] {
+  border-color: var(--tier-a);
+  color: var(--text);
+}
+
+.settings-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  display: grid;
+  gap: 8px;
+  width: 240px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.settings-label {
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.settings-langs {
+  display: flex;
+  gap: 6px;
+}
+
+@media (max-width: 760px) {
+  .settings {
+    position: fixed;
+    top: auto;
+    left: auto;
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .settings-toggle {
+    width: 44px;
+    height: 44px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Abre para cima, alinhado à direita. */
+  .settings-panel {
+    top: auto;
+    bottom: calc(100% + 8px);
+    left: auto;
+    right: 0;
+  }
+}
+
 .profile-bar {
   position: absolute;
   top: 16px;

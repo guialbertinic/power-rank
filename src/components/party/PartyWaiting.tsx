@@ -1,4 +1,5 @@
 import type { PartyState } from '../../game/party';
+import { useI18n } from '../../i18n';
 import { usePendingClick } from '../../ui/usePendingClick';
 import PlayerList from './PlayerList';
 
@@ -11,6 +12,7 @@ interface Props {
 
 /** Depois de terminar: acompanha o progresso de quem ainda está jogando. O dono pode encerrar. */
 export default function PartyWaiting({ state, you, onEnd, onLeave }: Props) {
+  const { t } = useI18n();
   const [ending, end] = usePendingClick();
   const isHost = state.hostId === you;
   // Você já terminou, mesmo que a confirmação da sala ainda não tenha chegado.
@@ -19,26 +21,26 @@ export default function PartyWaiting({ state, you, onEnd, onLeave }: Props) {
   return (
     <section className="party party-waiting">
       <div className="panel party-waiting-panel">
-        <p className="score-label">Você terminou</p>
+        <p className="score-label">{t('waiting.done')}</p>
         <p className="party-waiting-title">
-          {stillPlaying === 1 ? 'Esperando 1 jogador' : `Esperando ${stillPlaying} jogadores`}
+          {stillPlaying === 1 ? t('waiting.one') : t('waiting.many', { n: stillPlaying })}
         </p>
         <span className="party-spinner" aria-hidden="true" />
       </div>
 
       <div className="panel">
-        <h3 className="section-title">Progresso</h3>
+        <h3 className="section-title">{t('waiting.progress')}</h3>
         <PlayerList state={state} you={you} />
       </div>
 
       <div className="party-actions">
         {isHost && (
           <button className="btn btn-secondary" onClick={() => end(onEnd)} disabled={ending} aria-busy={ending}>
-            Encerrar e mostrar pódio
+            {t('waiting.end')}
           </button>
         )}
         <button className="link-button" onClick={onLeave}>
-          Sair da sala
+          {t('party.leave')}
         </button>
       </div>
     </section>

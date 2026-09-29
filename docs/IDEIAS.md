@@ -17,7 +17,7 @@ Objetivo: **abrir o site para pessoas testarem**. Na ordem:
 |---|---|---|---|---|
 | 1 | Personagens no banco + tirar o `power` do código do site | Arquitetura | 🟡 | ✅ |
 | 2 | Segurança para teste aberto (rate limit, cabeçalhos, anti-bot, nicks, placar honesto) | Arquitetura | 🟡 | ✅ |
-| 3 | Tradução para inglês + menu de configurações com idioma | Feature | 🟡 | 🚧 |
+| 3 | Tradução para inglês + menu de configurações com idioma | Feature | 🟡 | ✅ |
 
 Quick wins logo depois: trocar os sprites do cassino por arte própria · termos de uso e privacidade · botão
 "Apoie" (Patreon) · trava 18+ no cassino · compartilhar resultado.
@@ -110,13 +110,13 @@ ginásio chega**, se passa pela Liga/Elite 4 e se vence o jogo.
 
 ## Idioma e configurações
 
-### 🚧 Tradução para inglês · `Feature` 🟡
+### ✅ Tradução para inglês · `Feature` 🟡
 - Toda a interface em **português e inglês** (textos das telas, mensagens de erro, "?" das regras, loja, cassino).
 - **Menu de configurações** (engrenagem na barra de perfil e na tela do nick) com o seletor de idioma; lembra a
   escolha no navegador. Primeira visita: idioma do navegador (`pt*` → português, o resto → inglês).
 - Nomes de personagens e obras ficam como estão (já são nomes próprios); nomes de cosméticos e títulos da loja são
   traduzidos.
-- Mensagens do servidor viram códigos (ex: `nick_taken`) traduzidos na tela, para o servidor não depender do idioma.
+- Mensagens do servidor: o servidor continua em português e o site traduz por uma tabela (`src/i18n/server.ts`).
 - Depois: título e descrição da página (SEO) por idioma; o próprio menu de configurações pode ganhar som, "reduzir
   animações" e "modo gravação".
 

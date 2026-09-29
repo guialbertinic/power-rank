@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import type { Mode } from '../game/modes';
 import { isPartyCode, normalizePartyCode, PARTY_CODE_LENGTH } from '../game/party';
+import { serverText, useI18n } from '../i18n';
 import type { Identity } from '../nick';
 import Leaderboard from './Leaderboard';
 
@@ -23,6 +24,7 @@ interface Props {
 /** Home: SOLO / PARTY e o ranking da categoria escolhida no título (o perfil fica na ProfileBar, no canto). */
 export default function IntroScreen(props: Props) {
   const { identity, mode, canStart, busy, onSolo, onCreateParty, onJoinParty, partyError, soloError } = props;
+  const { t, lang } = useI18n();
   const [partyOpen, setPartyOpen] = useState(false);
   const [code, setCode] = useState('');
 
@@ -51,20 +53,20 @@ export default function IntroScreen(props: Props) {
           Party
         </button>
       </div>
-      {soloError && <p className="error">{soloError}</p>}
+      {soloError && <p className="error">{serverText(soloError, lang)}</p>}
 
       {partyOpen && (
         <div className="panel party-entry">
           <button className="btn btn-secondary" onClick={onCreateParty} disabled={busy || !canStart} aria-busy={busy}>
-            Criar sala
+            {t('intro.createRoom')}
           </button>
-          <span className="party-entry-or">ou entre com o código</span>
+          <span className="party-entry-or">{t('intro.orCode')}</span>
           <form className="party-join" onSubmit={onJoin}>
             <input
               value={code}
               onChange={(e) => setCode(normalizePartyCode(e.target.value))}
-              placeholder="CÓDIGO"
-              aria-label="Código da sala"
+              placeholder={t('intro.codePlaceholder')}
+              aria-label={t('intro.codeAria')}
               maxLength={PARTY_CODE_LENGTH}
               autoCapitalize="characters"
               autoComplete="off"
@@ -72,10 +74,10 @@ export default function IntroScreen(props: Props) {
               disabled={busy}
             />
             <button className="btn btn-secondary" disabled={busy || !isPartyCode(code)}>
-              Entrar
+              {t('intro.join')}
             </button>
           </form>
-          {partyError && <p className="error">{partyError}</p>}
+          {partyError && <p className="error">{serverText(partyError, lang)}</p>}
         </div>
       )}
 

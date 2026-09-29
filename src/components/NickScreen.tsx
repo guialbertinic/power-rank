@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { claimNick, nickStatus } from '../api';
 import { passwordProblem, PASSWORD_MAX_LENGTH } from '../game/account';
 import { NICK_MAX_LENGTH, suggestedNick, tokenFor, type Identity } from '../nick';
+import { serverText, useI18n } from '../i18n';
 import Turnstile from './Turnstile';
 
 interface Props {
@@ -27,6 +28,7 @@ type Step =
  * "Sincronizar dispositivo", na home.
  */
 export default function NickScreen({ inviteCode, reason, onDone }: Props) {
+  const { t, lang } = useI18n();
   const [step, setStep] = useState<Step>({ kind: 'nick' });
   const [nick, setNick] = useState(suggestedNick);
   const [password, setPassword] = useState('');
@@ -48,7 +50,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
     setPending(button);
     setError(null);
     action()
-      .catch(() => setError('Sem conexão com o servidor. Tente de novo.'))
+      .catch(() => setError(t('common.offlineRetry')))
       .finally(() => setPending(null));
   };
 
@@ -74,7 +76,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
     if (!name) return;
     run('login', async () => {
       const status = await nickStatus(name);
-      if (!status.exists) return status.problem ? setError(status.problem) : goTo({ kind: 'create', name });
+      if (!status.exists) return status.problem ? setError(serverText(status.problem, lang)) : goTo({ kind: 'create', name });
       if (await tryStoredToken(name)) return;
       goTo(status.hasPassword ? { kind: 'login', name } : { kind: 'no-password', name });
     });
@@ -85,9 +87,9 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
     if (!name) return;
     run('guest', async () => {
       const status = await nickStatus(name);
-      if (!status.exists) return status.problem ? setError(status.problem) : onDone({ name, token: null });
+      if (!status.exists) return status.problem ? setError(serverText(status.problem, lang)) : onDone({ name, token: null });
       if (await tryStoredToken(name)) return;
-      setError('Esse nick já está em uso.');
+      setError(t('nick.inUse'));
     });
   };
 
@@ -95,14 +97,14 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
     e.preventDefault();
     if (step.kind !== 'login' && step.kind !== 'create') return;
     if (step.kind === 'create') {
-      const problem = passwordProblem(password) ?? (password !== confirm ? 'As senhas não são iguais' : null);
-      if (problem) return setError(problem);
+      const problem = passwordProblem(password) ?? (password !== confirm ? t('password.mismatch') : null);
+      if (problem) return setError(serverText(problem, lang));
     }
     const { name } = step;
     run('password', async () => {
       const result = await claimNick(name, null, password, turnstileToken);
       if (result.ok) return onDone({ name: result.name, token: result.token });
-      setError(result.taken ? 'Esse nick acabou de virar conta de outra pessoa. Escolha outro.' : result.error);
+      setError(result.taken ? t('nick.justTaken') : serverText(result.error, lang));
       // O token do anti-bot vale uma vez só: gera outro para a próxima tentativa.
       if (step.kind === 'create') resetTurnstile();
     });
@@ -110,7 +112,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
 
   const back = (
     <button className="link-button" onClick={() => goTo({ kind: 'nick' })} disabled={busy}>
-      Voltar
+      {t('common.back')}
     </button>
   );
 
@@ -124,14 +126,14 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
       placeholder={label}
       aria-label={label}
       autoComplete={autoComplete}
-      autoFocus={label === 'Senha'}
+      autoFocus={label === t('password.placeholder')}
       disabled={busy}
     />
   );
 
   const invite = inviteCode && (
     <p className="nick-screen-invite">
-      Você foi convidado para a sala <strong>{inviteCode}</strong>
+      {t('nick.invited')} <strong>{inviteCode}</strong>
     </p>
   );
 
@@ -140,30 +142,31 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
     return (
       <section className="panel nick-screen">
         {invite}
-        <p className="score-label">{creating ? 'Criar conta' : 'Entrar'}</p>
+        <p className="score-label">{creating ? t('nick.createTitle') : t('nick.loginTitle')}</p>
         <p className="nick-screen-text">
           {creating ? (
             <>
-              <strong>{step.name}</strong> está livre. Crie uma senha para logar em outros dispositivos.
+              <strong>{step.name}</strong>
+              {t('nick.freeAfter')}
             </>
           ) : (
             <>
-              Digite a senha de <strong>{step.name}</strong>.
+              {t('nick.passwordFor')} <strong>{step.name}</strong>.
             </>
           )}
         </p>
         <form className="nick-screen-form" onSubmit={onPassword}>
           {/* Campo de usuário escondido: ajuda o gerenciador de senhas a salvar o par nick + senha. */}
           <input type="text" value={step.name} autoComplete="username" readOnly hidden />
-          {passwordInput(password, setPassword, 'Senha', creating ? 'new-password' : 'current-password')}
-          {creating && passwordInput(confirm, setConfirm, 'Confirmar senha', 'new-password')}
+          {passwordInput(password, setPassword, t('password.placeholder'), creating ? 'new-password' : 'current-password')}
+          {creating && passwordInput(confirm, setConfirm, t('password.confirm'), 'new-password')}
           {creating && <Turnstile key={turnstileKey} onToken={setTurnstileToken} onReady={setTurnstileRequired} />}
           <button
             className="btn btn-primary btn-lg"
             disabled={busy || !password || (creating && (!confirm || (turnstileRequired !== false && !turnstileToken)))}
             aria-busy={pending === 'password'}
           >
-            {creating ? 'Criar conta' : 'Entrar'}
+            {creating ? t('nick.createTitle') : t('nick.loginTitle')}
           </button>
         </form>
         {error && <p className="error">{error}</p>}
@@ -175,10 +178,12 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
   if (step.kind === 'no-password') {
     return (
       <section className="panel nick-screen">
-        <p className="score-label">Conta sem senha</p>
+        <p className="score-label">{t('nick.noPasswordTitle')}</p>
         <p className="nick-screen-text">
-          <strong>{step.name}</strong> é uma conta sem senha. Se é sua, abra o jogo no dispositivo onde você usa esse
-          nick, toque nele, escolha <strong>Sincronizar dispositivo</strong> e crie uma senha.
+          <strong>{step.name}</strong>
+          {t('nick.noPasswordBefore')}
+          <strong>{t('sync.title')}</strong>
+          {t('nick.noPasswordAfter')}
         </p>
         {back}
       </section>
@@ -190,7 +195,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
       {invite}
       <form className="nick-screen-form" onSubmit={onLogin}>
         <label className="nick-label" htmlFor="nick">
-          Username
+          {t('nick.label')}
         </label>
         <input
           id="nick"
@@ -208,8 +213,8 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
             disabled={busy || !nick.trim()}
             aria-busy={pending === 'login'}
           >
-            Login
-            <small>(criar conta)</small>
+            {t('nick.login')}
+            <small>{t('nick.loginHint')}</small>
           </button>
           <button
             type="button"
@@ -218,7 +223,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
             disabled={busy || !nick.trim()}
             aria-busy={pending === 'guest'}
           >
-            Convidado
+            {t('nick.guest')}
           </button>
         </div>
       </form>

@@ -181,6 +181,10 @@ export async function launchBrowser() {
     async page(viewport = DESKTOP) {
       const page = await (await browser.createBrowserContext()).newPage();
       await page.setViewport(viewport);
+      // Os testes conferem textos em português: começa sempre nele (o jogo usaria o idioma do navegador).
+      await page.evaluateOnNewDocument(() => {
+        if (!localStorage.getItem('power-rank:lang')) localStorage.setItem('power-rank:lang', 'pt');
+      });
       page.on('pageerror', (e) => errors.push(e.message));
       // "Failed to load resource" não diz qual URL: as respostas 5xx são registradas com a URL.
       page.on('console', (m) => m.type() === 'error' && !/status of (40[1239]|5dd)/.test(m.text()) && errors.push(m.text()));

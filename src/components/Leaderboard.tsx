@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchLeaderboard, type LeaderboardEntry, type Period } from '../api';
 import { cosmeticById } from '../game/cosmetics';
+import { cosmeticLabel, useI18n, type Key } from '../i18n';
 import { MODES, type Mode } from '../game/modes';
 import { sameNick } from '../nick';
 import { formatDuration } from '../ui/format';
@@ -24,15 +25,15 @@ const STEPS = [
 /** O ranking mostra sempre pelo menos estas posições (pódio + lista), mesmo vazio. */
 const MIN_POSITIONS = 10;
 
-const PERIODS: { id: Period; label: string }[] = [
-  { id: 'today', label: 'Hoje' },
-  { id: 'total', label: 'Acumulado' },
+const PERIODS: { id: Period; label: Key }[] = [
+  { id: 'today', label: 'leaderboard.today' },
+  { id: 'total', label: 'leaderboard.total' },
 ];
 
 /** Embaixo da pontuação: o tempo da partida (Hoje, desempata) ou quantos dias somaram (Acumulado). */
-function detail(s: LeaderboardEntry): string | null {
+function detail(s: LeaderboardEntry, t: (key: Key, params?: Record<string, number>) => string): string | null {
   if (s.durationMs !== undefined) return formatDuration(s.durationMs);
-  if (s.days !== undefined) return `${s.days} ${s.days === 1 ? 'dia' : 'dias'}`;
+  if (s.days !== undefined) return s.days === 1 ? t('leaderboard.oneDay') : t('leaderboard.days', { n: s.days });
   return null;
 }
 
@@ -41,6 +42,7 @@ function detail(s: LeaderboardEntry): string | null {
  * tempo) e Acumulado (soma do melhor de cada dia). Os 3 primeiros num pódio, o resto em lista.
  */
 export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) {
+  const { t, lang } = useI18n();
   const [period, setPeriod] = useState<Period>('today');
   const [helpOpen, setHelpOpen] = useState(false);
   const [scores, setScores] = useState<LeaderboardEntry[] | null>(null);
@@ -79,21 +81,22 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
           <span className="skeleton-bar" />
           <span className="podium-score">—</span>
           <div className="podium-block">
-            <span className="podium-place">{place}º</span>
+            <span className="podium-place">{t(`podium.place${place as 1 | 2 | 3}`)}</span>
           </div>
         </div>
       );
     }
-    const title = s.look.title ? cosmeticById(s.look.title)?.label : undefined;
+    const titleItem = s.look.title ? cosmeticById(s.look.title) : undefined;
+    const title = titleItem ? cosmeticLabel(titleItem, lang) : undefined;
     return (
       <div key={place} role="listitem" className={`podium-step ${className}${isYou(s) ? ' you' : ''}`}>
         <PlayerTag name={s.name} look={s.look} size={place === 1 ? 64 : 52} avatarOnly />
         <span className={`podium-name${s.look.nameColor ? ` cosmetic-${s.look.nameColor}` : ''}`}>{s.name}</span>
         {title && <span className="podium-title">{title}</span>}
         <span className="podium-score">{s.score}</span>
-        {detail(s) && <span className="podium-detail">{detail(s)}</span>}
+        {detail(s, t) && <span className="podium-detail">{detail(s, t)}</span>}
         <div className="podium-block">
-          <span className="podium-place">{place}º</span>
+          <span className="podium-place">{t(`podium.place${place as 1 | 2 | 3}`)}</span>
         </div>
       </div>
     );
@@ -102,7 +105,7 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
   return (
     <div className="panel leaderboard">
       <div className="leaderboard-header">
-        <h3 className="section-title">Ranking · {MODES.find((m) => m.id === mode)?.label}</h3>
+        <h3 className="section-title">{t('leaderboard.title', { mode: MODES.find((m) => m.id === mode)?.label ?? '' })}</h3>
         <div className="leaderboard-periods" role="tablist">
           {PERIODS.map((p) => (
             <button
@@ -112,14 +115,14 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
               className={`shop-filter-option${period === p.id ? ' selected' : ''}`}
               onClick={() => setPeriod(p.id)}
             >
-              {p.label}
+              {t(p.label)}
             </button>
           ))}
           <button
             className="leaderboard-help-toggle"
             onClick={() => setHelpOpen((open) => !open)}
             aria-expanded={helpOpen}
-            aria-label="Como funciona o ranking"
+            aria-label={t('leaderboard.helpAria')}
           >
             ?
           </button>
@@ -128,24 +131,21 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
       {helpOpen && (
         <div className="leaderboard-help">
           <p>
-            <strong>Hoje:</strong> vale a sua melhor partida do dia (zera à meia-noite, horário de Brasília). Em caso
-            de empate na pontuação, fica na frente quem terminou a partida em menos tempo.
+            <strong>{t('leaderboard.today')}:</strong> {t('leaderboard.helpToday')}
           </p>
           <p>
-            <strong>Acumulado:</strong> soma o seu melhor resultado de cada dia jogado (jogar várias vezes no mesmo dia
-            conta só a melhor). Embaixo da pontuação aparecem quantos dias somaram; no empate, fica na frente quem
-            precisou de menos dias.
+            <strong>{t('leaderboard.total')}:</strong> {t('leaderboard.helpTotal')}
           </p>
         </div>
       )}
       {scores?.length === 0 && (
         <p className="muted leaderboard-empty">
-          {period === 'today' ? 'Ninguém jogou hoje ainda.' : 'Ninguém jogou ainda.'} Seja o primeiro.
+          {period === 'today' ? t('leaderboard.emptyToday') : t('leaderboard.empty')} {t('leaderboard.beFirst')}
         </p>
       )}
       {/* Skeleton: pódio e posições aparecem sempre; pulsam enquanto carrega e ficam vazias se faltar jogador. */}
       <div className={loading ? 'leaderboard-loading' : undefined} aria-busy={loading}>
-        <div className="podium leaderboard-podium" role="list" aria-label="Pódio">
+        <div className="podium leaderboard-podium" role="list" aria-label={t('podium.aria')}>
           {STEPS.map(podiumStep)}
         </div>
         <ol className="row-list leaderboard-rows" start={4}>
@@ -159,7 +159,7 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
                 </span>
                 <span className="row-score">
                   {s.score}
-                  {detail(s) && <small className="row-detail">{detail(s)}</small>}
+                  {detail(s, t) && <small className="row-detail">{detail(s, t)}</small>}
                 </span>
               </li>
             ) : (

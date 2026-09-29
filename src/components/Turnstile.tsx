@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchConfig } from '../api';
+import { useI18n } from '../i18n';
 
 /** API global do script do Turnstile (https://challenges.cloudflare.com/turnstile/v0/api.js). */
 interface TurnstileApi {
@@ -42,6 +43,7 @@ interface Props {
  * (GET /api/config); desligado, não renderiza nada e a conta é criada sem token.
  */
 export default function Turnstile({ onToken, onReady }: Props) {
+  const { t, lang } = useI18n();
   const box = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
 
@@ -57,6 +59,7 @@ export default function Turnstile({ onToken, onReady }: Props) {
         widgetId = window.turnstile.render(box.current, {
           sitekey: turnstileSiteKey,
           theme: 'dark',
+          language: lang === 'pt' ? 'pt-br' : 'en',
           callback: (token: string) => onToken(token),
           'expired-callback': () => onToken(null),
           'error-callback': () => onToken(null),
@@ -73,7 +76,7 @@ export default function Turnstile({ onToken, onReady }: Props) {
   return (
     <div className="turnstile">
       <div ref={box} />
-      {failed && <p className="muted">Não foi possível carregar a verificação anti-robô. Recarregue a página.</p>}
+      {failed && <p className="muted">{t('turnstile.failed')}</p>}
     </div>
   );
 }
