@@ -11,7 +11,7 @@ public/_headers           cache: /chars 7 dias, /assets imutável
 migrations/               schema do D1 (0001 scores · 0002 melhor por jogador · 0003 categorias ·
                           0004 donos de nick · 0005 moedas e cosméticos ·
                           0006 senha do nick · 0007 jogador por id · 0008 títulos ·
-                          0009 tempo da partida · 0010 cassino)
+                          0009 tempo da partida · 0010 cassino · 0011 mystery box)
 scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet (+ lib/images.mjs)
 e2e/                      testes e2e: api.mjs (sem navegador), ui.mjs (Edge headless), lib.mjs (utilitários)
 server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick),
@@ -56,6 +56,7 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/party` `{ mode, pid }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
 | `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |
 | `GET /api/casino` | `{ pot, lastWinner }`: pote acumulado e último ganhador do jackpot. |
+| `POST /api/gacha/open` `{ token }` | Só contas. Mystery Box: cobra 100, sorteia raridade e item, entrega (ou devolve moedas se repetido) e devolve `{ rarity, itemId, duplicate, refund, profile }`. 402 sem saldo. |
 | `POST /api/casino/spin` `{ token, bet }` | Só contas. Aposta de 1 a 10 moedas. Sorteia no servidor, debita/credita e devolve `{ reels, outcome, prize, coins, pot, jackpot }`. 402 sem saldo. |
 | `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado e `hasPassword`. |
 | `POST /api/shop/buy` `{ token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
@@ -118,6 +119,16 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   calcula e desconta o prêmio na mesma operação (dois jackpots simultâneos não levam o mesmo pote).
 - Débito: `coins = coins - aposta + prêmio WHERE coins >= aposta` (prêmio fixo no mesmo UPDATE); jackpot é creditado
   logo depois. Todo giro vai para `casino_spins` (auditoria/balanceamento).
+
+## Mystery Box (gacha)
+
+- Aba do cassino (`CasinoScreen` → `SlotMachine` | `MysteryBox`). Regras em `src/game/gacha.ts`, servidor em
+  `server/gacha.ts`. Caixa: 100 moedas.
+- Raridade (60/28/10/2%) e depois um item dela. Pools derivados do catálogo pelo preço: comum < 150 (metade das vezes
+  sai um avatar aleatório), raro 150–349, épico 350+, lendário = itens `exclusive` (só saem na caixa; a loja não
+  vende e só mostra a quem tem, com o selo "Exclusivo").
+- Fluxo: débito condicional → `INSERT OR IGNORE` do item (não inseriu = repetido) → devolução (metade do preço;
+  lendário 300) + registro em `gacha_openings`. A tela treme a caixa ≥ 1,2 s e revela na cor da raridade.
 
 ## Party (multiplayer)
 

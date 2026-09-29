@@ -203,6 +203,35 @@ section('Cassino');
   check('todo giro fica registrado', /"n": 25/.test(logged));
 }
 
+// ---------- Mystery Box ----------
+section('Mystery Box');
+{
+  const me = await player('Gacha');
+  check('convidado não abre caixa (401)', (await post('/gacha/open', {})).status === 401);
+  check('sem saldo: 402', (await post('/gacha/open', me)).status === 402);
+  check('exclusivo não está à venda', (await post('/shop/buy', { ...me, itemId: 'name-aurora' })).status === 400);
+
+  d1(`UPDATE players SET coins = 1000 WHERE name_key = '${me.name.toLowerCase()}'`);
+  let coins = 1000;
+  let ok = true;
+  const seen = new Set();
+  for (let i = 0; i < 8; i++) {
+    const { status, data } = await post('/gacha/open', me);
+    if (status !== 200) {
+      ok = false;
+      break;
+    }
+    const wasOwned = seen.has(data.itemId);
+    seen.add(data.itemId);
+    coins += data.refund - 100;
+    const refundOk = data.duplicate === wasOwned && (data.duplicate ? data.refund > 0 : data.refund === 0);
+    if (!refundOk || data.profile.coins !== coins || !data.profile.owned.includes(data.itemId)) ok = false;
+  }
+  check('caixa cobra 100, entrega o item e devolve moedas no repetido', ok, `saldo esperado ${coins}`);
+  const logged = d1(`SELECT COUNT(*) AS n FROM gacha_openings WHERE player_id = (SELECT id FROM players WHERE name_key = '${me.name.toLowerCase()}')`);
+  check('toda caixa fica registrada', /"n": 8/.test(logged));
+}
+
 // ---------- Party ----------
 section('Party');
 {

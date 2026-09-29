@@ -46,6 +46,13 @@ Exige migração (`ALTER TABLE players ADD COLUMN <coluna> TEXT`, sem risco para
   prêmio numa operação só (`env.DB.batch`) ou com a condição de saldo no próprio UPDATE. O cliente só anima.
 - Moedas nunca compráveis com dinheiro real.
 
+## Mystery Box (gacha)
+
+Regras em `src/game/gacha.ts` (+ `gacha.test.ts`): caixa de 100, raridade pelo preço do item (comum < 150 ou
+avatar, raro 150–349, épico 350+, lendário = `exclusive: true`). Item exclusivo novo: entrada em `COSMETICS` com
+`price: 0, exclusive: true` + classe CSS; ele entra sozinho no pool lendário, some da loja para quem não tem e o
+`buyItem` recusa. Repetido devolve metade do preço (lendário: 300). Histórico em `gacha_openings`.
+
 ## Cassino
 
 Regras e calibração em `src/game/casino.ts` + `casino.test.ts` (retorno exato; mexeu em peso ou multiplicador,

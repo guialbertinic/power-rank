@@ -15,7 +15,7 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 - Moedas (a partir de 500 pontos, bônus de pódio), loja de cosméticos, `PlayerTag` e barra de perfil na home.
 - Testes e2e no repositório (`npm run e2e:api`, `npm run e2e:ui`), skills do projeto (`.claude/skills/`) e
   documentação dividida entre `CLAUDE.md` (regras) e `docs/ARQUITETURA.md` (referência).
-- Produção: migrações 0001–0010 aplicadas; deploy automático pela `main`.
+- Produção: migrações 0001–0011 aplicadas; deploy automático pela `main`.
 
 ## Party (multiplayer)
 
@@ -30,7 +30,9 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 
 - [x] **Cassino** v1: caça-níquel com pote acumulado compartilhado (jackpot proporcional à aposta), ~95% de retorno.
 - [ ] Cassino: olhar o retorno real depois de uns dias (`SELECT SUM(prize) * 1.0 / SUM(bet) FROM casino_spins`).
-- [ ] Mais jogos no cassino (roleta, raspadinha, gacha de cosméticos exclusivos).
+- [x] Mystery Box (gacha): caixa de 100, 4 raridades, 10 itens exclusivos, avatar no comum, repetido devolve moedas.
+- [ ] Mais jogos no cassino: Plinko ou raspadinha; "Desafio" (apostar na própria partida) quando houver dados reais.
+- [ ] Olhar as caixas abertas depois de uns dias (`SELECT rarity, COUNT(*) FROM gacha_openings GROUP BY rarity`).
 - [x] Loja ampliada: 16 cores, 13 molduras (algumas animadas), 27 títulos (embaixo do nick), filtro obtidos.
 - [ ] Fase 2: ícones/emblemas em SVG ao lado do nick, itens raros.
 - [ ] Fase 3: conquistas ("10/10", "venceu 5 parties") que desbloqueiam itens exclusivos.

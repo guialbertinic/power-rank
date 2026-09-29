@@ -1971,6 +1971,89 @@ input:focus {
     linear-gradient(135deg, #fff3a0, #ffd700 45%, #c8870a);
 }
 
+/* ---------- Exclusivos da Mystery Box ---------- */
+
+.cosmetic-name-aurora,
+.cosmetic-name-blackgold {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.cosmetic-name-aurora {
+  background-image: linear-gradient(90deg, #39ff88, #05d9e8, #9a00e6, #ff6fd8, #39ff88);
+  background-size: 300% 100%;
+  filter: drop-shadow(0 0 6px rgba(5, 217, 232, 0.4));
+  animation: cosmetic-flow 6s linear infinite;
+}
+
+/* Preto com um brilho dourado passando; o contorno dourado garante leitura no fundo escuro. */
+.cosmetic-name-blackgold {
+  background-image: linear-gradient(110deg, #2b2b2b 0 38%, #fff3a0 48%, #ffd700 52%, #2b2b2b 62% 100%);
+  background-size: 300% 100%;
+  -webkit-text-stroke: 0.6px rgba(255, 215, 0, 0.85);
+  animation: cosmetic-flow 3.2s linear infinite;
+}
+
+.cosmetic-name-neonpulse {
+  animation: cosmetic-neon 4s linear infinite;
+}
+
+@keyframes cosmetic-neon {
+  0%,
+  100% {
+    color: var(--tier-s);
+    text-shadow: 0 0 8px var(--tier-s);
+  }
+  25% {
+    color: var(--tier-a);
+    text-shadow: 0 0 8px var(--tier-a);
+  }
+  50% {
+    color: var(--tier-c);
+    text-shadow: 0 0 8px var(--tier-c);
+  }
+  75% {
+    color: #ffd700;
+    text-shadow: 0 0 8px #ffd700;
+  }
+}
+
+.cosmetic-frame-masterball {
+  filter: drop-shadow(0 0 7px rgba(154, 0, 230, 0.75));
+}
+
+/* Roxo com as duas "bolinhas" rosas da Master Ball. */
+.cosmetic-frame-masterball .player-frame-border {
+  padding: 3px;
+  background:
+    radial-gradient(circle at 22% 18%, #ff6fb5 0 3px, transparent 3.5px),
+    radial-gradient(circle at 78% 18%, #ff6fb5 0 3px, transparent 3.5px),
+    linear-gradient(180deg, #b04dff, #5b1a9e);
+}
+
+/* Lâmpadas douradas acendendo em volta, como o letreiro do cassino. */
+.cosmetic-frame-gamecorner {
+  animation: cosmetic-bolt 1.2s ease-in-out infinite;
+}
+
+.cosmetic-frame-gamecorner .player-frame-border {
+  padding: 4px;
+  background:
+    radial-gradient(circle, #ffd700 0 1.4px, transparent 2px) 0 0 / 7px 7px,
+    #6a000f;
+}
+
+.cosmetic-frame-holo {
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.45));
+}
+
+.cosmetic-frame-holo .player-frame-border {
+  padding: 3px;
+  background: conic-gradient(from var(--cosmetic-angle), #ff2a6d, #ffd700, #00e676, #05d9e8, #9a00e6, #ff2a6d);
+  animation: cosmetic-spin 4s linear infinite;
+}
+
 @keyframes cosmetic-spin {
   to {
     --cosmetic-angle: 360deg;
@@ -2652,6 +2735,201 @@ input:focus {
     height: 84px;
     padding: 11px 0;
   }
+}
+
+/* ---------- Cassino: abas e Mystery Box ---------- */
+
+.casino-screen {
+  display: grid;
+  gap: 14px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.shop-exclusive {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border: 1px solid #ffd700;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ffd700;
+  vertical-align: middle;
+}
+
+/* Cor de cada raridade (bolinha na tabela, cartão da revelação). */
+.rarity-common {
+  --rarity-color: var(--tier-d);
+}
+
+.rarity-rare {
+  --rarity-color: var(--tier-b-text);
+}
+
+.rarity-epic {
+  --rarity-color: #b04dff;
+}
+
+.rarity-legendary {
+  --rarity-color: var(--tier-ss);
+}
+
+.gacha-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--rarity-color);
+}
+
+.gacha-stage {
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+}
+
+/* A caixa: flutua parada; ao abrir, treme cada vez mais forte. */
+.gacha-box {
+  display: grid;
+  place-items: center;
+  width: 150px;
+  height: 150px;
+  background: linear-gradient(135deg, #9a00e6, #ff2a6d 55%, #ffd700);
+  clip-path: var(--clip-chamfer);
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.25), inset 0 -18px 30px rgba(0, 0, 0, 0.35);
+  font-family: var(--font-display);
+  font-size: 4.5rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.7);
+  animation: gacha-float 2.4s ease-in-out infinite;
+}
+
+.gacha-box.opening {
+  animation: gacha-shake 0.14s linear infinite;
+  filter: brightness(1.25) saturate(1.3);
+}
+
+@keyframes gacha-float {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes gacha-shake {
+  25% {
+    transform: translate(-4px, 1px) rotate(-3deg);
+  }
+  75% {
+    transform: translate(4px, -1px) rotate(3deg);
+  }
+}
+
+/* Revelação: cartão na cor da raridade, com um brilho no meio. */
+.gacha-reveal {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(100%, 320px);
+  padding: 22px 16px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--rarity-color) 32%, transparent), transparent 70%),
+    var(--bg);
+  border: 2px solid var(--rarity-color);
+  clip-path: var(--clip-chamfer);
+  text-align: center;
+  animation: gacha-pop 0.45s var(--ease-out);
+}
+
+.gacha-reveal > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Lendário: raios dourados girando atrás do item. */
+.gacha-reveal.rarity-legendary::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  z-index: 0;
+  background: repeating-conic-gradient(
+    from var(--cosmetic-angle),
+    rgba(255, 215, 0, 0.16) 0 8deg,
+    transparent 8deg 24deg
+  );
+  animation: cosmetic-spin 8s linear infinite;
+}
+
+@keyframes gacha-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.05);
+  }
+}
+
+.gacha-rarity {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--rarity-color);
+  text-shadow: 0 0 12px var(--rarity-color);
+}
+
+.gacha-item {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.gacha-color {
+  font-size: 1.9rem;
+}
+
+.gacha-frame-empty {
+  width: 72px;
+  height: 72px;
+}
+
+.gacha-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.gacha-item-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.gacha-duplicate {
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+.gacha-controls {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.gacha-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* ---------- Barra de perfil (canto superior direito da home) ---------- */

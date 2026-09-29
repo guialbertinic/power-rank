@@ -13,6 +13,8 @@ export interface Cosmetic {
   price: number;
   /** Categoria do título na loja (Iniciante, Otaku...). */
   group?: string;
+  /** Só sai na Mystery Box (lendário): não está à venda; na loja só aparece para quem já tem. */
+  exclusive?: boolean;
 }
 
 const title = (id: string, label: string, price: number, group: string): Cosmetic => ({
@@ -90,6 +92,18 @@ export const COSMETICS: Cosmetic[] = [
   title('ultra-instinto', 'Ultra Instinto', 700, 'Lendário'),
   title('o-mais-forte', 'O Mais Forte da Atualidade', 700, 'Lendário'),
   title('rei-dos-piratas', 'Rei dos Piratas', 800, 'Lendário'),
+
+  // Exclusivos da Mystery Box (raridade lendária): não estão à venda.
+  { id: 'name-aurora', slot: 'nameColor', label: 'Aurora', price: 0, exclusive: true },
+  { id: 'name-blackgold', slot: 'nameColor', label: 'Ouro Negro', price: 0, exclusive: true },
+  { id: 'name-neonpulse', slot: 'nameColor', label: 'Neon Pulsante', price: 0, exclusive: true },
+  { id: 'frame-masterball', slot: 'frame', label: 'Master Ball', price: 0, exclusive: true },
+  { id: 'frame-gamecorner', slot: 'frame', label: 'Game Corner', price: 0, exclusive: true },
+  { id: 'frame-holo', slot: 'frame', label: 'Holográfica', price: 0, exclusive: true },
+  { ...title('sortudo-game-corner', 'Sortudo do Game Corner', 0, 'Exclusivo'), exclusive: true },
+  { ...title('viciado-em-gacha', 'Viciado em Gacha', 0, 'Exclusivo'), exclusive: true },
+  { ...title('tirou-o-lendario', 'Tirou o Lendário', 0, 'Exclusivo'), exclusive: true },
+  { ...title('mestre-da-sorte', 'Mestre da Sorte', 0, 'Exclusivo'), exclusive: true },
 ];
 
 const COSMETICS_BY_ID = new Map(COSMETICS.map((c) => [c.id, c]));

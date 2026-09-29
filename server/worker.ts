@@ -1,5 +1,6 @@
 import { getCasino, spin } from './casino';
 import { createGame } from './games';
+import { openBox } from './gacha';
 import { json, type Env } from './lib';
 import { connectParty, createParty } from './party';
 import { claimPlayer, playerStatus, renamePlayer, setPassword } from './players';
@@ -29,6 +30,8 @@ export default {
           return await getCasino(env);
         case 'POST /api/casino/spin':
           return await spin(request, env);
+        case 'POST /api/gacha/open':
+          return await openBox(request, env);
         case 'POST /api/games':
           return await createGame(request, env, ctx);
         case 'GET /api/scores':

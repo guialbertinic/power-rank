@@ -125,6 +125,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
           <span className="shop-item-label">{c.label}</span>
         </>
       )}
+      {c.exclusive && <span className="shop-exclusive">Exclusivo</span>}
       {button(c)}
     </li>
   );
@@ -132,14 +133,20 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
   /** Título: uma linha por título, sem prévia do jogador. */
   const titleRow = (c: Cosmetic) => (
     <li key={c.id} className="shop-row" data-label={c.label}>
-      <span className="shop-title-text">{c.label}</span>
+      <span className="shop-title-text">
+        {c.label}
+        {c.exclusive && <span className="shop-exclusive">Exclusivo</span>}
+      </span>
       {button(c)}
     </li>
   );
 
   /** Itens do espaço, do mais barato ao mais caro; títulos separados por categoria (2 por linha). */
   const cosmetics = (slot: Cosmetic['slot']) => {
-    const items = COSMETICS.filter((c) => c.slot === slot && visible(c.id)).sort((a, b) => a.price - b.price);
+    // Exclusivos (Mystery Box) só aparecem para quem já tem, depois dos itens à venda.
+    const items = COSMETICS.filter((c) => c.slot === slot && visible(c.id) && (!c.exclusive || owned.has(c.id))).sort(
+      (a, b) => Number(Boolean(a.exclusive)) - Number(Boolean(b.exclusive)) || a.price - b.price,
+    );
     if (!items.length) return <p className="muted shop-empty">Nenhum item aqui.</p>;
     if (slot !== 'title') return <ol className="shop-list">{items.map(cosmeticItem)}</ol>;
     const groups = [...new Set(items.map((c) => c.group))];

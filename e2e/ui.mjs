@@ -252,6 +252,18 @@ try {
   await ana.click('.casino-marquee .leaderboard-help-toggle');
   check('"?" mostra a tabela de prêmios', (await ana.$$('.casino-table tbody tr')).length === 6);
 
+  // Mystery Box (segunda aba do cassino).
+  await ana.click('.casino-tabs .mode-option:nth-child(2)');
+  await ana.waitForSelector('.gacha-box');
+  const boxResponse = ana.waitForResponse((r) => r.url().includes('/api/gacha/open'));
+  await ana.click('.gacha-open');
+  check('caixa treme enquanto abre', Boolean(await ana.$('.gacha-box.opening')));
+  const box = await (await boxResponse).json();
+  await ana.waitForSelector('.gacha-reveal', { timeout: 8000 });
+  check('revela a raridade sorteada', Boolean(await ana.$(`.gacha-reveal.rarity-${box.rarity} .gacha-item`)), box.rarity);
+  const boxBalance = Number((await text(ana, '.gacha-controls .casino-hint .coins'))?.replace(/\D/g, ''));
+  check('saldo na tela = saldo do servidor depois da caixa', boxBalance === box.profile.coins, `${boxBalance} / ${box.profile.coins}`);
+
   // ---------- Trocar nick e sair ----------
   section('Trocar nick e sair');
   await ana.click('.home-button');

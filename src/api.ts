@@ -1,5 +1,6 @@
 import type { Outcome, SymbolId } from './game/casino';
 import type { CosmeticSlot, Look, Profile } from './game/cosmetics';
+import type { Rarity } from './game/gacha';
 import type { Mode } from './game/modes';
 
 /** "Hoje": melhor partida do dia (zera à meia-noite de Brasília). "Acumulado": soma do melhor de cada dia. */
@@ -166,6 +167,21 @@ export interface SpinResult {
   coins: number;
   pot: number;
   jackpot: boolean;
+}
+
+export interface BoxResult {
+  rarity: Rarity;
+  itemId: string;
+  /** Já tinha o item: voltaram `refund` moedas. */
+  duplicate: boolean;
+  refund: number;
+  /** Perfil depois da caixa (saldo e itens). */
+  profile: Profile;
+}
+
+/** Abre uma Mystery Box: o servidor cobra, sorteia e entrega o item (ou devolve moedas, se repetido). */
+export function openBox(token: string): Promise<BoxResult> {
+  return request('/api/gacha/open', { method: 'POST', body: JSON.stringify({ token }) });
 }
 
 /** Pote acumulado e último ganhador do jackpot. */

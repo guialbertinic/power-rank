@@ -47,7 +47,7 @@ async function authenticate<T extends object>(request: Request, env: Env): Promi
   return { id: account.id, body: body! };
 }
 
-async function loadProfile(env: Env, playerId: number): Promise<Profile> {
+export async function loadProfile(env: Env, playerId: number): Promise<Profile> {
   const [player, items] = await env.DB.batch([
     env.DB.prepare(
       'SELECT name, coins, avatar, name_color, frame, title, password_hash IS NOT NULL AS has_password FROM players WHERE id = ?',
@@ -75,7 +75,9 @@ export async function getProfile(request: Request, env: Env): Promise<Response> 
 function priceOf(itemId: string): number | null {
   const character = characterIdOfAvatar(itemId);
   if (character !== null) return CHARACTERS_BY_ID.get(character)?.image ? AVATAR_PRICE : null;
-  return cosmeticById(itemId)?.price ?? null;
+  const item = cosmeticById(itemId);
+  // Exclusivos só saem na Mystery Box.
+  return item && !item.exclusive ? item.price : null;
 }
 
 /**
