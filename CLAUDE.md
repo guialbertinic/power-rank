@@ -129,7 +129,8 @@ exigem o token.
   ou `intro` → `party`. Na party, o estado do jogo vem da sala, e o App só guarda `code` e `pid`.
 - **A primeira tela é o nick** (`NickScreen`), para quem ainda não tem identidade; escolhido o nick, segue direto
   para o jogo. Link de convite sem nick: escolhe o nick e entra direto na sala. Com nick: entra direto.
-  A home mostra "Jogando como X · Trocar" e "Sincronizar dispositivo" (`SyncDevice`).
+  Na home, a `ProfileBar` (canto superior direito; faixa no topo no celular) mostra avatar + nick com o visual,
+  saldo e "Loja"; tocar no nick abre o menu com "Trocar nick" e "Sincronizar dispositivo" (`SyncDevice`).
 - Todas as telas fora da home têm o botão **Início** no cabeçalho (na party, sair da sala).
 - Identidade (`{ name, token }`) e os tokens de nicks já usados ficam no `localStorage` (`src/nick.ts`).
 - A última categoria também fica no `localStorage`. Todo acesso a storage usa try/catch.

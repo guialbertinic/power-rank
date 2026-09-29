@@ -12,6 +12,7 @@ import { clearCodeFromUrl, codeFromUrl, newPid, partyPid, rememberPartyPid } fro
 import { preloadImages } from './ui/fallback';
 import IntroScreen from './components/IntroScreen';
 import ModePicker from './components/ModePicker';
+import ProfileBar from './components/ProfileBar';
 import NickScreen from './components/NickScreen';
 import PartyScreen from './components/party/PartyScreen';
 import PlayingScreen from './components/PlayingScreen';
@@ -206,6 +207,15 @@ export default function App() {
 
   return (
     <main className="app">
+      {state.phase === 'intro' && identity && !showReview && (
+        <ProfileBar
+          identity={identity}
+          profile={profile}
+          onOpenShop={() => dispatch({ type: 'shop' })}
+          onChangeNick={() => dispatch({ type: 'nick' })}
+          disabled={starting}
+        />
+      )}
       <header className={`app-header${isHome && !showReview ? ' hero' : ''}`}>
         {/* Na home o seletor de categoria fica no título; nas outras telas, só o nome da categoria/modo. */}
         {state.phase === 'intro' && !showReview && (
@@ -235,9 +245,6 @@ export default function App() {
       {!showReview && state.phase === 'intro' && identity && (
         <IntroScreen
           identity={identity}
-          profile={profile}
-          onOpenShop={() => dispatch({ type: 'shop' })}
-          onChangeNick={() => dispatch({ type: 'nick' })}
           mode={mode}
           canStart={isModeAvailable(mode)}
           busy={starting}

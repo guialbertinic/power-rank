@@ -253,38 +253,6 @@ input:focus {
   margin-top: 20px;
 }
 
-.playing-as {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-2);
-  font-weight: 600;
-}
-
-.playing-as .player-tag {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text);
-}
-
-.playing-as strong {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text);
-}
-
-.playing-as-block {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  width: 100%;
-}
-
 .sync-panel {
   display: grid;
   justify-items: center;
@@ -1439,13 +1407,6 @@ input:focus {
   font-size: 1.4rem;
 }
 
-.playing-as-coins {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 1.15rem;
-}
-
 .btn-sm {
   padding: 6px 20px;
   font-size: 0.85rem;
@@ -1725,4 +1686,112 @@ input:focus {
     padding: 9px 8px;
     font-size: 0.8rem;
   }
+}
+
+/* ---------- Barra de perfil (canto superior direito da home) ---------- */
+
+.profile-bar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px 6px 6px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(6px);
+}
+
+.profile-bar-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 220px;
+  padding: 2px 6px 2px 2px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.profile-bar-me:hover .player-name,
+.profile-bar-me:focus-visible .player-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.profile-bar-me:focus-visible {
+  outline: 1px solid var(--tier-a);
+}
+
+.profile-bar-caret {
+  flex-shrink: 0;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--text-2);
+}
+
+.profile-bar .coins {
+  font-size: 1rem;
+}
+
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* O painel do código de sincronização já está dentro do menu: sem moldura dupla. */
+.profile-menu .sync-panel {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.profile-menu .sync-panel::before {
+  display: none;
+}
+
+.profile-menu .recovery-code {
+  font-size: 1.25rem;
+}
+
+@media (max-width: 760px) {
+  /* No celular vira uma faixa no topo, acima do título. */
+  .profile-bar {
+    position: relative;
+    top: auto;
+    right: auto;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+  }
+
+  .profile-bar-me {
+    margin-right: auto;
+    max-width: 50vw;
+  }
+
+  .profile-menu {
+    left: 0;
+    right: 0;
+    width: auto;
+  }
+
 }
