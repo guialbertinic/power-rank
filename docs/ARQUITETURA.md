@@ -51,27 +51,27 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/players/rename` `{ token, name }` | Troca o nick da conta, se não for de outra conta (409). Tudo segue a conta (id). |
 | `POST /api/games` `{ name, token?, mode }` | Com token: a conta dele (token inválido, 401). Sem token: convidado, se o nick não for de uma conta (401). Sorteia no servidor e grava a partida (com `player_id` da conta). |
 | `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Recalcula a pontuação no servidor, credita moedas. Uma vez por partida, TTL 1h. |
-| `GET /api/scores?mode=` | Top 20 do modo: melhor resultado de cada conta (com o nick atual) ou convidado, com o visual equipado. |
+| `GET /api/scores?mode=` | Top 20 do modo: melhor resultado de cada conta (com o nick atual), com o visual equipado. Convidados não entram. |
 | `POST /api/party` `{ mode, pid }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
 | `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |
 | `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado e `hasPassword`. |
 | `POST /api/shop/buy` `{ token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
 | `POST /api/profile/equip` `{ token, slot, itemId \| null }` | Equipa (ou tira) um item que o jogador tem. |
 
-`scores` guarda todas as partidas; o ranking usa `ROW_NUMBER() OVER (PARTITION BY COALESCE('p' || player_id,
-'g' || name_key))`: uma linha por conta (mesmo depois de trocar o nick) e por nick de convidado.
+`scores` guarda todas as partidas (inclusive de convidados, com `player_id` NULL); o ranking usa
+`ROW_NUMBER() OVER (PARTITION BY player_id)` só sobre contas: uma linha por conta, mesmo depois de trocar o nick.
 
 **Identidade:** o jogador é `players.id`. `player_tokens`, `player_items`, `games.player_id` e `scores.player_id`
 apontam para ele (NULL em games/scores = convidado). `players.name` é o nick como foi escrito e `players.name_key`
 o nick normalizado (`nameKey`: minúsculas, NFC), `UNIQUE`, usado só para achar um nick e impedir duplicata
 ("Albertini" = "albertini"; `COLLATE NOCASE` do SQLite só cobre A–Z, não acentos). `scores.name`/`name_key`
-guardam o nick usado na partida (é o que identifica o convidado; para contas o ranking mostra `players.name`).
+guardam o nick usado na partida (o ranking mostra `players.name`, o nick atual).
 
 ## Conta e convidado
 
 Só a **conta** (nick + senha, linha em `players`) reserva o nick; cada aparelho da conta tem um token
 (`player_tokens`, hash SHA-256). O **convidado** (`token: null`) joga com qualquer nick que não seja de uma conta,
-sem reservar nada: entra no ranking, mas não ganha moedas nem usa a loja (`playerAccess` em `server/players.ts`
+sem reservar nada: não entra no ranking, não ganha moedas nem usa a loja (`playerAccess` em `server/players.ts`
 decide conta/convidado em `/api/games` e na party; `PartyPlayer.guest`).
 Tela do nick (`NickScreen`): **Login** consulta `/api/players/status` — conta: pede a senha (ou entra direto se o
 token do nick está neste navegador); nick livre: senha + confirmar cria a conta. **Convidado**: entra se o nick não

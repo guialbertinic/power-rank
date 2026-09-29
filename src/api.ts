@@ -13,9 +13,9 @@ export interface SubmitResult {
   /** Melhor pontuação do jogador, contando esta partida. */
   best: number;
   isNewBest: boolean;
-  /** Posição do melhor resultado do jogador no ranking global. */
-  rank: number;
-  /** Moedas que esta partida rendeu e o saldo depois dela (null se o nick não tiver dono). */
+  /** Posição do melhor resultado do jogador no ranking global (null para convidado, que não entra no ranking). */
+  rank: number | null;
+  /** Moedas que esta partida rendeu e o saldo depois dela (null para convidado). */
   coinsEarned: number;
   coins: number | null;
 }

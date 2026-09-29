@@ -87,7 +87,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
           <p className="title-badge">{rankTitle(me.score)}</p>
           <p className="coins-earned">
             {me.guest
-              ? 'Crie uma conta para ganhar moedas'
+              ? 'Crie uma conta para entrar no ranking e ganhar moedas'
               : me.coinsEarned
                 ? <Coins amount={me.coinsEarned} prefix="+" />
                 : 'Faça 500+ pontos para ganhar moedas'}

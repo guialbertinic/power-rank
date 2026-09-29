@@ -6,16 +6,15 @@ import { scoreGame } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
 /**
- * Melhor partida de cada jogador num modo (empate: quem chegou primeiro). Recebe o modo como parâmetro.
- * Jogador = a conta (player_id), mesmo que tenha trocado de nick; convidados (player_id NULL) são agrupados pelo nick.
+ * Melhor partida de cada conta num modo (empate: quem chegou primeiro). Recebe o modo como parâmetro.
+ * A conta segue a mesma depois de trocar de nick. Partidas de convidados (player_id NULL) ficam gravadas, mas
+ * não entram no ranking.
  */
 const BEST_PER_PLAYER = `
-  SELECT player_id, name, score, created_at FROM (
-    SELECT player_id, name, score, created_at,
-           ROW_NUMBER() OVER (
-             PARTITION BY COALESCE('p' || player_id, 'g' || name_key) ORDER BY score DESC, created_at ASC
-           ) AS rn
-    FROM scores WHERE mode = ?
+  SELECT player_id, score, created_at FROM (
+    SELECT player_id, score, created_at,
+           ROW_NUMBER() OVER (PARTITION BY player_id ORDER BY score DESC, created_at ASC) AS rn
+    FROM scores WHERE mode = ? AND player_id IS NOT NULL
   ) WHERE rn = 1`;
 
 /** GET /api/scores?mode=anime: top do ranking daquele modo, uma linha por jogador, com o visual equipado. */
@@ -24,9 +23,9 @@ export async function getLeaderboard(request: Request, env: Env): Promise<Respon
   if (!isMode(mode)) return badRequest('Categoria inválida');
 
   const { results } = await env.DB.prepare(
-    // Conta: mostra o nick atual dela; convidado: o nick usado na partida.
-    `SELECT COALESCE(p.name, b.name) AS name, b.score, b.created_at AS createdAt, p.avatar, p.name_color, p.frame
-     FROM (${BEST_PER_PLAYER}) b LEFT JOIN players p ON p.id = b.player_id
+    // Mostra o nick atual da conta.
+    `SELECT p.name, b.score, b.created_at AS createdAt, p.avatar, p.name_color, p.frame
+     FROM (${BEST_PER_PLAYER}) b JOIN players p ON p.id = b.player_id
      ORDER BY b.score DESC, b.created_at ASC LIMIT ?`,
   )
     .bind(mode, LEADERBOARD_SIZE)
@@ -75,23 +74,27 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   const key = nameKey(game.name);
   const playerId = game.player_id;
 
-  const previous = await (
-    playerId !== null
-      ? env.DB.prepare('SELECT MAX(score) AS best FROM scores WHERE mode = ? AND player_id = ?').bind(game.mode, playerId)
-      : env.DB.prepare('SELECT MAX(score) AS best FROM scores WHERE mode = ? AND player_id IS NULL AND name_key = ?').bind(
-          game.mode,
-          key,
-        )
-  ).first<{ best: number | null }>();
+  // Convidado (partida sem conta): a partida fica gravada, mas não entra no ranking nem rende moedas.
+  if (playerId === null) {
+    await env.DB.prepare(
+      'INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, created_at) VALUES (?, ?, ?, NULL, ?, ?, ?, 0, ?)',
+    )
+      .bind(body.gameId, game.name, key, game.mode, total, JSON.stringify(placements), Date.now())
+      .run();
+    return json({ score: total, best: total, isNewBest: false, rank: null, coinsEarned: 0, coins: null });
+  }
 
-  // Convidado (partida sem conta) entra no ranking, mas não ganha moedas.
-  const coinsEarned = playerId !== null ? coinsForScore(total) : 0;
+  const previous = await env.DB.prepare('SELECT MAX(score) AS best FROM scores WHERE mode = ? AND player_id = ?')
+    .bind(game.mode, playerId)
+    .first<{ best: number | null }>();
+
+  const coinsEarned = coinsForScore(total);
   await env.DB.prepare(
     'INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
   )
     .bind(body.gameId, game.name, key, playerId, game.mode, total, JSON.stringify(placements), coinsEarned, Date.now())
     .run();
-  const coins = playerId !== null ? await creditCoins(env, playerId, coinsEarned) : null;
+  const coins = await creditCoins(env, playerId, coinsEarned);
 
   const best = Math.max(total, previous?.best ?? 0);
   const better = await env.DB.prepare(`SELECT COUNT(*) AS n FROM (${BEST_PER_PLAYER}) WHERE score > ?`)

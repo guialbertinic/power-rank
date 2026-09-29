@@ -41,7 +41,7 @@ export default function RankingStatus({ gameId, placements, onSubmitted }: Props
     <>
       <p className="coins-earned">
         {coins === null
-          ? 'Crie uma conta para ganhar moedas'
+          ? 'Crie uma conta para entrar no ranking e ganhar moedas'
           : coinsEarned
             ? <Coins amount={coinsEarned} prefix="+" />
             : 'Faça 500+ pontos para ganhar moedas'}

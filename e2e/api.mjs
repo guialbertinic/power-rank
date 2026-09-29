@@ -27,7 +27,9 @@ section('Conta e convidado');
   const guest = nick('Convidado');
   check('nick livre: não existe', (await get(`/players/status?name=${guest}`)).exists === false);
   const guestResult = await playSolo({ name: guest }, 'perfect');
-  check('convidado joga e entra no ranking sem moedas', guestResult.score === 1000 && guestResult.coins === null && guestResult.coinsEarned === 0);
+  check('convidado joga sem moedas e sem posição', guestResult.score === 1000 && guestResult.coins === null && guestResult.coinsEarned === 0 && guestResult.rank === null);
+  const { scores: board } = await get('/scores?mode=anime');
+  check('convidado não aparece no ranking', !board.some((s) => s.name === guest));
   check('convidado não reserva o nick', (await get(`/players/status?name=${guest}`)).exists === false);
   check('conta sem senha é recusada', (await post('/players', { name: guest })).status === 400);
 

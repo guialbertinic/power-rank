@@ -9,7 +9,7 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 - Design system "Dark Battle Interface"; resultado sem valores de poder.
 - Party (multiplayer) com Durable Objects: sala por código/convite, espera ao vivo, pódio, revanche, reconexão.
 - Conta (nick + senha, reserva o nick, moedas, qualquer dispositivo) ou convidado (qualquer nick livre, sem
-  moedas); criar conta e forçar sincronização no menu do perfil; convite entra direto.
+  ranking nem moedas); criar conta e forçar sincronização no menu do perfil; convite entra direto.
 - Jogador identificado por id (migração 0007): trocar nick renomeia a conta; sair da conta.
 - Moedas (a partir de 500 pontos, bônus de pódio), loja de cosméticos, `PlayerTag` e barra de perfil na home.
 - Testes e2e no repositório (`npm run e2e:api`, `npm run e2e:ui`), skills do projeto (`.claude/skills/`) e
