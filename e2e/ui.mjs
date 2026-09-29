@@ -28,6 +28,7 @@ try {
   const ana = await b.page();
   await ana.goto('http://localhost:5173/', { waitUntil: 'networkidle0' });
   check('primeira visita abre a tela do nick', Boolean(await ana.$('.nick-screen')));
+  await shot(ana, 'nick');
   await chooseNick(ana, nick('Ana'));
   const bar = await ana.$eval('.profile-bar', (el) => {
     const r = el.getBoundingClientRect();
@@ -53,6 +54,7 @@ try {
   const bruno = await b.page(PHONE);
   await bruno.goto(`http://localhost:5173/?sala=${room}`, { waitUntil: 'networkidle0' });
   check('convite sem nick mostra a sala', (await text(bruno, '.nick-screen-invite'))?.includes(room));
+  await shot(bruno, 'nick-celular');
   await chooseNick(bruno, nick('Bruno'), '.party-lobby');
   check('depois do nick entra direto na sala', (await text(bruno, '.party-code')) === room);
   check('URL do convite é limpa', !bruno.url().includes('sala='));
@@ -60,8 +62,8 @@ try {
 
   const carla = await b.page();
   await carla.goto('http://localhost:5173/', { waitUntil: 'networkidle0' });
-  await chooseNick(carla, nick('ana'), 'input[aria-label="Código de sincronização"]');
-  check('nick de outra pessoa pede código de sincronização', (await text(carla, '.nick-screen .score-label')) === 'Esse nick já tem dono');
+  await chooseNick(carla, nick('ana'), '.nick-screen .score-label');
+  check('nick de convidado em outro dispositivo é recusado', (await text(carla, '.nick-screen .score-label')) === 'Esse nick já tem dono');
 
   await ana.click('.party-actions .btn-primary');
   await ana.waitForSelector('.power-card');
@@ -119,6 +121,32 @@ try {
   await ana.waitForSelector('.profile-bar .player-tag img');
   const tag = await ana.$eval('.profile-bar .player-tag', (el) => el.innerHTML);
   check('barra de perfil mostra o visual', tag.includes('cosmetic-name-fire') && tag.includes('cosmetic-frame-legend') && tag.includes('goku'));
+
+  // ---------- Senha e sincronização ----------
+  section('Senha e sincronização');
+  await ana.click('.profile-bar-me');
+  await (await ana.waitForSelector('.profile-menu ::-p-text(Sincronizar dispositivo)')).click();
+  await ana.type('input[aria-label="Nova senha"]', 'segredo1');
+  await ana.type('input[aria-label="Repita a senha"]', 'segredo1');
+  await ana.click('.sync-password-form .btn-primary');
+  await ana.waitForSelector('.sync-panel ::-p-text(Senha criada)');
+  check('cria a senha pelo menu', true);
+  await shot(ana, 'sincronizar');
+
+  d1(`UPDATE players SET coins = 777 WHERE name_key = '${nick('ana').toLowerCase()}'`);
+  await ana.click('.sync-force .btn');
+  await ana.waitForSelector('.sync-force ::-p-text(Pronto)');
+  check('forçar sincronização traz o saldo do servidor', (await text(ana, '.profile-bar .coins')) === '777');
+  await ana.keyboard.press('Escape');
+
+  const celular = await b.page(PHONE);
+  await celular.goto('http://localhost:5173/', { waitUntil: 'networkidle0' });
+  await celular.type('#nick', nick('ana'));
+  await celular.type('.nick-password', 'segredo1');
+  await celular.click('.nick-screen .btn-primary');
+  await celular.waitForSelector('.profile-bar .coins');
+  check('entra com nick + senha em outro dispositivo', (await text(celular, '.profile-bar .coins')) === '777');
+  await celular.close();
 
   // ---------- Solo ----------
   section('Solo');

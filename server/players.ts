@@ -1,25 +1,46 @@
 import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
+import { passwordProblem } from '../src/game/account';
 
-/** Sem letras/números parecidos (I/1, O/0) para o código ser fácil de copiar à mão. */
-const RECOVERY_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+/** PBKDF2: o número de iterações fica gravado junto do hash, para poder subir depois sem invalidar senhas. */
+const PBKDF2_ITERATIONS = 50_000;
+/** Senhas erradas seguidas até bloquear o nick, e por quanto tempo. */
+const MAX_FAILED_LOGINS = 5;
+const LOCK_MS = 5 * 60 * 1000;
+
+const toBase64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
+const fromBase64 = (value: string) => Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
 
 function randomToken(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
-  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return toBase64(bytes).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
-
-/** Código de sincronização no formato XXXX-XXXX-XXXX. */
-function randomRecoveryCode(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(12));
-  const chars = [...bytes].map((b) => RECOVERY_ALPHABET[b % RECOVERY_ALPHABET.length]).join('');
-  return chars.match(/.{4}/g)!.join('-');
-}
-
-const normalizeRecoveryCode = (code: string) => code.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 async function sha256(value: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function pbkdf2(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, key, 256);
+  return new Uint8Array(bits);
+}
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const hash = await pbkdf2(password, salt, PBKDF2_ITERATIONS);
+  return `pbkdf2-sha256$${PBKDF2_ITERATIONS}$${toBase64(salt)}$${toBase64(hash)}`;
+}
+
+async function checkPassword(password: string, stored: string): Promise<boolean> {
+  const [scheme, iterations, salt, expected] = stored.split('$');
+  if (scheme !== 'pbkdf2-sha256' || !salt || !expected) return false;
+  const hash = await pbkdf2(password, fromBase64(salt), Number(iterations));
+  const want = fromBase64(expected);
+  // Comparação em tempo constante.
+  let diff = hash.length ^ want.length;
+  for (let i = 0; i < Math.min(hash.length, want.length); i++) diff |= hash[i] ^ want[i];
+  return diff === 0;
 }
 
 async function issueToken(env: Env, key: string): Promise<string> {
@@ -39,67 +60,100 @@ export async function verifyPlayer(env: Env, name: string, token: unknown): Prom
   return Boolean(row);
 }
 
+interface OwnerRow {
+  name: string;
+  password_hash: string | null;
+  failed_logins: number;
+  locked_until: number;
+}
+
 /**
- * POST /api/players: { name, token? } — escolhe um nick.
- * - Nick livre: vira seu. Devolve { name, token }. O código de sincronização é gerado depois, sob demanda
- *   (POST /api/players/sync-code), porque só fica guardado como hash.
+ * POST /api/players: { name, token?, password? } — escolhe um nick. O nick é único, com ou sem senha.
+ * - Nick livre: vira seu (com a senha, se veio uma). Devolve { name, token }.
  * - Nick seu (token válido): devolve { name, token }.
- * - Nick de outra pessoa: 409 { error, taken: true }.
+ * - Nick de outra pessoa com senha: a senha certa dá um token novo para este aparelho; errada, 403.
+ *   Muitas erradas seguidas bloqueiam o nick por alguns minutos (429).
+ * - Nick de outra pessoa sem senha (ou sem senha enviada): 409 { error, taken: true, hasPassword }.
  */
 export async function claimPlayer(request: Request, env: Env): Promise<Response> {
-  const body = (await request.json().catch(() => null)) as { name?: unknown; token?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as
+    | { name?: unknown; token?: unknown; password?: unknown }
+    | null;
   const name = sanitizeName(body?.name);
   if (!name) return badRequest('Nick inválido');
   const key = nameKey(name);
+  const password = typeof body?.password === 'string' && body.password !== '' ? body.password : null;
 
-  const owner = await env.DB.prepare('SELECT name FROM players WHERE name_key = ?').bind(key).first<{ name: string }>();
+  const owner = await env.DB.prepare(
+    'SELECT name, password_hash, failed_logins, locked_until FROM players WHERE name_key = ?',
+  )
+    .bind(key)
+    .first<OwnerRow>();
+
   if (owner) {
     if (await verifyPlayer(env, name, body?.token)) return json({ name: owner.name, token: body?.token });
-    return json({ error: 'Esse nick já tem dono', taken: true }, { status: 409 });
+    const hasPassword = owner.password_hash !== null;
+    if (!password || !owner.password_hash) {
+      return json({ error: 'Esse nick já tem dono', taken: true, hasPassword }, { status: 409 });
+    }
+    return login(env, key, owner, password);
   }
 
-  // Código inicial aleatório que ninguém vê: o dono gera um visível quando quiser sincronizar outro aparelho.
-  const recoveryCode = randomRecoveryCode();
+  if (password) {
+    const problem = passwordProblem(password);
+    if (problem) return badRequest(problem);
+  }
   // INSERT OR IGNORE: se duas pessoas pedirem o mesmo nick ao mesmo tempo, só uma fica com ele.
   const created = await env.DB.prepare(
-    'INSERT OR IGNORE INTO players (name_key, name, recovery_hash, created_at) VALUES (?, ?, ?, ?)',
+    'INSERT OR IGNORE INTO players (name_key, name, password_hash, created_at) VALUES (?, ?, ?, ?)',
   )
-    .bind(key, name, await sha256(normalizeRecoveryCode(recoveryCode)), Date.now())
+    .bind(key, name, password ? await hashPassword(password) : null, Date.now())
     .run();
   if (!created.meta.changes) return json({ error: 'Esse nick já tem dono', taken: true }, { status: 409 });
 
   return json({ name, token: await issueToken(env, key) });
 }
 
+async function login(env: Env, key: string, owner: OwnerRow, password: string): Promise<Response> {
+  if (owner.locked_until > Date.now()) {
+    return json({ error: 'Muitas tentativas. Espere alguns minutos e tente de novo.' }, { status: 429 });
+  }
+  if (await checkPassword(password, owner.password_hash!)) {
+    await env.DB.prepare('UPDATE players SET failed_logins = 0 WHERE name_key = ?').bind(key).run();
+    return json({ name: owner.name, token: await issueToken(env, key) });
+  }
+  // Os dois SET usam o valor antigo de failed_logins; ao bloquear, a contagem recomeça.
+  await env.DB.prepare(
+    `UPDATE players SET
+       locked_until = CASE WHEN failed_logins + 1 >= ?1 THEN ?2 ELSE locked_until END,
+       failed_logins = CASE WHEN failed_logins + 1 >= ?1 THEN 0 ELSE failed_logins + 1 END
+     WHERE name_key = ?3`,
+  )
+    .bind(MAX_FAILED_LOGINS, Date.now() + LOCK_MS, key)
+    .run();
+  return json({ error: 'Senha incorreta' }, { status: 403 });
+}
+
 /**
- * POST /api/players/sync-code: { name, token } → { code }. Gera um novo código de sincronização para o dono
- * usar em outro aparelho; o código anterior deixa de valer.
+ * POST /api/players/password: { name, token, password } — cria a senha de um nick que ainda não tem.
+ * Depois disso o dono entra com nick + senha em qualquer dispositivo.
  */
-export async function createSyncCode(request: Request, env: Env): Promise<Response> {
-  const body = (await request.json().catch(() => null)) as { name?: unknown; token?: unknown } | null;
+export async function setPassword(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => null)) as
+    | { name?: unknown; token?: unknown; password?: unknown }
+    | null;
   const name = sanitizeName(body?.name);
   if (!name || !(await verifyPlayer(env, name, body?.token))) {
     return json({ error: 'Nick não verificado' }, { status: 401 });
   }
-  const code = randomRecoveryCode();
-  await env.DB.prepare('UPDATE players SET recovery_hash = ? WHERE name_key = ?')
-    .bind(await sha256(normalizeRecoveryCode(code)), nameKey(name))
+  const problem = passwordProblem(body?.password);
+  if (problem) return badRequest(problem);
+
+  const updated = await env.DB.prepare(
+    'UPDATE players SET password_hash = ? WHERE name_key = ? AND password_hash IS NULL',
+  )
+    .bind(await hashPassword(body!.password as string), nameKey(name))
     .run();
-  return json({ code });
-}
-
-/** POST /api/players/recover: { name, recoveryCode } → { name, token }: usa o código de sincronização neste aparelho. */
-export async function recoverPlayer(request: Request, env: Env): Promise<Response> {
-  const body = (await request.json().catch(() => null)) as { name?: unknown; recoveryCode?: unknown } | null;
-  const name = sanitizeName(body?.name);
-  if (!name || typeof body?.recoveryCode !== 'string') return badRequest('Dados inválidos');
-  const key = nameKey(name);
-
-  const owner = await env.DB.prepare('SELECT name, recovery_hash FROM players WHERE name_key = ?')
-    .bind(key)
-    .first<{ name: string; recovery_hash: string }>();
-  const valid = owner && owner.recovery_hash === (await sha256(normalizeRecoveryCode(body.recoveryCode)));
-  if (!valid) return json({ error: 'Código de sincronização inválido' }, { status: 403 });
-
-  return json({ name: owner.name, token: await issueToken(env, key) });
+  if (!updated.meta.changes) return json({ error: 'Esse nick já tem senha' }, { status: 409 });
+  return json({ ok: true });
 }

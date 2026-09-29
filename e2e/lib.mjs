@@ -198,7 +198,7 @@ export async function chooseNick(page, name, waitFor = '.play-buttons') {
   await page.waitForSelector('#nick');
   await page.$eval('#nick', (el) => (el.value = ''));
   await page.type('#nick', name);
-  await page.click('.nick-screen .btn-primary');
+  await page.click('.nick-guest');
   await page.waitForSelector(waitFor);
 }
 

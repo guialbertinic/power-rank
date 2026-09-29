@@ -1,65 +1,124 @@
-import { useState } from 'react';
-import { createSyncCode } from '../api';
+import { useState, type FormEvent } from 'react';
+import { setPassword } from '../api';
+import { passwordProblem, PASSWORD_MAX_LENGTH } from '../game/account';
+import type { Profile } from '../game/cosmetics';
 import type { Identity } from '../nick';
 
-type Status = { kind: 'idle' } | { kind: 'loading' } | { kind: 'ready'; code: string } | { kind: 'error' };
+interface Props {
+  identity: Identity;
+  profile: Profile | null;
+  /** Busca de novo saldo, itens e visual no servidor. Rejeita se falhar. */
+  onRefresh: () => Promise<void>;
+}
+
+type SyncStatus = 'idle' | 'syncing' | 'done' | 'error';
 
 /**
- * "Sincronizar dispositivo": gera um código para usar o mesmo nick em outro aparelho.
- * Cada código novo invalida o anterior (o servidor só guarda o hash do último).
+ * "Sincronizar dispositivo": criar a senha do nick (para entrar com ele em outro dispositivo) e forçar a
+ * sincronização, que recarrega do servidor o que mudou em outro aparelho.
  */
-export default function SyncDevice({ identity }: { identity: Identity }) {
-  const [status, setStatus] = useState<Status>({ kind: 'idle' });
-  const [copied, setCopied] = useState(false);
+export default function SyncDevice({ identity, profile, onRefresh }: Props) {
+  const [open, setOpen] = useState(false);
+  const [password, setPasswordValue] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [created, setCreated] = useState(false);
+  const [sync, setSync] = useState<SyncStatus>('idle');
 
   if (!identity.token) return null;
   const token = identity.token;
 
-  const generate = async () => {
-    setStatus({ kind: 'loading' });
-    setCopied(false);
-    try {
-      setStatus({ kind: 'ready', code: await createSyncCode(identity.name, token) });
-    } catch {
-      setStatus({ kind: 'error' });
-    }
-  };
-
-  const copy = async (code: string) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-    } catch {
-      // Sem permissão de clipboard: o código continua visível para copiar à mão.
-    }
-  };
-
-  if (status.kind === 'idle' || status.kind === 'loading') {
+  if (!open) {
     return (
-      <button className="link-button" onClick={generate} disabled={status.kind === 'loading'}>
-        {status.kind === 'loading' ? 'Gerando código...' : 'Sincronizar dispositivo'}
+      <button className="link-button" onClick={() => setOpen(true)}>
+        Sincronizar dispositivo
       </button>
     );
   }
 
+  const createPassword = (e: FormEvent) => {
+    e.preventDefault();
+    const problem = passwordProblem(password) ?? (password !== confirm ? 'As senhas não são iguais' : null);
+    if (problem) return setError(problem);
+    setSaving(true);
+    setError(null);
+    setPassword(identity.name, token, password)
+      .then(() => {
+        setCreated(true);
+        setPasswordValue('');
+        setConfirm('');
+        return onRefresh();
+      })
+      .catch((err) => setError(err instanceof TypeError ? 'Sem conexão com o servidor.' : err.message))
+      .finally(() => setSaving(false));
+  };
+
+  const forceSync = () => {
+    setSync('syncing');
+    onRefresh().then(
+      () => setSync('done'),
+      () => setSync('error'),
+    );
+  };
+
   return (
     <div className="panel sync-panel">
-      {status.kind === 'error' ? (
-        <p className="error">Não foi possível gerar o código. Tente de novo.</p>
-      ) : (
-        <>
-          <p className="score-label">Código de sincronização</p>
-          <p className="recovery-code">{status.code}</p>
+      <p className="score-label">Sincronizar dispositivo</p>
+
+      {profile?.hasPassword ? (
+        <p className="nick-screen-text">
+          {created && 'Senha criada! '}Em outro dispositivo, entre com o nick <strong>{identity.name}</strong> e a sua
+          senha.
+        </p>
+      ) : profile ? (
+        <form className="sync-password-form" onSubmit={createPassword}>
           <p className="nick-screen-text">
-            No outro dispositivo, abra o jogo, digite o nick <strong>{identity.name}</strong> e depois este código.
-            Gerar um novo código invalida este.
+            Crie uma senha para entrar como <strong>{identity.name}</strong> em outro dispositivo.
           </p>
-          <button className="link-button" onClick={() => copy(status.code)}>
-            {copied ? 'Copiado!' : 'Copiar código'}
+          {/* Campo de usuário escondido: ajuda o gerenciador de senhas a salvar o par nick + senha. */}
+          <input type="text" value={identity.name} autoComplete="username" readOnly hidden />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPasswordValue(e.target.value)}
+            maxLength={PASSWORD_MAX_LENGTH}
+            placeholder="Nova senha"
+            aria-label="Nova senha"
+            autoComplete="new-password"
+            disabled={saving}
+          />
+          <input
+            type="password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            maxLength={PASSWORD_MAX_LENGTH}
+            placeholder="Repita a senha"
+            aria-label="Repita a senha"
+            autoComplete="new-password"
+            disabled={saving}
+          />
+          <button className="btn btn-primary btn-sm" disabled={saving || !password || !confirm}>
+            {saving ? 'Salvando...' : 'Criar senha'}
           </button>
-        </>
-      )}
-      <button className="link-button" onClick={() => setStatus({ kind: 'idle' })}>
+          {error && <p className="error">{error}</p>}
+        </form>
+      ) : null}
+
+      <div className="sync-force">
+        <button className="btn btn-secondary btn-sm" onClick={forceSync} disabled={sync === 'syncing'}>
+          {sync === 'syncing' ? 'Sincronizando...' : 'Forçar sincronização'}
+        </button>
+        <p className="muted sync-note">
+          {sync === 'done'
+            ? 'Pronto: saldo, itens e visual atualizados.'
+            : sync === 'error'
+              ? 'Não foi possível sincronizar. Tente de novo.'
+              : 'Jogou em outro dispositivo? Traz o saldo, os itens e o visual salvos no servidor.'}
+        </p>
+      </div>
+
+      <button className="link-button" onClick={() => setOpen(false)}>
         Fechar
       </button>
     </div>

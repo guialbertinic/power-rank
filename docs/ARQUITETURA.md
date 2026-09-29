@@ -9,7 +9,8 @@ data/characters.json      base de personagens (fonte da verdade, ordenada por po
 public/chars/<id>.webp    imagens 240px (≈18 KB cada)
 public/_headers           cache: /chars 7 dias, /assets imutável
 migrations/               schema do D1 (0001 scores · 0002 melhor por jogador · 0003 categorias ·
-                          0004 donos de nick · 0005 moedas e cosméticos)
+                          0004 donos de nick · 0005 moedas e cosméticos ·
+                          0006 senha do nick)
 scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet (+ lib/images.mjs)
 e2e/                      testes e2e: api.mjs (sem navegador), ui.mjs (Edge headless), lib.mjs (utilitários)
 server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick),
@@ -44,25 +45,28 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 
 | Rota | O que faz |
 |---|---|
-| `POST /api/players` `{ name, token? }` | Escolhe o nick. Livre: fica seu (`{ token }`). Seu: confirma. De outra pessoa: 409. |
-| `POST /api/players/sync-code` `{ name, token }` | Novo código de sincronização (o anterior deixa de valer). |
-| `POST /api/players/recover` `{ name, recoveryCode }` | Código certo: token novo para este aparelho. |
+| `POST /api/players` `{ name, token?, password? }` | Escolhe o nick. Livre: fica seu, com a senha se veio uma (`{ token }`). Seu (token): confirma. De outra pessoa: senha certa dá token novo; errada 403; 5 erradas seguidas bloqueiam 5 min (429); sem senha: 409 `{ taken, hasPassword }`. |
+| `POST /api/players/password` `{ name, token, password }` | Cria a senha de um nick que ainda não tem (409 se já tem). 6 a 72 caracteres (`src/game/account.ts`). |
 | `POST /api/games` `{ name, token, mode }` | Exige ser dono do nick (401). Sorteia no servidor e grava a partida. |
 | `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Recalcula a pontuação no servidor, credita moedas. Uma vez por partida, TTL 1h. |
 | `GET /api/scores?mode=` | Top 20 do modo: melhor resultado de cada nick, com o visual equipado. |
 | `POST /api/party` `{ mode, pid }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
 | `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |
-| `POST /api/profile` `{ name, token }` | Saldo, itens comprados e visual equipado. |
+| `POST /api/profile` `{ name, token }` | Saldo, itens comprados, visual equipado e `hasPassword`. |
 | `POST /api/shop/buy` `{ name, token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
 | `POST /api/profile/equip` `{ name, token, slot, itemId \| null }` | Equipa (ou tira) um item que o jogador tem. |
 
 `scores` guarda todas as partidas; o ranking usa `ROW_NUMBER() OVER (PARTITION BY name_key)`.
 
-## Nick com dono (sem login)
+## Nick com dono (convidado ou com senha)
 
-O primeiro navegador que usa um nick fica com ele (`players`). Cada aparelho do dono tem um token
-(`player_tokens`). "Sincronizar dispositivo" (menu da `ProfileBar`) gera um código XXXX-XXXX-XXXX; no outro
-aparelho, a pessoa digita o nick e o código. Tokens e código ficam só como hash SHA-256.
+O nick é único. O primeiro navegador que usa um nick fica com ele (`players`); cada aparelho do dono tem um
+token (`player_tokens`, hash SHA-256). Na tela do nick dá para entrar **com senha** (nick novo já nasce com ela;
+nick existente com senha = login neste aparelho) ou **como convidado** (o nick fica só neste navegador).
+"Sincronizar dispositivo" (menu da `ProfileBar`, componente `SyncDevice`) cria a senha de um nick de convidado e
+tem **Forçar sincronização**, que recarrega o perfil do servidor (tudo já mora no D1; serve para ver na hora o
+que mudou em outro aparelho). Senha: PBKDF2-SHA256 com sal, iterações gravadas no próprio hash (`password_hash`);
+tentativas erradas em `failed_logins`/`locked_until`. Ainda não há troca nem recuperação de senha.
 No navegador, a identidade `{ name, token }` e os tokens de nicks já usados ficam no `localStorage` (`src/nick.ts`).
 
 ## Economia e cosméticos

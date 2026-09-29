@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { claimNick, recoverNick } from '../api';
+import { claimNick } from '../api';
+import { PASSWORD_MAX_LENGTH } from '../game/account';
 import { NICK_MAX_LENGTH, suggestedNick, tokenFor, type Identity } from '../nick';
 
 interface Props {
@@ -10,87 +11,87 @@ interface Props {
   onDone: (identity: Identity) => void;
 }
 
-type Step = { kind: 'choose' } | { kind: 'taken'; name: string };
+type Step = { kind: 'choose' } | { kind: 'taken'; name: string; hasPassword: boolean };
 
 /**
- * Primeira tela do jogo: escolher o nick. O primeiro navegador que usa um nick fica com ele.
- * Para usar o mesmo nick em outro aparelho, o dono gera um código em "Sincronizar dispositivo" (na home)
- * e digita aqui, no passo de nick que já tem dono.
+ * Primeira tela do jogo: escolher o nick, que é único. Com senha, o jogador entra com o mesmo nick em
+ * qualquer dispositivo; como convidado, o nick fica só neste navegador (dá para criar a senha depois em
+ * "Sincronizar dispositivo", na home).
  */
 export default function NickScreen({ inviteCode, reason, onDone }: Props) {
   const [step, setStep] = useState<Step>({ kind: 'choose' });
   const [nick, setNick] = useState(suggestedNick);
-  const [syncCode, setSyncCode] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(reason);
   const [busy, setBusy] = useState(false);
 
-  const run = async (action: () => Promise<void>) => {
+  const submit = (name: string, withPassword: string | undefined) => {
     setBusy(true);
     setError(null);
-    try {
-      await action();
-    } catch {
-      setError('Sem conexão com o servidor. Tente de novo.');
-    } finally {
-      setBusy(false);
-    }
+    claimNick(name, tokenFor(name), withPassword)
+      .then((result) => {
+        if (result.ok) return onDone({ name: result.name, token: result.token });
+        if (!result.taken) return setError(result.error);
+        setStep({ kind: 'taken', name, hasPassword: result.hasPassword });
+        setPassword('');
+      })
+      .catch(() => setError('Sem conexão com o servidor. Tente de novo.'))
+      .finally(() => setBusy(false));
   };
 
-  const onChoose = (e: FormEvent) => {
+  const onSubmit = (e: FormEvent) => {
     e.preventDefault();
+    const name = step.kind === 'taken' ? step.name : nick.trim();
+    if (name && password) submit(name, password);
+  };
+
+  const onGuest = () => {
     const name = nick.trim();
-    if (!name) return;
-    void run(async () => {
-      const result = await claimNick(name, tokenFor(name));
-      if (result.ok) onDone({ name: result.name, token: result.token });
-      else if (result.taken) setStep({ kind: 'taken', name });
-      else setError(result.error);
-    });
+    if (name) submit(name, undefined);
   };
 
-  const onSync = (e: FormEvent) => {
-    e.preventDefault();
-    if (step.kind !== 'taken' || !syncCode.trim()) return;
-    void run(async () => {
-      try {
-        onDone(await recoverNick(step.name, syncCode));
-      } catch (err) {
-        if (err instanceof TypeError) throw err;
-        setError('Código de sincronização inválido');
-      }
-    });
-  };
+  const passwordInput = (label: string, autoComplete: string) => (
+    <input
+      type="password"
+      className="nick-password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      maxLength={PASSWORD_MAX_LENGTH}
+      placeholder={label}
+      aria-label={label}
+      autoComplete={autoComplete}
+      disabled={busy}
+    />
+  );
 
   if (step.kind === 'taken') {
+    const back = () => {
+      setStep({ kind: 'choose' });
+      setError(null);
+    };
     return (
       <section className="panel nick-screen">
         <p className="score-label">Esse nick já tem dono</p>
-        <p className="nick-screen-text">
-          Se <strong>{step.name}</strong> é seu, abra o jogo no dispositivo onde você já usa esse nick, toque em{' '}
-          <strong>Sincronizar dispositivo</strong> e digite o código aqui.
-        </p>
-        <form className="nick-screen-form" onSubmit={onSync}>
-          <input
-            value={syncCode}
-            onChange={(e) => setSyncCode(e.target.value.toUpperCase())}
-            placeholder="XXXX-XXXX-XXXX"
-            aria-label="Código de sincronização"
-            autoComplete="off"
-            spellCheck={false}
-            disabled={busy}
-          />
-          <button className="btn btn-primary" disabled={busy || !syncCode.trim()}>
-            {busy ? 'Verificando...' : 'Sincronizar'}
-          </button>
-        </form>
+        {step.hasPassword ? (
+          <>
+            <p className="nick-screen-text">
+              Se <strong>{step.name}</strong> é seu, digite a senha.
+            </p>
+            <form className="nick-screen-form" onSubmit={onSubmit}>
+              {passwordInput('Senha', 'current-password')}
+              <button className="btn btn-primary" disabled={busy || !password}>
+                {busy ? 'Verificando...' : 'Entrar'}
+              </button>
+            </form>
+          </>
+        ) : (
+          <p className="nick-screen-text">
+            <strong>{step.name}</strong> está sendo usado como convidado em outro dispositivo. Se é seu, abra o jogo
+            lá, toque no seu nick, escolha <strong>Sincronizar dispositivo</strong> e crie uma senha.
+          </p>
+        )}
         {error && <p className="error">{error}</p>}
-        <button
-          className="link-button"
-          onClick={() => {
-            setStep({ kind: 'choose' });
-            setError(null);
-          }}
-        >
+        <button className="link-button" onClick={back}>
           Escolher outro nick
         </button>
       </section>
@@ -104,7 +105,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
           Você foi convidado para a sala <strong>{inviteCode}</strong>
         </p>
       )}
-      <form className="nick-screen-form" onSubmit={onChoose}>
+      <form className="nick-screen-form" onSubmit={onSubmit}>
         <label className="nick-label" htmlFor="nick">
           Escolha seu nick
         </label>
@@ -113,17 +114,23 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
           value={nick}
           onChange={(e) => setNick(e.target.value)}
           maxLength={NICK_MAX_LENGTH}
-          autoComplete="nickname"
+          autoComplete="username"
           spellCheck={false}
           autoFocus
           disabled={busy}
         />
-        <button className="btn btn-primary btn-lg" disabled={busy || !nick.trim()}>
-          {busy ? 'Verificando...' : inviteCode ? 'Entrar na sala' : 'Continuar'}
+        {passwordInput('Senha (opcional)', 'current-password')}
+        <button className="btn btn-primary btn-lg" disabled={busy || !nick.trim() || !password}>
+          {busy && password ? 'Verificando...' : inviteCode ? 'Entrar na sala' : 'Entrar'}
         </button>
       </form>
+      <button className="btn btn-secondary nick-guest" onClick={onGuest} disabled={busy || !nick.trim()}>
+        Continuar como convidado
+      </button>
       {error && <p className="error">{error}</p>}
-      <p className="nick-screen-hint">Já joga em outro dispositivo? Digite o mesmo nick para sincronizar.</p>
+      <p className="nick-screen-hint">
+        Com senha, você entra com esse nick em qualquer dispositivo. Como convidado, ele fica só neste navegador.
+      </p>
     </section>
   );
 }

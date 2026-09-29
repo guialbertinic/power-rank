@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
-import { createGame, createParty, fetchProfile } from './api';
+import { ApiError, createGame, createParty, fetchProfile } from './api';
 import type { Profile } from './game/cosmetics';
 import { drawCharacters } from './game/draw';
 import { MODES, poolFor, type Mode } from './game/modes';
@@ -145,6 +145,19 @@ export default function App() {
     };
   }, [name, token, state.phase]);
 
+  /** Forçar sincronização: busca de novo o perfil (ex: o jogador comprou algo em outro dispositivo). */
+  const refreshProfile = async () => {
+    if (!name || !token) return;
+    try {
+      setProfile(await fetchProfile({ name, token }));
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        dispatch({ type: 'nick', reason: 'Confirme seu nick de novo para continuar.' });
+      }
+      throw err;
+    }
+  };
+
   const changeMode = (next: Mode) => {
     setMode(next);
     saveMode(next);
@@ -213,6 +226,7 @@ export default function App() {
           profile={profile}
           onOpenShop={() => dispatch({ type: 'shop' })}
           onChangeNick={() => dispatch({ type: 'nick' })}
+          onRefresh={refreshProfile}
           disabled={starting}
         />
       )}

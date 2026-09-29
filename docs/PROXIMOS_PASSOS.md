@@ -8,11 +8,12 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 - Categorias Animes / Games / Free for All, cada uma com ranking (melhor resultado por nick).
 - Design system "Dark Battle Interface"; resultado sem valores de poder.
 - Party (multiplayer) com Durable Objects: sala por código/convite, espera ao vivo, pódio, revanche, reconexão.
-- Nick com dono, sincronização entre dispositivos por código, primeira tela de nick, convite entra direto.
+- Nick único com dono: convidado (preso ao navegador) ou com senha (entra em qualquer dispositivo); criar senha e
+  forçar sincronização no menu do perfil; convite entra direto.
 - Moedas (a partir de 500 pontos, bônus de pódio), loja de cosméticos, `PlayerTag` e barra de perfil na home.
 - Testes e2e no repositório (`npm run e2e:api`, `npm run e2e:ui`), skills do projeto (`.claude/skills/`) e
   documentação dividida entre `CLAUDE.md` (regras) e `docs/ARQUITETURA.md` (referência).
-- Produção: migrações 0001–0005 aplicadas; deploy automático pela `main`.
+- Produção: migrações 0001–0006 aplicadas; deploy automático pela `main`.
 
 ## Party (multiplayer)
 
@@ -51,7 +52,8 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 
 - [ ] Esconder os valores de `power` também do JavaScript do site: hoje `characters.json` vai inteiro no bundle, e
       quem abrir o código consegue ler. Seria o servidor devolver a ordem correta ao fim da partida.
-- [ ] Nick: expirar tokens antigos e/ou listar aparelhos conectados.
+- [ ] Nick: trocar senha (pedindo a atual) e recuperar senha esquecida (hoje só pelos aparelhos já conectados).
+- [ ] Nick: expirar tokens antigos e/ou listar aparelhos conectados (e "sair de todos" ao trocar a senha).
 - [ ] Rate limit por IP em `POST /api/games` e `/api/scores`.
 - [ ] Rodar `npm test` + `e2e:api` num CI (GitHub Actions) antes do deploy.
 - [ ] Endpoint de saúde e alerta simples de erro (observability já está ligado no `wrangler.jsonc`).

@@ -1,7 +1,7 @@
 import { createGame } from './games';
 import { json, type Env } from './lib';
 import { connectParty, createParty } from './party';
-import { claimPlayer, createSyncCode, recoverPlayer } from './players';
+import { claimPlayer, setPassword } from './players';
 import { buyItem, equipItem, getProfile } from './profile';
 import { getLeaderboard, submitScore } from './scores';
 
@@ -34,10 +34,8 @@ export default {
           return await createParty(request, env);
         case 'POST /api/players':
           return await claimPlayer(request, env);
-        case 'POST /api/players/recover':
-          return await recoverPlayer(request, env);
-        case 'POST /api/players/sync-code':
-          return await createSyncCode(request, env);
+        case 'POST /api/players/password':
+          return await setPassword(request, env);
         case 'POST /api/profile':
           return await getProfile(request, env);
         case 'POST /api/profile/equip':

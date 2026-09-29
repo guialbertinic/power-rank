@@ -43,34 +43,31 @@ export class ApiError extends Error {
 
 export type ClaimResult =
   | { ok: true; name: string; token: string }
-  | { ok: false; taken: boolean; error: string };
+  | { ok: false; taken: boolean; hasPassword: boolean; error: string };
 
-/** Escolhe um nick: fica com ele se estiver livre, ou confirma se o token for do dono. */
-export async function claimNick(name: string, token: string | null): Promise<ClaimResult> {
+/**
+ * Escolhe um nick: fica com ele se estiver livre (com a senha, se vier uma), confirma se o token for do dono,
+ * ou entra com a senha num nick que já é seu em outro dispositivo.
+ */
+export async function claimNick(name: string, token: string | null, password?: string): Promise<ClaimResult> {
   try {
     const data = await request<{ name: string; token: string }>('/api/players', {
       method: 'POST',
-      body: JSON.stringify({ name, token }),
+      body: JSON.stringify({ name, token, password: password || undefined }),
     });
     return { ok: true, ...data };
   } catch (err) {
-    if (err instanceof ApiError) return { ok: false, taken: err.status === 409, error: err.message };
+    if (err instanceof ApiError) {
+      const hasPassword = Boolean((err.data as { hasPassword?: boolean } | null)?.hasPassword);
+      return { ok: false, taken: err.status === 409, hasPassword, error: err.message };
+    }
     throw err;
   }
 }
 
-/** Usa o código de sincronização (gerado no outro aparelho) para ter o nick neste. */
-/** Gera um novo código de sincronização para levar o nick a outro aparelho (o anterior deixa de valer). */
-export async function createSyncCode(name: string, token: string): Promise<string> {
-  const { code } = await request<{ code: string }>('/api/players/sync-code', {
-    method: 'POST',
-    body: JSON.stringify({ name, token }),
-  });
-  return code;
-}
-
-export async function recoverNick(name: string, recoveryCode: string): Promise<{ name: string; token: string }> {
-  return request('/api/players/recover', { method: 'POST', body: JSON.stringify({ name, recoveryCode }) });
+/** Cria a senha de um nick que ainda não tem (depois ele entra com nick + senha em qualquer dispositivo). */
+export async function setPassword(name: string, token: string, password: string): Promise<void> {
+  await request('/api/players/password', { method: 'POST', body: JSON.stringify({ name, token, password }) });
 }
 
 /**

@@ -56,4 +56,6 @@ export interface Profile {
   coins: number;
   owned: string[];
   look: Look;
+  /** O nick tem senha (dá para entrar com ela em outro dispositivo). */
+  hasPassword: boolean;
 }

@@ -12,6 +12,8 @@ interface Props {
   profile: Profile | null;
   onOpenShop: () => void;
   onChangeNick: () => void;
+  /** Forçar sincronização: recarrega o perfil do servidor. */
+  onRefresh: () => Promise<void>;
   disabled?: boolean;
 }
 
@@ -19,7 +21,7 @@ interface Props {
  * Canto superior direito da home: quem está jogando, saldo e loja. "Trocar nick" e "Sincronizar dispositivo"
  * ficam num menu que abre ao tocar no nick (são usados raramente).
  */
-export default function ProfileBar({ identity, profile, onOpenShop, onChangeNick, disabled }: Props) {
+export default function ProfileBar({ identity, profile, onOpenShop, onChangeNick, onRefresh, disabled }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -72,9 +74,9 @@ export default function ProfileBar({ identity, profile, onOpenShop, onChangeNick
           >
             Trocar nick
           </button>
-          <SyncDevice identity={identity} />
-          {profile && profile.coins > 0 && (
-            <p className="muted sync-warning">Sincronize outro dispositivo para não perder suas moedas.</p>
+          <SyncDevice identity={identity} profile={profile} onRefresh={onRefresh} />
+          {profile && !profile.hasPassword && profile.coins > 0 && (
+            <p className="muted sync-warning">Crie uma senha para não perder suas moedas.</p>
           )}
         </div>
       )}

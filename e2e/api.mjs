@@ -29,12 +29,28 @@ section('Nick');
   const taken = await post('/players', { name: name.toUpperCase() });
   check('outro navegador é recusado (409)', taken.status === 409 && taken.data.taken === true);
 
-  const { data: s1 } = await post('/players/sync-code', { name, token: a.token });
-  const { data: s2 } = await post('/players/sync-code', { name, token: a.token });
-  check('código de sincronização no formato XXXX-XXXX-XXXX', /^[A-Z2-9]{4}(-[A-Z2-9]{4}){2}$/.test(s2.code), s2.code);
-  check('código antigo deixa de valer', (await post('/players/recover', { name, recoveryCode: s1.code })).status === 403);
-  const rec = await post('/players/recover', { name, recoveryCode: s2.code.toLowerCase().replace(/-/g, ' ') });
-  check('código novo (digitado diferente) dá token', rec.status === 200 && rec.data.token !== a.token);
+  check('nick sem senha avisa que não tem senha', taken.data.hasPassword === false);
+  check('senha em nick de convidado é recusada (409)', (await post('/players', { name, password: 'qualquer1' })).status === 409);
+  check('senha curta é recusada', (await post('/players/password', { name, token: a.token, password: '123' })).status === 400);
+  check('criar senha sem token é recusado', (await post('/players/password', { name, password: 'segredo1' })).status === 401);
+  check('dono cria a senha', (await post('/players/password', { name, token: a.token, password: 'segredo1' })).status === 200);
+  check('senha não é trocada sem a atual', (await post('/players/password', { name, token: a.token, password: 'outra123' })).status === 409);
+  const { data: prof } = await post('/profile', { name, token: a.token });
+  check('perfil diz que tem senha', prof.hasPassword === true);
+  const withPw = await post('/players', { name });
+  check('nick com senha avisa que tem senha', withPw.status === 409 && withPw.data.hasPassword === true);
+  const login = await post('/players', { name: name.toUpperCase(), password: 'segredo1' });
+  check('senha certa dá token novo em outro dispositivo', login.status === 200 && Boolean(login.data.token) && login.data.token !== a.token);
+  check('token do outro dispositivo vale', (await post('/profile', { name, token: login.data.token })).status === 200);
+  check('senha errada é recusada (403)', (await post('/players', { name, password: 'errada00' })).status === 403);
+
+  const fresh = nick('ComSenha');
+  const created = await post('/players', { name: fresh, password: 'minhasenha' });
+  check('nick novo já nasce com senha', created.status === 200 && (await post('/players', { name: fresh, password: 'minhasenha' })).status === 200);
+  check('nick novo com senha curta é recusado', (await post('/players', { name: nick('Curta'), password: '12' })).status === 400);
+  for (let i = 0; i < 5; i++) await post('/players', { name: fresh, password: 'errada00' });
+  check('5 senhas erradas bloqueiam o nick (429)', (await post('/players', { name: fresh, password: 'minhasenha' })).status === 429);
+
   check('partida solo sem token é recusada', (await post('/games', { name, mode: 'anime' })).status === 401);
   const other = await player('Outro');
   check('token de um nick não serve para outro', (await post('/games', { name, token: other.token, mode: 'anime' })).status === 401);

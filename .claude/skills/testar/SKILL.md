@@ -26,7 +26,7 @@ o servidor e rode `npm run db:migrate:local` antes.
 - Cada teste imprime `✓`/`✗` por cenário e termina com "Tudo certo" ou "N falha(s)". Use
   `2>&1 | grep -E "^(✓|✗|—)|Tudo|falha"` para uma saída curta.
 - Os e2e limpam sozinhos os nicks de teste (prefixo `E2e`) do D1 local, no começo e no fim.
-- `e2e:ui` salva screenshots em `e2e/screenshots/`: `home`, `party-lobby-celular`, `party-espera`,
+- `e2e:ui` salva screenshots em `e2e/screenshots/`: `nick`, `nick-celular`, `home`, `sincronizar`, `party-lobby-celular`, `party-espera`,
   `party-podio`, `loja`, `solo-resultado`, `home-celular`. **Abra só os que têm a ver com a mudança.**
 - HTTP 500 em `/api/scores` logo depois de um `d1()` do teste: disputa pelo SQLite local entre o Wrangler e o dev
   server. Só existe em dev; rode de novo.

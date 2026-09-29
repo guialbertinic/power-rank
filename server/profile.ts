@@ -52,14 +52,15 @@ async function authenticate<T extends object>(
 
 async function loadProfile(env: Env, key: string): Promise<Profile> {
   const [player, items] = await env.DB.batch([
-    env.DB.prepare('SELECT coins, avatar, name_color, frame FROM players WHERE name_key = ?').bind(key),
+    env.DB.prepare('SELECT coins, avatar, name_color, frame, password_hash IS NOT NULL AS has_password FROM players WHERE name_key = ?').bind(key),
     env.DB.prepare('SELECT item_id FROM player_items WHERE name_key = ? ORDER BY acquired_at').bind(key),
   ]);
-  const row = (player.results[0] ?? null) as (LookRow & { coins: number }) | null;
+  const row = (player.results[0] ?? null) as (LookRow & { coins: number; has_password: number }) | null;
   return {
     coins: row?.coins ?? 0,
     owned: (items.results as { item_id: string }[]).map((r) => r.item_id),
     look: toLook(row),
+    hasPassword: Boolean(row?.has_password),
   };
 }
 
