@@ -2,7 +2,8 @@
   {
     "id": "saitama",
     "name": "Saitama",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 100,
     "image": "chars/saitama.webp",
     "anilistId": 73935
@@ -10,7 +11,8 @@
   {
     "id": "simon",
     "name": "Simon",
-    "anime": "Tengen Toppa Gurren Lagann",
+    "category": "anime",
+    "series": "Tengen Toppa Gurren Lagann",
     "version": "Super Tengen Toppa",
     "power": 100,
     "image": "chars/simon.webp",
@@ -19,7 +21,8 @@
   {
     "id": "goku",
     "name": "Son Goku",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "version": "Ultra Instinto",
     "power": 99,
     "image": "chars/goku.webp",
@@ -28,7 +31,8 @@
   {
     "id": "whis",
     "name": "Whis",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "power": 99,
     "image": "chars/whis.webp",
     "anilistId": 76346
@@ -36,7 +40,8 @@
   {
     "id": "frieza",
     "name": "Frieza",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "version": "Black Frieza",
     "power": 98,
     "image": "chars/frieza.webp",
@@ -45,7 +50,8 @@
   {
     "id": "beerus",
     "name": "Beerus",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "power": 98,
     "image": "chars/beerus.webp",
     "anilistId": 76348
@@ -53,7 +59,8 @@
   {
     "id": "vegeta",
     "name": "Vegeta",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "version": "Ultra Ego",
     "power": 97,
     "image": "chars/vegeta.webp",
@@ -62,7 +69,8 @@
   {
     "id": "gohan",
     "name": "Son Gohan",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "version": "Beast",
     "power": 97,
     "image": "chars/gohan.webp",
@@ -71,15 +79,26 @@
   {
     "id": "guy-crimson",
     "name": "Guy Crimson",
-    "anime": "Tensei shitara Slime Datta Ken",
+    "category": "anime",
+    "series": "Tensei shitara Slime Datta Ken",
     "power": 97,
     "image": "chars/guy-crimson.webp",
     "anilistId": 131048
   },
   {
+    "id": "arceus",
+    "name": "Arceus",
+    "category": "games",
+    "series": "Pokémon",
+    "power": 97,
+    "wikipedia": "Arceus",
+    "image": "chars/arceus.webp"
+  },
+  {
     "id": "rimuru",
     "name": "Rimuru Tempest",
-    "anime": "Tensei shitara Slime Datta Ken",
+    "category": "anime",
+    "series": "Tensei shitara Slime Datta Ken",
     "version": "Demon Lord",
     "power": 96,
     "image": "chars/rimuru.webp",
@@ -88,7 +107,8 @@
   {
     "id": "broly",
     "name": "Broly",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "version": "Dragon Ball Super: Broly",
     "power": 96,
     "image": "chars/broly.webp",
@@ -97,7 +117,8 @@
   {
     "id": "jiren",
     "name": "Jiren",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "power": 96,
     "image": "chars/jiren.webp",
     "anilistId": 126257
@@ -105,7 +126,8 @@
   {
     "id": "milim",
     "name": "Milim Nava",
-    "anime": "Tensei shitara Slime Datta Ken",
+    "category": "anime",
+    "series": "Tensei shitara Slime Datta Ken",
     "power": 96,
     "image": "chars/milim.webp",
     "anilistId": 128036
@@ -113,7 +135,8 @@
   {
     "id": "yhwach",
     "name": "Yhwach",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 95,
     "image": "chars/yhwach.webp",
     "anilistId": 68537
@@ -121,16 +144,36 @@
   {
     "id": "garou",
     "name": "Garou",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "version": "Cosmic Fear",
     "power": 95,
     "image": "chars/garou.webp",
     "anilistId": 89277
   },
   {
+    "id": "asura-wrath",
+    "name": "Asura",
+    "category": "games",
+    "series": "Asura's Wrath",
+    "version": "Destructor",
+    "power": 95
+  },
+  {
+    "id": "liu-kang",
+    "name": "Liu Kang",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "version": "Deus do Fogo / Guardião do Tempo",
+    "power": 95,
+    "wikipedia": "Liu Kang",
+    "image": "chars/liu-kang.webp"
+  },
+  {
     "id": "zamasu",
     "name": "Zamasu",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "version": "Fusão",
     "power": 94,
     "image": "chars/zamasu.webp",
@@ -139,7 +182,8 @@
   {
     "id": "blast",
     "name": "Blast",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 94,
     "image": "chars/blast.webp",
     "anilistId": 206581
@@ -147,7 +191,8 @@
   {
     "id": "veldora",
     "name": "Veldora Tempest",
-    "anime": "Tensei shitara Slime Datta Ken",
+    "category": "anime",
+    "series": "Tensei shitara Slime Datta Ken",
     "power": 94,
     "image": "chars/veldora.webp",
     "anilistId": 128034
@@ -155,7 +200,8 @@
   {
     "id": "goku-black",
     "name": "Goku Black",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "version": "Rosé",
     "power": 93,
     "image": "chars/goku-black.webp",
@@ -164,15 +210,26 @@
   {
     "id": "isshiki",
     "name": "Isshiki Ootsutsuki",
-    "anime": "Boruto: Naruto Next Generations",
+    "category": "anime",
+    "series": "Boruto: Naruto Next Generations",
     "power": 92,
     "image": "chars/isshiki.webp",
     "anilistId": 189948
   },
   {
+    "id": "bayonetta",
+    "name": "Bayonetta",
+    "category": "games",
+    "series": "Bayonetta",
+    "power": 92,
+    "image": "chars/bayonetta.webp",
+    "igdbId": 2432
+  },
+  {
     "id": "father",
     "name": "Father",
-    "anime": "Fullmetal Alchemist: Brotherhood",
+    "category": "anime",
+    "series": "Fullmetal Alchemist: Brotherhood",
     "version": "Após absorver Deus",
     "power": 91,
     "image": "chars/father.webp",
@@ -181,7 +238,8 @@
   {
     "id": "hit",
     "name": "Hit",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "power": 90,
     "image": "chars/hit.webp",
     "anilistId": 126883
@@ -189,7 +247,8 @@
   {
     "id": "piccolo",
     "name": "Piccolo",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "version": "Orange Piccolo",
     "power": 90,
     "image": "chars/piccolo.webp",
@@ -198,7 +257,8 @@
   {
     "id": "kaguya",
     "name": "Kaguya Ootsutsuki",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 90,
     "image": "chars/kaguya.webp",
     "anilistId": 126069
@@ -206,7 +266,8 @@
   {
     "id": "demon-king",
     "name": "Rei Demônio",
-    "anime": "Nanatsu no Taizai",
+    "category": "anime",
+    "series": "Nanatsu no Taizai",
     "power": 90,
     "search": "Demon King",
     "image": "chars/demon-king.webp",
@@ -215,7 +276,8 @@
   {
     "id": "diablo",
     "name": "Diablo",
-    "anime": "Tensei shitara Slime Datta Ken",
+    "category": "anime",
+    "series": "Tensei shitara Slime Datta Ken",
     "power": 90,
     "image": "chars/diablo.webp",
     "anilistId": 131033
@@ -223,7 +285,8 @@
   {
     "id": "reinhard",
     "name": "Reinhard van Astrea",
-    "anime": "Re:Zero kara Hajimeru Isekai Seikatsu",
+    "category": "anime",
+    "series": "Re:Zero kara Hajimeru Isekai Seikatsu",
     "power": 90,
     "image": "chars/reinhard.webp",
     "anilistId": 88577
@@ -231,7 +294,8 @@
   {
     "id": "ryo-asuka",
     "name": "Ryou Asuka",
-    "anime": "Devilman Crybaby",
+    "category": "anime",
+    "series": "Devilman Crybaby",
     "version": "Satan",
     "power": 90,
     "search": "Ryo Asuka",
@@ -241,7 +305,8 @@
   {
     "id": "naruto",
     "name": "Naruto Uzumaki",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "version": "Guerra final",
     "power": 89,
     "image": "chars/naruto.webp",
@@ -250,7 +315,8 @@
   {
     "id": "ichigo",
     "name": "Ichigo Kurosaki",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "version": "Thousand-Year Blood War",
     "power": 89,
     "image": "chars/ichigo.webp",
@@ -259,7 +325,8 @@
   {
     "id": "momoshiki",
     "name": "Momoshiki Ootsutsuki",
-    "anime": "Boruto: Naruto Next Generations",
+    "category": "anime",
+    "series": "Boruto: Naruto Next Generations",
     "power": 89,
     "image": "chars/momoshiki.webp",
     "anilistId": 127027
@@ -267,7 +334,8 @@
   {
     "id": "madara",
     "name": "Madara Uchiha",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "version": "Jinchuuriki do Juubi",
     "power": 88,
     "image": "chars/madara.webp",
@@ -276,7 +344,8 @@
   {
     "id": "aizen",
     "name": "Sousuke Aizen",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "version": "Fusão com Hougyoku",
     "power": 88,
     "image": "chars/aizen.webp",
@@ -285,7 +354,8 @@
   {
     "id": "android-17",
     "name": "Android 17",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "version": "Torneio do Poder",
     "power": 88,
     "image": "chars/android-17.webp",
@@ -294,7 +364,8 @@
   {
     "id": "ichibe",
     "name": "Ichibee Hyousube",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 88,
     "anilistId": 74359,
     "image": "chars/ichibe.webp"
@@ -302,16 +373,46 @@
   {
     "id": "pochita",
     "name": "Pochita",
-    "anime": "Chainsaw Man",
+    "category": "anime",
+    "series": "Chainsaw Man",
     "version": "Chainsaw Devil",
     "power": 88,
     "image": "chars/pochita.webp",
     "anilistId": 170266
   },
   {
+    "id": "doom-slayer",
+    "name": "Doom Slayer",
+    "category": "games",
+    "series": "DOOM",
+    "power": 88,
+    "wikipedia": "Doomguy",
+    "image": "chars/doom-slayer.webp"
+  },
+  {
+    "id": "sephiroth",
+    "name": "Sephiroth",
+    "category": "games",
+    "series": "Final Fantasy VII",
+    "version": "Safer Sephiroth",
+    "power": 88,
+    "wikipedia": "Sephiroth (Final Fantasy)",
+    "image": "chars/sephiroth.webp"
+  },
+  {
+    "id": "kirby",
+    "name": "Kirby",
+    "category": "games",
+    "series": "Kirby",
+    "power": 88,
+    "wikipedia": "Kirby (character)",
+    "image": "chars/kirby.webp"
+  },
+  {
     "id": "luffy",
     "name": "Monkey D. Luffy",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "version": "Gear 5",
     "power": 87,
     "image": "chars/luffy.webp",
@@ -320,7 +421,8 @@
   {
     "id": "buu",
     "name": "Majin Buu",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "version": "Kid Buu",
     "power": 87,
     "image": "chars/buu.webp",
@@ -329,7 +431,8 @@
   {
     "id": "sasuke",
     "name": "Sasuke Uchiha",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "version": "Guerra final",
     "power": 86,
     "image": "chars/sasuke.webp",
@@ -338,7 +441,8 @@
   {
     "id": "meliodas",
     "name": "Meliodas",
-    "anime": "Nanatsu no Taizai",
+    "category": "anime",
+    "series": "Nanatsu no Taizai",
     "version": "Rei Demônio",
     "power": 86,
     "image": "chars/meliodas.webp",
@@ -347,7 +451,8 @@
   {
     "id": "obito",
     "name": "Obito Uchiha",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "version": "Jinchuuriki do Juubi",
     "power": 86,
     "anilistId": 3149,
@@ -356,7 +461,8 @@
   {
     "id": "kaido",
     "name": "Kaidou",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 86,
     "image": "chars/kaido.webp",
     "anilistId": 46109
@@ -364,7 +470,8 @@
   {
     "id": "shanks",
     "name": "Shanks",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 86,
     "image": "chars/shanks.webp",
     "anilistId": 727
@@ -372,7 +479,8 @@
   {
     "id": "roger",
     "name": "Gol D. Roger",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 86,
     "anilistId": 4883,
     "image": "chars/roger.webp"
@@ -380,7 +488,8 @@
   {
     "id": "yamamoto",
     "name": "Genryuusai Shigekuni Yamamoto",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 86,
     "image": "chars/yamamoto.webp",
     "anilistId": 5726
@@ -388,7 +497,8 @@
   {
     "id": "acnologia",
     "name": "Acnologia",
-    "anime": "Fairy Tail",
+    "category": "anime",
+    "series": "Fairy Tail",
     "power": 86,
     "image": "chars/acnologia.webp",
     "anilistId": 49003
@@ -396,7 +506,8 @@
   {
     "id": "lucius",
     "name": "Lucius Zogratis",
-    "anime": "Black Clover",
+    "category": "anime",
+    "series": "Black Clover",
     "power": 86,
     "anilistId": 319876,
     "image": "chars/lucius.webp"
@@ -404,7 +515,8 @@
   {
     "id": "jinwoo",
     "name": "Sung Jinwoo",
-    "anime": "Solo Leveling",
+    "category": "anime",
+    "series": "Solo Leveling",
     "version": "Monarca das Sombras",
     "power": 86,
     "search": "Sung Jin-Woo",
@@ -414,7 +526,8 @@
   {
     "id": "griffith",
     "name": "Griffith",
-    "anime": "Berserk",
+    "category": "anime",
+    "series": "Berserk",
     "version": "Femto",
     "power": 86,
     "image": "chars/griffith.webp",
@@ -423,15 +536,24 @@
   {
     "id": "hades",
     "name": "Hades",
-    "anime": "Saint Seiya",
+    "category": "anime",
+    "series": "Saint Seiya",
     "power": 86,
     "image": "chars/hades.webp",
     "anilistId": 20573
   },
   {
+    "id": "elden-beast",
+    "name": "Elden Beast",
+    "category": "games",
+    "series": "Elden Ring",
+    "power": 86
+  },
+  {
     "id": "cell",
     "name": "Cell",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "version": "Perfect Cell",
     "power": 85,
     "image": "chars/cell.webp",
@@ -440,7 +562,8 @@
   {
     "id": "blackbeard",
     "name": "Marshall D. Teach",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "version": "Barba Negra",
     "power": 85,
     "image": "chars/blackbeard.webp",
@@ -449,15 +572,27 @@
   {
     "id": "kenpachi",
     "name": "Kenpachi Zaraki",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 85,
     "image": "chars/kenpachi.webp",
     "anilistId": 909
   },
   {
+    "id": "super-sonic",
+    "name": "Sonic",
+    "category": "games",
+    "series": "Sonic the Hedgehog",
+    "version": "Super Sonic",
+    "power": 85,
+    "image": "chars/super-sonic.webp",
+    "igdbId": 3153
+  },
+  {
     "id": "boros",
     "name": "Boros",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 84,
     "image": "chars/boros.webp",
     "anilistId": 89263
@@ -465,7 +600,8 @@
   {
     "id": "sukuna",
     "name": "Ryoumen Sukuna",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "version": "Forma verdadeira",
     "power": 84,
     "image": "chars/sukuna.webp",
@@ -474,7 +610,8 @@
   {
     "id": "trunks",
     "name": "Trunks",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "version": "Do Futuro",
     "power": 84,
     "image": "chars/trunks.webp",
@@ -483,7 +620,8 @@
   {
     "id": "might-guy",
     "name": "Might Guy",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "version": "Oitavo Portão",
     "power": 84,
     "image": "chars/might-guy.webp",
@@ -492,7 +630,8 @@
   {
     "id": "whitebeard",
     "name": "Edward Newgate",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "version": "Barba Branca",
     "power": 84,
     "image": "chars/whitebeard.webp",
@@ -501,7 +640,8 @@
   {
     "id": "zeref",
     "name": "Zeref Dragneel",
-    "anime": "Fairy Tail",
+    "category": "anime",
+    "series": "Fairy Tail",
     "power": 84,
     "search": "Zeref",
     "image": "chars/zeref.webp",
@@ -510,7 +650,8 @@
   {
     "id": "lucifero",
     "name": "Lucifero",
-    "anime": "Black Clover",
+    "category": "anime",
+    "series": "Black Clover",
     "power": 84,
     "image": "chars/lucifero.webp",
     "anilistId": 181846
@@ -518,16 +659,27 @@
   {
     "id": "escanor",
     "name": "Escanor",
-    "anime": "Nanatsu no Taizai",
+    "category": "anime",
+    "series": "Nanatsu no Taizai",
     "version": "The One",
     "power": 84,
     "image": "chars/escanor.webp",
     "anilistId": 90202
   },
   {
+    "id": "shadow",
+    "name": "Shadow the Hedgehog",
+    "category": "games",
+    "series": "Sonic the Hedgehog",
+    "power": 84,
+    "image": "chars/shadow.webp",
+    "igdbId": 14156
+  },
+  {
     "id": "mob",
     "name": "Shigeo Kageyama",
-    "anime": "Mob Psycho 100",
+    "category": "anime",
+    "series": "Mob Psycho 100",
     "version": "???%",
     "power": 83,
     "image": "chars/mob.webp",
@@ -536,7 +688,8 @@
   {
     "id": "big-mom",
     "name": "Charlotte Linlin",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "version": "Big Mom",
     "power": 83,
     "image": "chars/big-mom.webp",
@@ -545,7 +698,8 @@
   {
     "id": "gojo",
     "name": "Satoru Gojo",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 82,
     "image": "chars/gojo.webp",
     "anilistId": 127691
@@ -553,7 +707,8 @@
   {
     "id": "garp",
     "name": "Monkey D. Garp",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 82,
     "search": "Garp",
     "image": "chars/garp.webp",
@@ -562,7 +717,8 @@
   {
     "id": "akainu",
     "name": "Sakazuki",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "version": "Akainu",
     "power": 82,
     "image": "chars/akainu.webp",
@@ -571,7 +727,8 @@
   {
     "id": "mihawk",
     "name": "Dracule Mihawk",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 82,
     "image": "chars/mihawk.webp",
     "anilistId": 2064
@@ -579,7 +736,8 @@
   {
     "id": "ymir-fritz",
     "name": "Ymir Fritz",
-    "anime": "Shingeki no Kyojin",
+    "category": "anime",
+    "series": "Shingeki no Kyojin",
     "power": 82,
     "image": "chars/ymir-fritz.webp",
     "anilistId": 199551
@@ -587,7 +745,8 @@
   {
     "id": "pucci",
     "name": "Enrico Pucci",
-    "anime": "JoJo's Bizarre Adventure",
+    "category": "anime",
+    "series": "JoJo's Bizarre Adventure",
     "version": "Made in Heaven",
     "power": 82,
     "image": "chars/pucci.webp",
@@ -596,7 +755,8 @@
   {
     "id": "benimaru",
     "name": "Benimaru",
-    "anime": "Tensei shitara Slime Datta Ken",
+    "category": "anime",
+    "series": "Tensei shitara Slime Datta Ken",
     "power": 82,
     "image": "chars/benimaru.webp",
     "anilistId": 128038
@@ -604,15 +764,44 @@
   {
     "id": "ainz",
     "name": "Ainz Ooal Gown",
-    "anime": "Overlord",
+    "category": "anime",
+    "series": "Overlord",
     "power": 82,
     "image": "chars/ainz.webp",
     "anilistId": 89103
   },
   {
+    "id": "kratos",
+    "name": "Kratos",
+    "category": "games",
+    "series": "God of War",
+    "power": 82,
+    "image": "chars/kratos.webp",
+    "igdbId": 2134
+  },
+  {
+    "id": "dante",
+    "name": "Dante",
+    "category": "games",
+    "series": "Devil May Cry",
+    "power": 82,
+    "image": "chars/dante.webp",
+    "igdbId": 1898
+  },
+  {
+    "id": "vergil",
+    "name": "Vergil",
+    "category": "games",
+    "series": "Devil May Cry",
+    "power": 82,
+    "image": "chars/vergil.webp",
+    "igdbId": 1899
+  },
+  {
     "id": "eren",
     "name": "Eren Yeager",
-    "anime": "Shingeki no Kyojin",
+    "category": "anime",
+    "series": "Shingeki no Kyojin",
     "version": "Titã Fundador",
     "power": 80,
     "image": "chars/eren.webp",
@@ -621,7 +810,8 @@
   {
     "id": "hashirama",
     "name": "Hashirama Senju",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 80,
     "image": "chars/hashirama.webp",
     "anilistId": 12464
@@ -629,7 +819,8 @@
   {
     "id": "kakashi",
     "name": "Kakashi Hatake",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "version": "Mangekyou Sharingan",
     "power": 80,
     "image": "chars/kakashi.webp",
@@ -638,7 +829,8 @@
   {
     "id": "kurama",
     "name": "Kurama",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 80,
     "image": "chars/kurama.webp",
     "anilistId": 7407
@@ -646,7 +838,8 @@
   {
     "id": "aokiji",
     "name": "Kuzan",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "version": "Aokiji",
     "power": 80,
     "image": "chars/aokiji.webp",
@@ -655,7 +848,8 @@
   {
     "id": "kizaru",
     "name": "Borsalino",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "version": "Kizaru",
     "power": 80,
     "image": "chars/kizaru.webp",
@@ -664,7 +858,8 @@
   {
     "id": "kyoraku",
     "name": "Shunsui Kyouraku",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 80,
     "image": "chars/kyoraku.webp",
     "anilistId": 1088
@@ -672,7 +867,8 @@
   {
     "id": "urahara",
     "name": "Kisuke Urahara",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 80,
     "image": "chars/urahara.webp",
     "anilistId": 210
@@ -680,7 +876,8 @@
   {
     "id": "isshin",
     "name": "Isshin Kurosaki",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 80,
     "image": "chars/isshin.webp",
     "anilistId": 2553
@@ -688,7 +885,8 @@
   {
     "id": "haschwalth",
     "name": "Jugram Haschwalth",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 80,
     "image": "chars/haschwalth.webp",
     "anilistId": 71949
@@ -696,7 +894,8 @@
   {
     "id": "yuta",
     "name": "Yuuta Okkotsu",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 80,
     "image": "chars/yuta.webp",
     "anilistId": 129571
@@ -704,7 +903,8 @@
   {
     "id": "mahoraga",
     "name": "Mahoraga",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 80,
     "image": "chars/mahoraga.webp",
     "anilistId": 319339
@@ -712,7 +912,8 @@
   {
     "id": "merlin",
     "name": "Merlin",
-    "anime": "Nanatsu no Taizai",
+    "category": "anime",
+    "series": "Nanatsu no Taizai",
     "power": 80,
     "image": "chars/merlin.webp",
     "anilistId": 89180
@@ -720,7 +921,8 @@
   {
     "id": "gilgamesh",
     "name": "Gilgamesh",
-    "anime": "Fate/Zero",
+    "category": "anime",
+    "series": "Fate/Zero",
     "power": 80,
     "image": "chars/gilgamesh.webp",
     "anilistId": 2514
@@ -728,16 +930,34 @@
   {
     "id": "ragyo",
     "name": "Ragyo Kiryuuin",
-    "anime": "Kill la Kill",
+    "category": "anime",
+    "series": "Kill la Kill",
     "power": 80,
     "search": "Ragyou Kiryuuin",
     "image": "chars/ragyo.webp",
     "anilistId": 126061
   },
   {
+    "id": "raiden-mk",
+    "name": "Raiden",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "power": 80,
+    "wikipedia": "Raiden (Mortal Kombat)",
+    "image": "chars/raiden-mk.webp"
+  },
+  {
+    "id": "marika",
+    "name": "Queen Marika",
+    "category": "games",
+    "series": "Elden Ring",
+    "power": 80
+  },
+  {
     "id": "zoro",
     "name": "Roronoa Zoro",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 78,
     "image": "chars/zoro.webp",
     "anilistId": 62
@@ -745,7 +965,8 @@
   {
     "id": "unohana",
     "name": "Retsu Unohana",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 78,
     "image": "chars/unohana.webp",
     "anilistId": 3845
@@ -753,7 +974,8 @@
   {
     "id": "kenjaku",
     "name": "Kenjaku",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 78,
     "image": "chars/kenjaku.webp",
     "anilistId": 289584
@@ -761,7 +983,8 @@
   {
     "id": "august",
     "name": "August",
-    "anime": "Fairy Tail",
+    "category": "anime",
+    "series": "Fairy Tail",
     "power": 78,
     "image": "chars/august.webp",
     "anilistId": 131113
@@ -769,7 +992,8 @@
   {
     "id": "julius",
     "name": "Julius Novachrono",
-    "anime": "Black Clover",
+    "category": "anime",
+    "series": "Black Clover",
     "power": 78,
     "image": "chars/julius.webp",
     "anilistId": 124435
@@ -777,7 +1001,8 @@
   {
     "id": "zeldris",
     "name": "Zeldris",
-    "anime": "Nanatsu no Taizai",
+    "category": "anime",
+    "series": "Nanatsu no Taizai",
     "power": 78,
     "image": "chars/zeldris.webp",
     "anilistId": 131559
@@ -785,7 +1010,8 @@
   {
     "id": "giorno",
     "name": "Giorno Giovanna",
-    "anime": "JoJo's Bizarre Adventure",
+    "category": "anime",
+    "series": "JoJo's Bizarre Adventure",
     "version": "Gold Experience Requiem",
     "power": 78,
     "image": "chars/giorno.webp",
@@ -794,7 +1020,8 @@
   {
     "id": "alucard",
     "name": "Alucard",
-    "anime": "Hellsing",
+    "category": "anime",
+    "series": "Hellsing",
     "power": 78,
     "image": "chars/alucard.webp",
     "anilistId": 601
@@ -802,7 +1029,8 @@
   {
     "id": "tatsumaki",
     "name": "Tatsumaki",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 76,
     "image": "chars/tatsumaki.webp",
     "anilistId": 81929
@@ -810,7 +1038,8 @@
   {
     "id": "android-18",
     "name": "Android 18",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "power": 76,
     "image": "chars/android-18.webp",
     "anilistId": 4318
@@ -818,7 +1047,8 @@
   {
     "id": "kawaki",
     "name": "Kawaki",
-    "anime": "Boruto: Naruto Next Generations",
+    "category": "anime",
+    "series": "Boruto: Naruto Next Generations",
     "power": 76,
     "image": "chars/kawaki.webp",
     "anilistId": 130426
@@ -826,7 +1056,8 @@
   {
     "id": "law",
     "name": "Trafalgar Law",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 76,
     "image": "chars/law.webp",
     "anilistId": 13767
@@ -834,7 +1065,8 @@
   {
     "id": "kid",
     "name": "Eustass Kid",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 76,
     "image": "chars/kid.webp",
     "anilistId": 14989
@@ -842,7 +1074,8 @@
   {
     "id": "sanji",
     "name": "Sanji",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 76,
     "image": "chars/sanji.webp",
     "anilistId": 305
@@ -850,7 +1083,8 @@
   {
     "id": "yamato",
     "name": "Yamato",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 76,
     "image": "chars/yamato.webp",
     "anilistId": 176840
@@ -858,7 +1092,8 @@
   {
     "id": "yoruichi",
     "name": "Yoruichi Shihouin",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 76,
     "image": "chars/yoruichi.webp",
     "anilistId": 908
@@ -866,7 +1101,8 @@
   {
     "id": "ulquiorra",
     "name": "Ulquiorra Cifer",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "version": "Segunda Etapa",
     "power": 76,
     "image": "chars/ulquiorra.webp",
@@ -875,7 +1111,8 @@
   {
     "id": "yuki",
     "name": "Yuki Tsukumo",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 76,
     "image": "chars/yuki.webp",
     "anilistId": 196502
@@ -883,7 +1120,8 @@
   {
     "id": "shion",
     "name": "Shion",
-    "anime": "Tensei shitara Slime Datta Ken",
+    "category": "anime",
+    "series": "Tensei shitara Slime Datta Ken",
     "power": 76,
     "image": "chars/shion.webp",
     "anilistId": 128033
@@ -891,7 +1129,8 @@
   {
     "id": "serie",
     "name": "Serie",
-    "anime": "Sousou no Frieren",
+    "category": "anime",
+    "series": "Sousou no Frieren",
     "power": 76,
     "image": "chars/serie.webp",
     "anilistId": 219734
@@ -899,7 +1138,8 @@
   {
     "id": "marco",
     "name": "Marco",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 75,
     "image": "chars/marco.webp",
     "anilistId": 9323
@@ -907,15 +1147,44 @@
   {
     "id": "starrk",
     "name": "Coyote Starrk",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 75,
     "image": "chars/starrk.webp",
     "anilistId": 3212
   },
   {
+    "id": "meta-knight",
+    "name": "Meta Knight",
+    "category": "games",
+    "series": "Kirby",
+    "power": 75,
+    "wikipedia": "Meta Knight",
+    "image": "chars/meta-knight.webp"
+  },
+  {
+    "id": "shao-kahn",
+    "name": "Shao Kahn",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "power": 75,
+    "wikipedia": "Shao Kahn",
+    "image": "chars/shao-kahn.webp"
+  },
+  {
+    "id": "xehanort",
+    "name": "Master Xehanort",
+    "category": "games",
+    "series": "Kingdom Hearts",
+    "power": 75,
+    "wikipedia": "Xehanort",
+    "image": "chars/xehanort.webp"
+  },
+  {
     "id": "makima",
     "name": "Makima",
-    "anime": "Chainsaw Man",
+    "category": "anime",
+    "series": "Chainsaw Man",
     "power": 74,
     "image": "chars/makima.webp",
     "anilistId": 137080
@@ -923,7 +1192,8 @@
   {
     "id": "katakuri",
     "name": "Charlotte Katakuri",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 74,
     "image": "chars/katakuri.webp",
     "anilistId": 124077
@@ -931,7 +1201,8 @@
   {
     "id": "king",
     "name": "King",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "version": "Tobiroppo / All-Star",
     "power": 74,
     "image": "chars/king.webp",
@@ -940,7 +1211,8 @@
   {
     "id": "gildarts",
     "name": "Gildarts Clive",
-    "anime": "Fairy Tail",
+    "category": "anime",
+    "series": "Fairy Tail",
     "power": 74,
     "image": "chars/gildarts.webp",
     "anilistId": 29502
@@ -948,7 +1220,8 @@
   {
     "id": "ban",
     "name": "Ban",
-    "anime": "Nanatsu no Taizai",
+    "category": "anime",
+    "series": "Nanatsu no Taizai",
     "power": 74,
     "image": "chars/ban.webp",
     "anilistId": 77605
@@ -956,7 +1229,8 @@
   {
     "id": "orsted",
     "name": "Orsted",
-    "anime": "Mushoku Tensei",
+    "category": "anime",
+    "series": "Mushoku Tensei",
     "power": 74,
     "image": "chars/orsted.webp",
     "anilistId": 187382
@@ -964,7 +1238,8 @@
   {
     "id": "shaka",
     "name": "Shaka",
-    "anime": "Saint Seiya",
+    "category": "anime",
+    "series": "Saint Seiya",
     "power": 74,
     "image": "chars/shaka.webp",
     "anilistId": 9240
@@ -972,7 +1247,8 @@
   {
     "id": "ryuko",
     "name": "Ryuuko Matoi",
-    "anime": "Kill la Kill",
+    "category": "anime",
+    "series": "Kill la Kill",
     "power": 74,
     "image": "chars/ryuko.webp",
     "anilistId": 83797
@@ -980,7 +1256,8 @@
   {
     "id": "asta",
     "name": "Asta",
-    "anime": "Black Clover",
+    "category": "anime",
+    "series": "Black Clover",
     "power": 72,
     "image": "chars/asta.webp",
     "anilistId": 123285
@@ -988,7 +1265,8 @@
   {
     "id": "minato",
     "name": "Minato Namikaze",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 72,
     "image": "chars/minato.webp",
     "anilistId": 2535
@@ -996,7 +1274,8 @@
   {
     "id": "boruto",
     "name": "Boruto Uzumaki",
-    "anime": "Boruto: Naruto Next Generations",
+    "category": "anime",
+    "series": "Boruto: Naruto Next Generations",
     "version": "Karma",
     "power": 72,
     "image": "chars/boruto.webp",
@@ -1005,7 +1284,8 @@
   {
     "id": "sabo",
     "name": "Sabo",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 72,
     "image": "chars/sabo.webp",
     "anilistId": 32893
@@ -1013,7 +1293,8 @@
   {
     "id": "byakuya",
     "name": "Byakuya Kuchiki",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 72,
     "image": "chars/byakuya.webp",
     "anilistId": 907
@@ -1021,7 +1302,8 @@
   {
     "id": "mayuri",
     "name": "Mayuri Kurotsuchi",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 72,
     "image": "chars/mayuri.webp",
     "anilistId": 1168
@@ -1029,7 +1311,8 @@
   {
     "id": "gin",
     "name": "Gin Ichimaru",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 72,
     "image": "chars/gin.webp",
     "anilistId": 1087
@@ -1037,7 +1320,8 @@
   {
     "id": "yuno",
     "name": "Yuno",
-    "anime": "Black Clover",
+    "category": "anime",
+    "series": "Black Clover",
     "power": 72,
     "image": "chars/yuno.webp",
     "anilistId": 123284
@@ -1045,7 +1329,8 @@
   {
     "id": "king-7ds",
     "name": "King",
-    "anime": "Nanatsu no Taizai",
+    "category": "anime",
+    "series": "Nanatsu no Taizai",
     "version": "Harlequin",
     "power": 72,
     "search": "Harlequin",
@@ -1055,7 +1340,8 @@
   {
     "id": "raizen",
     "name": "Raizen",
-    "anime": "Yu Yu Hakusho",
+    "category": "anime",
+    "series": "Yu Yu Hakusho",
     "power": 72,
     "image": "chars/raizen.webp",
     "anilistId": 13837
@@ -1063,15 +1349,44 @@
   {
     "id": "skull-knight",
     "name": "Skull Knight",
-    "anime": "Berserk",
+    "category": "anime",
+    "series": "Berserk",
     "power": 72,
     "image": "chars/skull-knight.webp",
     "anilistId": 7881
   },
   {
+    "id": "mewtwo",
+    "name": "Mewtwo",
+    "category": "games",
+    "series": "Pokémon",
+    "power": 72,
+    "wikipedia": "Mewtwo",
+    "image": "chars/mewtwo.webp"
+  },
+  {
+    "id": "mario",
+    "name": "Mario",
+    "category": "games",
+    "series": "Super Mario",
+    "power": 72,
+    "image": "chars/mario.webp",
+    "igdbId": 3726
+  },
+  {
+    "id": "illidan",
+    "name": "Illidan Stormrage",
+    "category": "games",
+    "series": "World of Warcraft",
+    "power": 72,
+    "wikipedia": "Illidan Stormrage",
+    "image": "chars/illidan.webp"
+  },
+  {
     "id": "meruem",
     "name": "Meruem",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 70,
     "image": "chars/meruem.webp",
     "anilistId": 23277
@@ -1079,7 +1394,8 @@
   {
     "id": "yuji",
     "name": "Yuji Itadori",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 70,
     "search": "Yuuji Itadori",
     "image": "chars/yuji.webp",
@@ -1088,7 +1404,8 @@
   {
     "id": "krillin",
     "name": "Krillin",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "power": 70,
     "image": "chars/krillin.webp",
     "anilistId": 2159
@@ -1096,7 +1413,8 @@
   {
     "id": "ginyu",
     "name": "Capitão Ginyu",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "power": 70,
     "search": "Ginyu",
     "image": "chars/ginyu.webp",
@@ -1105,7 +1423,8 @@
   {
     "id": "pain",
     "name": "Pain",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 70,
     "image": "chars/pain.webp",
     "anilistId": 3180
@@ -1113,7 +1432,8 @@
   {
     "id": "hakari",
     "name": "Kinji Hakari",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 70,
     "image": "chars/hakari.webp",
     "anilistId": 197584
@@ -1121,7 +1441,8 @@
   {
     "id": "shigaraki",
     "name": "Tomura Shigaraki",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "version": "Final",
     "power": 70,
     "image": "chars/shigaraki.webp",
@@ -1130,7 +1451,8 @@
   {
     "id": "natsu",
     "name": "Natsu Dragneel",
-    "anime": "Fairy Tail",
+    "category": "anime",
+    "series": "Fairy Tail",
     "power": 70,
     "image": "chars/natsu.webp",
     "anilistId": 5187
@@ -1138,7 +1460,8 @@
   {
     "id": "yami",
     "name": "Yami Sukehiro",
-    "anime": "Black Clover",
+    "category": "anime",
+    "series": "Black Clover",
     "power": 70,
     "image": "chars/yami.webp",
     "anilistId": 124440
@@ -1146,7 +1469,8 @@
   {
     "id": "kars",
     "name": "Kars",
-    "anime": "JoJo's Bizarre Adventure",
+    "category": "anime",
+    "series": "JoJo's Bizarre Adventure",
     "version": "Forma definitiva",
     "power": 70,
     "image": "chars/kars.webp",
@@ -1155,7 +1479,8 @@
   {
     "id": "lordgenome",
     "name": "Lordgenome",
-    "anime": "Tengen Toppa Gurren Lagann",
+    "category": "anime",
+    "series": "Tengen Toppa Gurren Lagann",
     "power": 70,
     "image": "chars/lordgenome.webp",
     "anilistId": 5118
@@ -1163,15 +1488,71 @@
   {
     "id": "shinra",
     "name": "Shinra Kusakabe",
-    "anime": "Fire Force",
+    "category": "anime",
+    "series": "Fire Force",
     "power": 70,
     "image": "chars/shinra.webp",
     "anilistId": 120462
   },
   {
+    "id": "bowser",
+    "name": "Bowser",
+    "category": "games",
+    "series": "Super Mario",
+    "power": 70,
+    "image": "chars/bowser.webp",
+    "igdbId": 12821
+  },
+  {
+    "id": "ganon",
+    "name": "Ganon",
+    "category": "games",
+    "series": "The Legend of Zelda",
+    "version": "Calamity Ganon",
+    "power": 70,
+    "wikipedia": "Ganon",
+    "image": "chars/ganon.webp"
+  },
+  {
+    "id": "sora",
+    "name": "Sora",
+    "category": "games",
+    "series": "Kingdom Hearts",
+    "power": 70,
+    "wikipedia": "Sora (Kingdom Hearts)",
+    "image": "chars/sora.webp"
+  },
+  {
+    "id": "cloud",
+    "name": "Cloud Strife",
+    "category": "games",
+    "series": "Final Fantasy VII",
+    "power": 70,
+    "image": "chars/cloud.webp",
+    "igdbId": 7022
+  },
+  {
+    "id": "arthas",
+    "name": "Arthas Menethil",
+    "category": "games",
+    "series": "World of Warcraft",
+    "version": "Lich King",
+    "power": 70,
+    "wikipedia": "Arthas Menethil",
+    "image": "chars/arthas.webp"
+  },
+  {
+    "id": "radiance",
+    "name": "The Radiance",
+    "category": "games",
+    "series": "Hollow Knight",
+    "power": 70
+  },
+  {
     "id": "frieren",
     "name": "Frieren",
-    "anime": "Sousou no Frieren",
+    "category": "anime",
+    "series": "Sousou no Frieren",
     "power": 68,
     "image": "chars/frieren.webp",
     "anilistId": 176754
@@ -1179,7 +1560,8 @@
   {
     "id": "roshi",
     "name": "Mestre Kame",
-    "anime": "Dragon Ball Super",
+    "category": "anime",
+    "series": "Dragon Ball Super",
     "power": 68,
     "search": "Kame-Sennin",
     "image": "chars/roshi.webp",
@@ -1188,7 +1570,8 @@
   {
     "id": "tobirama",
     "name": "Tobirama Senju",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 68,
     "image": "chars/tobirama.webp",
     "anilistId": 12465
@@ -1196,7 +1579,8 @@
   {
     "id": "itachi",
     "name": "Itachi Uchiha",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 68,
     "image": "chars/itachi.webp",
     "anilistId": 14
@@ -1204,7 +1588,8 @@
   {
     "id": "doflamingo",
     "name": "Donquixote Doflamingo",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 68,
     "image": "chars/doflamingo.webp",
     "anilistId": 2754
@@ -1212,7 +1597,8 @@
   {
     "id": "grimmjow",
     "name": "Grimmjow Jaegerjaquez",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 68,
     "image": "chars/grimmjow.webp",
     "anilistId": 1080
@@ -1220,7 +1606,8 @@
   {
     "id": "uryu",
     "name": "Uryuu Ishida",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 68,
     "image": "chars/uryu.webp",
     "anilistId": 564
@@ -1228,7 +1615,8 @@
   {
     "id": "maki",
     "name": "Maki Zenin",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "version": "Despertada",
     "power": 68,
     "image": "chars/maki.webp",
@@ -1237,7 +1625,8 @@
   {
     "id": "afo",
     "name": "All For One",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 68,
     "image": "chars/afo.webp",
     "anilistId": 125956
@@ -1245,7 +1634,8 @@
   {
     "id": "makarov",
     "name": "Makarov Dreyar",
-    "anime": "Fairy Tail",
+    "category": "anime",
+    "series": "Fairy Tail",
     "power": 68,
     "image": "chars/makarov.webp",
     "anilistId": 5333
@@ -1253,7 +1643,8 @@
   {
     "id": "asura",
     "name": "Asura",
-    "anime": "Soul Eater",
+    "category": "anime",
+    "series": "Soul Eater",
     "power": 68,
     "image": "chars/asura.webp",
     "anilistId": 15840
@@ -1261,7 +1652,8 @@
   {
     "id": "netero",
     "name": "Isaac Netero",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 66,
     "image": "chars/netero.webp",
     "anilistId": 14489
@@ -1269,7 +1661,8 @@
   {
     "id": "tien",
     "name": "Tien Shinhan",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "power": 66,
     "image": "chars/tien.webp",
     "anilistId": 5499
@@ -1277,7 +1670,8 @@
   {
     "id": "hitsugaya",
     "name": "Toushirou Hitsugaya",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 66,
     "image": "chars/hitsugaya.webp",
     "anilistId": 245
@@ -1285,7 +1679,8 @@
   {
     "id": "mahito",
     "name": "Mahito",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 66,
     "image": "chars/mahito.webp",
     "anilistId": 133702
@@ -1293,7 +1688,8 @@
   {
     "id": "orochi",
     "name": "Orochi",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 66,
     "image": "chars/orochi.webp",
     "anilistId": 126979
@@ -1301,7 +1697,8 @@
   {
     "id": "erza",
     "name": "Erza Scarlet",
-    "anime": "Fairy Tail",
+    "category": "anime",
+    "series": "Fairy Tail",
     "power": 66,
     "image": "chars/erza.webp",
     "anilistId": 5189
@@ -1309,7 +1706,8 @@
   {
     "id": "laxus",
     "name": "Laxus Dreyar",
-    "anime": "Fairy Tail",
+    "category": "anime",
+    "series": "Fairy Tail",
     "power": 66,
     "image": "chars/laxus.webp",
     "anilistId": 8294
@@ -1317,7 +1715,8 @@
   {
     "id": "mereoleona",
     "name": "Mereoleona Vermillion",
-    "anime": "Black Clover",
+    "category": "anime",
+    "series": "Black Clover",
     "power": 66,
     "image": "chars/mereoleona.webp",
     "anilistId": 124522
@@ -1325,7 +1724,8 @@
   {
     "id": "yusuke",
     "name": "Yusuke Urameshi",
-    "anime": "Yu Yu Hakusho",
+    "category": "anime",
+    "series": "Yu Yu Hakusho",
     "power": 66,
     "image": "chars/yusuke.webp",
     "anilistId": 729
@@ -1333,7 +1733,8 @@
   {
     "id": "seiya",
     "name": "Pegasus Seiya",
-    "anime": "Saint Seiya",
+    "category": "anime",
+    "series": "Saint Seiya",
     "power": 66,
     "image": "chars/seiya.webp",
     "anilistId": 2285
@@ -1341,16 +1742,27 @@
   {
     "id": "deku",
     "name": "Izuku Midoriya",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "version": "Final",
     "power": 65,
     "image": "chars/deku.webp",
     "anilistId": 89028
   },
   {
+    "id": "radahn",
+    "name": "Starscourge Radahn",
+    "category": "games",
+    "series": "Elden Ring",
+    "power": 65,
+    "wikipedia": "Starscourge Radahn",
+    "image": "chars/radahn.webp"
+  },
+  {
     "id": "nappa",
     "name": "Nappa",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "power": 64,
     "image": "chars/nappa.webp",
     "anilistId": 5224
@@ -1358,7 +1770,8 @@
   {
     "id": "orochimaru",
     "name": "Orochimaru",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 64,
     "image": "chars/orochimaru.webp",
     "anilistId": 2455
@@ -1366,7 +1779,8 @@
   {
     "id": "gaara",
     "name": "Gaara",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 64,
     "image": "chars/gaara.webp",
     "anilistId": 1662
@@ -1374,7 +1788,8 @@
   {
     "id": "kisame",
     "name": "Kisame Hoshigaki",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 64,
     "image": "chars/kisame.webp",
     "anilistId": 2672
@@ -1382,7 +1797,8 @@
   {
     "id": "ace",
     "name": "Portgas D. Ace",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 64,
     "image": "chars/ace.webp",
     "anilistId": 2072
@@ -1390,7 +1806,8 @@
   {
     "id": "toji",
     "name": "Toji Fushiguro",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 64,
     "image": "chars/toji.webp",
     "anilistId": 162722
@@ -1398,7 +1815,8 @@
   {
     "id": "geto",
     "name": "Suguru Getou",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 64,
     "image": "chars/geto.webp",
     "anilistId": 133699
@@ -1406,7 +1824,8 @@
   {
     "id": "beru",
     "name": "Beru",
-    "anime": "Solo Leveling",
+    "category": "anime",
+    "series": "Solo Leveling",
     "power": 64,
     "image": "chars/beru.webp",
     "anilistId": 159849
@@ -1414,7 +1833,8 @@
   {
     "id": "ikki",
     "name": "Phoenix Ikki",
-    "anime": "Saint Seiya",
+    "category": "anime",
+    "series": "Saint Seiya",
     "power": 64,
     "image": "chars/ikki.webp",
     "anilistId": 5923
@@ -1422,7 +1842,8 @@
   {
     "id": "satsuki",
     "name": "Satsuki Kiryuuin",
-    "anime": "Kill la Kill",
+    "category": "anime",
+    "series": "Kill la Kill",
     "power": 64,
     "image": "chars/satsuki.webp",
     "anilistId": 83799
@@ -1430,7 +1851,8 @@
   {
     "id": "allmight",
     "name": "All Might",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "version": "Auge",
     "power": 62,
     "image": "chars/allmight.webp",
@@ -1439,7 +1861,8 @@
   {
     "id": "raditz",
     "name": "Raditz",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "power": 62,
     "image": "chars/raditz.webp",
     "anilistId": 6155
@@ -1447,7 +1870,8 @@
   {
     "id": "jiraiya",
     "name": "Jiraiya",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 62,
     "image": "chars/jiraiya.webp",
     "anilistId": 2423
@@ -1455,7 +1879,8 @@
   {
     "id": "rukia",
     "name": "Rukia Kuchiki",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "version": "Bankai",
     "power": 62,
     "image": "chars/rukia.webp",
@@ -1464,7 +1889,8 @@
   {
     "id": "jogo",
     "name": "Jougo",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 62,
     "image": "chars/jogo.webp",
     "anilistId": 156991
@@ -1472,7 +1898,8 @@
   {
     "id": "higuruma",
     "name": "Hiromi Higuruma",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 62,
     "image": "chars/higuruma.webp",
     "anilistId": 248818
@@ -1480,7 +1907,8 @@
   {
     "id": "yoriichi",
     "name": "Yoriichi Tsugikuni",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 62,
     "image": "chars/yoriichi.webp",
     "anilistId": 149220
@@ -1488,7 +1916,8 @@
   {
     "id": "gon",
     "name": "Gon Freecss",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "version": "Forma adulta",
     "power": 62,
     "image": "chars/gon.webp",
@@ -1497,7 +1926,8 @@
   {
     "id": "pitou",
     "name": "Neferpitou",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 62,
     "image": "chars/pitou.webp",
     "anilistId": 12300
@@ -1505,7 +1935,8 @@
   {
     "id": "youpi",
     "name": "Menthuthuyoupi",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 62,
     "image": "chars/youpi.webp",
     "anilistId": 43953
@@ -1513,7 +1944,8 @@
   {
     "id": "star-and-stripe",
     "name": "Star and Stripe",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 62,
     "image": "chars/star-and-stripe.webp",
     "anilistId": 254809
@@ -1521,7 +1953,8 @@
   {
     "id": "psykos",
     "name": "Psykos",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 62,
     "image": "chars/psykos.webp",
     "anilistId": 165607
@@ -1529,7 +1962,8 @@
   {
     "id": "armin",
     "name": "Armin Arlert",
-    "anime": "Shingeki no Kyojin",
+    "category": "anime",
+    "series": "Shingeki no Kyojin",
     "version": "Titã Colossal",
     "power": 62,
     "image": "chars/armin.webp",
@@ -1538,7 +1972,8 @@
   {
     "id": "hohenheim",
     "name": "Van Hohenheim",
-    "anime": "Fullmetal Alchemist: Brotherhood",
+    "category": "anime",
+    "series": "Fullmetal Alchemist: Brotherhood",
     "power": 62,
     "image": "chars/hohenheim.webp",
     "anilistId": 9792
@@ -1546,7 +1981,8 @@
   {
     "id": "gray",
     "name": "Gray Fullbuster",
-    "anime": "Fairy Tail",
+    "category": "anime",
+    "series": "Fairy Tail",
     "power": 62,
     "image": "chars/gray.webp",
     "anilistId": 4839
@@ -1554,7 +1990,8 @@
   {
     "id": "noelle",
     "name": "Noelle Silva",
-    "anime": "Black Clover",
+    "category": "anime",
+    "series": "Black Clover",
     "power": 62,
     "image": "chars/noelle.webp",
     "anilistId": 123283
@@ -1562,7 +1999,8 @@
   {
     "id": "diane",
     "name": "Diane",
-    "anime": "Nanatsu no Taizai",
+    "category": "anime",
+    "series": "Nanatsu no Taizai",
     "power": 62,
     "image": "chars/diane.webp",
     "anilistId": 74653
@@ -1570,7 +2008,8 @@
   {
     "id": "toichiro",
     "name": "Toichiro Suzuki",
-    "anime": "Mob Psycho 100",
+    "category": "anime",
+    "series": "Mob Psycho 100",
     "power": 62,
     "search": "Toichirou Suzuki",
     "image": "chars/toichiro.webp",
@@ -1579,7 +2018,8 @@
   {
     "id": "himmel",
     "name": "Himmel",
-    "anime": "Sousou no Frieren",
+    "category": "anime",
+    "series": "Sousou no Frieren",
     "power": 62,
     "image": "chars/himmel.webp",
     "anilistId": 184311
@@ -1587,7 +2027,8 @@
   {
     "id": "sensui",
     "name": "Shinobu Sensui",
-    "anime": "Yu Yu Hakusho",
+    "category": "anime",
+    "series": "Yu Yu Hakusho",
     "power": 62,
     "image": "chars/sensui.webp",
     "anilistId": 3106
@@ -1595,7 +2036,8 @@
   {
     "id": "saber",
     "name": "Saber",
-    "anime": "Fate/Zero",
+    "category": "anime",
+    "series": "Fate/Zero",
     "version": "Artoria Pendragon",
     "power": 62,
     "image": "chars/saber.webp",
@@ -1604,7 +2046,8 @@
   {
     "id": "akira-fudo",
     "name": "Akira Fudou",
-    "anime": "Devilman Crybaby",
+    "category": "anime",
+    "series": "Devilman Crybaby",
     "power": 62,
     "image": "chars/akira-fudo.webp",
     "anilistId": 2456
@@ -1612,7 +2055,8 @@
   {
     "id": "denji",
     "name": "Denji",
-    "anime": "Chainsaw Man",
+    "category": "anime",
+    "series": "Chainsaw Man",
     "power": 60,
     "image": "chars/denji.webp",
     "anilistId": 130102
@@ -1620,7 +2064,8 @@
   {
     "id": "deidara",
     "name": "Deidara",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 60,
     "image": "chars/deidara.webp",
     "anilistId": 1902
@@ -1628,7 +2073,8 @@
   {
     "id": "sakura",
     "name": "Sakura Haruno",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "version": "Guerra final",
     "power": 60,
     "image": "chars/sakura.webp",
@@ -1637,7 +2083,8 @@
   {
     "id": "enel",
     "name": "Enel",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 60,
     "image": "chars/enel.webp",
     "anilistId": 1541
@@ -1645,7 +2092,8 @@
   {
     "id": "lucci",
     "name": "Rob Lucci",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 60,
     "image": "chars/lucci.webp",
     "anilistId": 5677
@@ -1653,7 +2101,8 @@
   {
     "id": "renji",
     "name": "Renji Abarai",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 60,
     "image": "chars/renji.webp",
     "anilistId": 906
@@ -1661,7 +2110,8 @@
   {
     "id": "zeno",
     "name": "Zeno Zoldyck",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 60,
     "image": "chars/zeno.webp",
     "anilistId": 59
@@ -1669,7 +2119,8 @@
   {
     "id": "silva",
     "name": "Silva Zoldyck",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 60,
     "image": "chars/silva.webp",
     "anilistId": 60
@@ -1677,7 +2128,8 @@
   {
     "id": "ging",
     "name": "Ging Freecss",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 60,
     "image": "chars/ging.webp",
     "anilistId": 26
@@ -1685,7 +2137,8 @@
   {
     "id": "zeke",
     "name": "Zeke Yeager",
-    "anime": "Shingeki no Kyojin",
+    "category": "anime",
+    "series": "Shingeki no Kyojin",
     "power": 60,
     "search": "Zeke",
     "image": "chars/zeke.webp",
@@ -1694,7 +2147,8 @@
   {
     "id": "gowther",
     "name": "Gowther",
-    "anime": "Nanatsu no Taizai",
+    "category": "anime",
+    "series": "Nanatsu no Taizai",
     "power": 60,
     "image": "chars/gowther.webp",
     "anilistId": 88823
@@ -1702,7 +2156,8 @@
   {
     "id": "macht",
     "name": "Macht",
-    "anime": "Sousou no Frieren",
+    "category": "anime",
+    "series": "Sousou no Frieren",
     "power": 60,
     "image": "chars/macht.webp",
     "anilistId": 300778
@@ -1710,7 +2165,8 @@
   {
     "id": "iskandar",
     "name": "Rider",
-    "anime": "Fate/Zero",
+    "category": "anime",
+    "series": "Fate/Zero",
     "version": "Iskandar",
     "power": 60,
     "image": "chars/iskandar.webp",
@@ -1719,7 +2175,8 @@
   {
     "id": "shalltear",
     "name": "Shalltear Bloodfallen",
-    "anime": "Overlord",
+    "category": "anime",
+    "series": "Overlord",
     "power": 60,
     "image": "chars/shalltear.webp",
     "anilistId": 89121
@@ -1727,7 +2184,8 @@
   {
     "id": "mash",
     "name": "Mash Burnedead",
-    "anime": "Mashle",
+    "category": "anime",
+    "series": "Mashle",
     "power": 60,
     "image": "chars/mash.webp",
     "anilistId": 158734
@@ -1735,15 +2193,68 @@
   {
     "id": "utsuro",
     "name": "Utsuro",
-    "anime": "Gintama",
+    "category": "anime",
+    "series": "Gintama",
     "power": 60,
     "image": "chars/utsuro.webp",
     "anilistId": 124135
   },
   {
+    "id": "akuma",
+    "name": "Akuma",
+    "category": "games",
+    "series": "Street Fighter",
+    "power": 60,
+    "wikipedia": "Akuma (Street Fighter)",
+    "image": "chars/akuma.webp"
+  },
+  {
+    "id": "link",
+    "name": "Link",
+    "category": "games",
+    "series": "The Legend of Zelda",
+    "power": 60,
+    "image": "chars/link.webp",
+    "igdbId": 14389
+  },
+  {
+    "id": "scorpion",
+    "name": "Scorpion",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "power": 60,
+    "wikipedia": "Scorpion (Mortal Kombat)",
+    "image": "chars/scorpion.webp"
+  },
+  {
+    "id": "gwyn",
+    "name": "Gwyn, Lord of Cinder",
+    "category": "games",
+    "series": "Dark Souls",
+    "power": 60
+  },
+  {
+    "id": "tarnished",
+    "name": "Tarnished",
+    "category": "games",
+    "series": "Elden Ring",
+    "version": "Elden Lord",
+    "power": 60
+  },
+  {
+    "id": "thrall",
+    "name": "Thrall",
+    "category": "games",
+    "series": "World of Warcraft",
+    "power": 60,
+    "wikipedia": "Thrall (Warcraft)",
+    "image": "chars/thrall.webp"
+  },
+  {
     "id": "kenshiro",
     "name": "Kenshiro",
-    "anime": "Hokuto no Ken",
+    "category": "anime",
+    "series": "Hokuto no Ken",
     "power": 58,
     "image": "chars/kenshiro.webp",
     "anilistId": 2511
@@ -1751,7 +2262,8 @@
   {
     "id": "bardock",
     "name": "Bardock",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "power": 58,
     "image": "chars/bardock.webp",
     "anilistId": 6122
@@ -1759,7 +2271,8 @@
   {
     "id": "megumi",
     "name": "Megumi Fushiguro",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 58,
     "image": "chars/megumi.webp",
     "anilistId": 126635
@@ -1767,7 +2280,8 @@
   {
     "id": "choso",
     "name": "Choso",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 58,
     "image": "chars/choso.webp",
     "anilistId": 157116
@@ -1775,7 +2289,8 @@
   {
     "id": "endeavor",
     "name": "Endeavor",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 58,
     "image": "chars/endeavor.webp",
     "anilistId": 126158
@@ -1783,7 +2298,8 @@
   {
     "id": "bang",
     "name": "Bang",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 58,
     "image": "chars/bang.webp",
     "anilistId": 81141
@@ -1791,7 +2307,8 @@
   {
     "id": "hiei",
     "name": "Hiei",
-    "anime": "Yu Yu Hakusho",
+    "category": "anime",
+    "series": "Yu Yu Hakusho",
     "power": 58,
     "image": "chars/hiei.webp",
     "anilistId": 732
@@ -1799,7 +2316,8 @@
   {
     "id": "kurama-yyh",
     "name": "Kurama",
-    "anime": "Yu Yu Hakusho",
+    "category": "anime",
+    "series": "Yu Yu Hakusho",
     "power": 58,
     "image": "chars/kurama-yyh.webp",
     "anilistId": 731
@@ -1807,7 +2325,8 @@
   {
     "id": "zodd",
     "name": "Nosferatu Zodd",
-    "anime": "Berserk",
+    "category": "anime",
+    "series": "Berserk",
     "power": 58,
     "image": "chars/zodd.webp",
     "anilistId": 600
@@ -1815,7 +2334,8 @@
   {
     "id": "sesshomaru",
     "name": "Sesshoumaru",
-    "anime": "Inuyasha",
+    "category": "anime",
+    "series": "Inuyasha",
     "power": 58,
     "image": "chars/sesshomaru.webp",
     "anilistId": 1358
@@ -1823,7 +2343,8 @@
   {
     "id": "naraku",
     "name": "Naraku",
-    "anime": "Inuyasha",
+    "category": "anime",
+    "series": "Inuyasha",
     "power": 58,
     "image": "chars/naraku.webp",
     "anilistId": 1367
@@ -1831,16 +2352,27 @@
   {
     "id": "kafka",
     "name": "Kafka Hibino",
-    "anime": "Kaiju No. 8",
+    "category": "anime",
+    "series": "Kaiju No. 8",
     "version": "Kaiju No. 8",
     "power": 58,
     "image": "chars/kafka.webp",
     "anilistId": 180692
   },
   {
+    "id": "malenia",
+    "name": "Malenia",
+    "category": "games",
+    "series": "Elden Ring",
+    "power": 58,
+    "wikipedia": "Malenia",
+    "image": "chars/malenia.webp"
+  },
+  {
     "id": "raoh",
     "name": "Raoh",
-    "anime": "Hokuto no Ken",
+    "category": "anime",
+    "series": "Hokuto no Ken",
     "power": 57,
     "image": "chars/raoh.webp",
     "anilistId": 8738
@@ -1848,7 +2380,8 @@
   {
     "id": "todo",
     "name": "Aoi Todou",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 56,
     "search": "Aoi Toudou",
     "image": "chars/todo.webp",
@@ -1857,7 +2390,8 @@
   {
     "id": "bakugo",
     "name": "Katsuki Bakugou",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 56,
     "image": "chars/bakugo.webp",
     "anilistId": 88892
@@ -1865,7 +2399,8 @@
   {
     "id": "todoroki",
     "name": "Shouto Todoroki",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 56,
     "image": "chars/todoroki.webp",
     "anilistId": 89220
@@ -1873,7 +2408,8 @@
   {
     "id": "dabi",
     "name": "Dabi",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 56,
     "image": "chars/dabi.webp",
     "anilistId": 126378
@@ -1881,7 +2417,8 @@
   {
     "id": "flashy-flash",
     "name": "Flashy Flash",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 56,
     "image": "chars/flashy-flash.webp",
     "anilistId": 138981
@@ -1889,7 +2426,8 @@
   {
     "id": "pride",
     "name": "Pride",
-    "anime": "Fullmetal Alchemist: Brotherhood",
+    "category": "anime",
+    "series": "Fullmetal Alchemist: Brotherhood",
     "power": 56,
     "search": "Selim Bradley",
     "image": "chars/pride.webp",
@@ -1898,7 +2436,8 @@
   {
     "id": "yoru",
     "name": "Yoru",
-    "anime": "Chainsaw Man",
+    "category": "anime",
+    "series": "Chainsaw Man",
     "power": 56,
     "image": "chars/yoru.webp",
     "anilistId": 282872
@@ -1906,7 +2445,8 @@
   {
     "id": "thomas-andre",
     "name": "Thomas Andre",
-    "anime": "Solo Leveling",
+    "category": "anime",
+    "series": "Solo Leveling",
     "power": 56,
     "image": "chars/thomas-andre.webp",
     "anilistId": 184540
@@ -1914,7 +2454,8 @@
   {
     "id": "aura",
     "name": "Aura",
-    "anime": "Sousou no Frieren",
+    "category": "anime",
+    "series": "Sousou no Frieren",
     "power": 56,
     "image": "chars/aura.webp",
     "anilistId": 219110
@@ -1922,7 +2463,8 @@
   {
     "id": "albedo",
     "name": "Albedo",
-    "anime": "Overlord",
+    "category": "anime",
+    "series": "Overlord",
     "power": 56,
     "image": "chars/albedo.webp",
     "anilistId": 89122
@@ -1930,7 +2472,8 @@
   {
     "id": "muzan",
     "name": "Muzan Kibutsuji",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 55,
     "image": "chars/muzan.webp",
     "anilistId": 129132
@@ -1938,7 +2481,8 @@
   {
     "id": "yamcha",
     "name": "Yamcha",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "power": 55,
     "image": "chars/yamcha.webp",
     "anilistId": 4014
@@ -1946,7 +2490,8 @@
   {
     "id": "crocodile",
     "name": "Crocodile",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 55,
     "image": "chars/crocodile.webp",
     "anilistId": 2749
@@ -1954,7 +2499,8 @@
   {
     "id": "hisoka",
     "name": "Hisoka Morow",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 55,
     "image": "chars/hisoka.webp",
     "anilistId": 31
@@ -1962,7 +2508,8 @@
   {
     "id": "chrollo",
     "name": "Chrollo Lucilfer",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 55,
     "image": "chars/chrollo.webp",
     "anilistId": 58
@@ -1970,7 +2517,8 @@
   {
     "id": "reiner",
     "name": "Reiner Braun",
-    "anime": "Shingeki no Kyojin",
+    "category": "anime",
+    "series": "Shingeki no Kyojin",
     "power": 55,
     "image": "chars/reiner.webp",
     "anilistId": 46484
@@ -1978,7 +2526,8 @@
   {
     "id": "igris",
     "name": "Igris",
-    "anime": "Solo Leveling",
+    "category": "anime",
+    "series": "Solo Leveling",
     "power": 55,
     "image": "chars/igris.webp",
     "anilistId": 145722
@@ -1986,7 +2535,8 @@
   {
     "id": "roswaal",
     "name": "Roswaal L. Mathers",
-    "anime": "Re:Zero kara Hajimeru Isekai Seikatsu",
+    "category": "anime",
+    "series": "Re:Zero kara Hajimeru Isekai Seikatsu",
     "power": 55,
     "image": "chars/roswaal.webp",
     "anilistId": 90182
@@ -1994,7 +2544,8 @@
   {
     "id": "esdeath",
     "name": "Esdeath",
-    "anime": "Akame ga Kill!",
+    "category": "anime",
+    "series": "Akame ga Kill!",
     "power": 55,
     "image": "chars/esdeath.webp",
     "anilistId": 65239
@@ -2002,15 +2553,89 @@
   {
     "id": "rin-okumura",
     "name": "Rin Okumura",
-    "anime": "Ao no Exorcist",
+    "category": "anime",
+    "series": "Ao no Exorcist",
     "power": 55,
     "image": "chars/rin-okumura.webp",
     "anilistId": 24482
   },
   {
+    "id": "samus",
+    "name": "Samus Aran",
+    "category": "games",
+    "series": "Metroid",
+    "power": 55,
+    "image": "chars/samus.webp",
+    "igdbId": 9580
+  },
+  {
+    "id": "sub-zero",
+    "name": "Sub-Zero",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "power": 55,
+    "wikipedia": "Sub-Zero (Mortal Kombat)",
+    "image": "chars/sub-zero.webp"
+  },
+  {
+    "id": "m-bison",
+    "name": "M. Bison",
+    "category": "games",
+    "series": "Street Fighter",
+    "power": 55,
+    "wikipedia": "M. Bison",
+    "image": "chars/m-bison.webp"
+  },
+  {
+    "id": "ryu-hayabusa",
+    "name": "Ryu Hayabusa",
+    "category": "games",
+    "series": "Ninja Gaiden",
+    "power": 55,
+    "wikipedia": "Ryu Hayabusa",
+    "image": "chars/ryu-hayabusa.webp"
+  },
+  {
+    "id": "zagreus",
+    "name": "Zagreus",
+    "category": "games",
+    "series": "Hades",
+    "power": 55,
+    "wikipedia": "Zagreus (Hades)",
+    "image": "chars/zagreus.webp"
+  },
+  {
+    "id": "mega-man-x",
+    "name": "X",
+    "category": "games",
+    "series": "Mega Man X",
+    "power": 55,
+    "wikipedia": "X (Mega Man)",
+    "image": "chars/mega-man-x.webp"
+  },
+  {
+    "id": "donkey-kong",
+    "name": "Donkey Kong",
+    "category": "games",
+    "series": "Donkey Kong",
+    "power": 55,
+    "wikipedia": "Donkey Kong (character)",
+    "image": "chars/donkey-kong.webp"
+  },
+  {
+    "id": "zelda",
+    "name": "Zelda",
+    "category": "games",
+    "series": "The Legend of Zelda",
+    "power": 55,
+    "image": "chars/zelda.webp",
+    "igdbId": 14390
+  },
+  {
     "id": "genos",
     "name": "Genos",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 54,
     "image": "chars/genos.webp",
     "anilistId": 73979
@@ -2018,7 +2643,8 @@
   {
     "id": "kokushibo",
     "name": "Kokushibou",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 54,
     "search": "Kokushibo",
     "image": "chars/kokushibo.webp",
@@ -2027,7 +2653,8 @@
   {
     "id": "mustang",
     "name": "Roy Mustang",
-    "anime": "Fullmetal Alchemist: Brotherhood",
+    "category": "anime",
+    "series": "Fullmetal Alchemist: Brotherhood",
     "power": 54,
     "image": "chars/mustang.webp",
     "anilistId": 68
@@ -2035,7 +2662,8 @@
   {
     "id": "killua",
     "name": "Killua Zoldyck",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 52,
     "image": "chars/killua.webp",
     "anilistId": 27
@@ -2043,7 +2671,8 @@
   {
     "id": "franky",
     "name": "Franky",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 52,
     "image": "chars/franky.webp",
     "anilistId": 64
@@ -2051,7 +2680,8 @@
   {
     "id": "nanami",
     "name": "Kento Nanami",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 52,
     "image": "chars/nanami.webp",
     "anilistId": 133704
@@ -2059,7 +2689,8 @@
   {
     "id": "illumi",
     "name": "Illumi Zoldyck",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 52,
     "image": "chars/illumi.webp",
     "anilistId": 57
@@ -2067,7 +2698,8 @@
   {
     "id": "atomic-samurai",
     "name": "Atomic Samurai",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 52,
     "image": "chars/atomic-samurai.webp",
     "anilistId": 154767
@@ -2075,7 +2707,8 @@
   {
     "id": "diavolo",
     "name": "Diavolo",
-    "anime": "JoJo's Bizarre Adventure",
+    "category": "anime",
+    "series": "JoJo's Bizarre Adventure",
     "power": 52,
     "image": "chars/diavolo.webp",
     "anilistId": 27155
@@ -2083,7 +2716,8 @@
   {
     "id": "fern",
     "name": "Fern",
-    "anime": "Sousou no Frieren",
+    "category": "anime",
+    "series": "Sousou no Frieren",
     "power": 52,
     "image": "chars/fern.webp",
     "anilistId": 183965
@@ -2091,7 +2725,8 @@
   {
     "id": "toguro",
     "name": "Toguro",
-    "anime": "Yu Yu Hakusho",
+    "category": "anime",
+    "series": "Yu Yu Hakusho",
     "version": "Irmão mais novo",
     "power": 52,
     "image": "chars/toguro.webp",
@@ -2100,7 +2735,8 @@
   {
     "id": "kirito",
     "name": "Kirito",
-    "anime": "Sword Art Online",
+    "category": "anime",
+    "series": "Sword Art Online",
     "version": "Alicization",
     "power": 52,
     "image": "chars/kirito.webp",
@@ -2109,7 +2745,8 @@
   {
     "id": "kaneki",
     "name": "Ken Kaneki",
-    "anime": "Tokyo Ghoul",
+    "category": "anime",
+    "series": "Tokyo Ghoul",
     "power": 52,
     "image": "chars/kaneki.webp",
     "anilistId": 87275
@@ -2117,7 +2754,8 @@
   {
     "id": "rock-lee",
     "name": "Rock Lee",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 50,
     "image": "chars/rock-lee.webp",
     "anilistId": 306
@@ -2125,7 +2763,8 @@
   {
     "id": "chad",
     "name": "Yasutora Sado",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 50,
     "image": "chars/chad.webp",
     "anilistId": 575
@@ -2133,7 +2772,8 @@
   {
     "id": "gyomei",
     "name": "Gyoumei Himejima",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 50,
     "image": "chars/gyomei.webp",
     "anilistId": 137778
@@ -2141,7 +2781,8 @@
   {
     "id": "douma",
     "name": "Douma",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 50,
     "image": "chars/douma.webp",
     "anilistId": 144591
@@ -2149,7 +2790,8 @@
   {
     "id": "akaza",
     "name": "Akaza",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 50,
     "image": "chars/akaza.webp",
     "anilistId": 141694
@@ -2157,7 +2799,8 @@
   {
     "id": "kurapika",
     "name": "Kurapika",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 50,
     "image": "chars/kurapika.webp",
     "anilistId": 28
@@ -2165,7 +2808,8 @@
   {
     "id": "biscuit",
     "name": "Biscuit Krueger",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 50,
     "image": "chars/biscuit.webp",
     "anilistId": 13898
@@ -2173,7 +2817,8 @@
   {
     "id": "hawks",
     "name": "Hawks",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 50,
     "image": "chars/hawks.webp",
     "anilistId": 128299
@@ -2181,7 +2826,8 @@
   {
     "id": "mirio",
     "name": "Mirio Togata",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 50,
     "image": "chars/mirio.webp",
     "anilistId": 123527
@@ -2189,7 +2835,8 @@
   {
     "id": "annie",
     "name": "Annie Leonhart",
-    "anime": "Shingeki no Kyojin",
+    "category": "anime",
+    "series": "Shingeki no Kyojin",
     "power": 50,
     "image": "chars/annie.webp",
     "anilistId": 46490
@@ -2197,7 +2844,8 @@
   {
     "id": "bradley",
     "name": "King Bradley",
-    "anime": "Fullmetal Alchemist: Brotherhood",
+    "category": "anime",
+    "series": "Fullmetal Alchemist: Brotherhood",
     "power": 50,
     "image": "chars/bradley.webp",
     "anilistId": 5103
@@ -2205,7 +2853,8 @@
   {
     "id": "greed",
     "name": "Greed",
-    "anime": "Fullmetal Alchemist: Brotherhood",
+    "category": "anime",
+    "series": "Fullmetal Alchemist: Brotherhood",
     "power": 50,
     "image": "chars/greed.webp",
     "anilistId": 351
@@ -2213,7 +2862,8 @@
   {
     "id": "stark",
     "name": "Stark",
-    "anime": "Sousou no Frieren",
+    "category": "anime",
+    "series": "Sousou no Frieren",
     "power": 50,
     "image": "chars/stark.webp",
     "anilistId": 184313
@@ -2221,7 +2871,8 @@
   {
     "id": "guts",
     "name": "Guts",
-    "anime": "Berserk",
+    "category": "anime",
+    "series": "Berserk",
     "power": 50,
     "image": "chars/guts.webp",
     "anilistId": 422
@@ -2229,15 +2880,51 @@
   {
     "id": "death-the-kid",
     "name": "Death the Kid",
-    "anime": "Soul Eater",
+    "category": "anime",
+    "series": "Soul Eater",
     "power": 50,
     "image": "chars/death-the-kid.webp",
     "anilistId": 8455
   },
   {
+    "id": "charizard",
+    "name": "Charizard",
+    "category": "games",
+    "series": "Pokémon",
+    "power": 50,
+    "wikipedia": "Charizard",
+    "image": "chars/charizard.webp"
+  },
+  {
+    "id": "ryu-sf",
+    "name": "Ryu",
+    "category": "games",
+    "series": "Street Fighter",
+    "power": 50,
+    "wikipedia": "Ryu (Street Fighter)",
+    "image": "chars/ryu-sf.webp"
+  },
+  {
+    "id": "the-knight",
+    "name": "The Knight",
+    "category": "games",
+    "series": "Hollow Knight",
+    "power": 50,
+    "wikipedia": "The Knight (Hollow Knight)",
+    "image": "chars/the-knight.webp"
+  },
+  {
+    "id": "artorias",
+    "name": "Knight Artorias",
+    "category": "games",
+    "series": "Dark Souls",
+    "power": 50
+  },
+  {
     "id": "edward",
     "name": "Edward Elric",
-    "anime": "Fullmetal Alchemist: Brotherhood",
+    "category": "anime",
+    "series": "Fullmetal Alchemist: Brotherhood",
     "power": 48,
     "image": "chars/edward.webp",
     "anilistId": 11
@@ -2245,7 +2932,8 @@
   {
     "id": "metal-bat",
     "name": "Metal Bat",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 48,
     "image": "chars/metal-bat.webp",
     "anilistId": 89156
@@ -2253,7 +2941,8 @@
   {
     "id": "dio",
     "name": "DIO",
-    "anime": "JoJo's Bizarre Adventure",
+    "category": "anime",
+    "series": "JoJo's Bizarre Adventure",
     "power": 48,
     "image": "chars/dio.webp",
     "anilistId": 4004
@@ -2261,7 +2950,8 @@
   {
     "id": "kuwabara",
     "name": "Kazuma Kuwabara",
-    "anime": "Yu Yu Hakusho",
+    "category": "anime",
+    "series": "Yu Yu Hakusho",
     "power": 48,
     "image": "chars/kuwabara.webp",
     "anilistId": 730
@@ -2269,7 +2959,8 @@
   {
     "id": "seras",
     "name": "Seras Victoria",
-    "anime": "Hellsing",
+    "category": "anime",
+    "series": "Hellsing",
     "power": 48,
     "image": "chars/seras.webp",
     "anilistId": 624
@@ -2277,7 +2968,8 @@
   {
     "id": "inuyasha",
     "name": "Inuyasha",
-    "anime": "Inuyasha",
+    "category": "anime",
+    "series": "Inuyasha",
     "power": 48,
     "image": "chars/inuyasha.webp",
     "anilistId": 1353
@@ -2285,7 +2977,8 @@
   {
     "id": "narumi",
     "name": "Gen Narumi",
-    "anime": "Kaiju No. 8",
+    "category": "anime",
+    "series": "Kaiju No. 8",
     "power": 48,
     "image": "chars/narumi.webp",
     "anilistId": 241577
@@ -2293,15 +2986,27 @@
   {
     "id": "aqua",
     "name": "Aqua",
-    "anime": "Kono Subarashii Sekai ni Shukufuku wo!",
+    "category": "anime",
+    "series": "Kono Subarashii Sekai ni Shukufuku wo!",
     "power": 48,
     "image": "chars/aqua.webp",
     "anilistId": 89362
   },
   {
+    "id": "jin-kazama",
+    "name": "Jin Kazama",
+    "category": "games",
+    "series": "Tekken",
+    "power": 48,
+    "wikipedia": "Jin Kazama",
+    "image": "chars/jin-kazama.webp",
+    "imageVersion": "mumsntzv"
+  },
+  {
     "id": "sanemi",
     "name": "Sanemi Shinazugawa",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 46,
     "image": "chars/sanemi.webp",
     "anilistId": 137774
@@ -2309,7 +3014,8 @@
   {
     "id": "overhaul",
     "name": "Overhaul",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 46,
     "image": "chars/overhaul.webp",
     "anilistId": 126357
@@ -2317,7 +3023,8 @@
   {
     "id": "scar",
     "name": "Scar",
-    "anime": "Fullmetal Alchemist: Brotherhood",
+    "category": "anime",
+    "series": "Fullmetal Alchemist: Brotherhood",
     "power": 46,
     "image": "chars/scar.webp",
     "anilistId": 66
@@ -2325,7 +3032,8 @@
   {
     "id": "reze",
     "name": "Reze",
-    "anime": "Chainsaw Man",
+    "category": "anime",
+    "series": "Chainsaw Man",
     "power": 46,
     "image": "chars/reze.webp",
     "anilistId": 148740
@@ -2333,7 +3041,8 @@
   {
     "id": "jotaro",
     "name": "Jotaro Kujo",
-    "anime": "JoJo's Bizarre Adventure",
+    "category": "anime",
+    "series": "JoJo's Bizarre Adventure",
     "power": 46,
     "image": "chars/jotaro.webp",
     "anilistId": 4003
@@ -2341,7 +3050,8 @@
   {
     "id": "cha-hae-in",
     "name": "Cha Hae-In",
-    "anime": "Solo Leveling",
+    "category": "anime",
+    "series": "Solo Leveling",
     "power": 46,
     "image": "chars/cha-hae-in.webp",
     "anilistId": 138789
@@ -2349,7 +3059,8 @@
   {
     "id": "anderson",
     "name": "Alexander Anderson",
-    "anime": "Hellsing",
+    "category": "anime",
+    "series": "Hellsing",
     "power": 46,
     "image": "chars/anderson.webp",
     "anilistId": 606
@@ -2357,7 +3068,8 @@
   {
     "id": "rudeus",
     "name": "Rudeus Greyrat",
-    "anime": "Mushoku Tensei",
+    "category": "anime",
+    "series": "Mushoku Tensei",
     "power": 46,
     "image": "chars/rudeus.webp",
     "anilistId": 88348
@@ -2365,7 +3077,8 @@
   {
     "id": "arima",
     "name": "Kishou Arima",
-    "anime": "Tokyo Ghoul",
+    "category": "anime",
+    "series": "Tokyo Ghoul",
     "power": 46,
     "image": "chars/arima.webp",
     "anilistId": 88946
@@ -2373,7 +3086,8 @@
   {
     "id": "levi",
     "name": "Levi Ackerman",
-    "anime": "Shingeki no Kyojin",
+    "category": "anime",
+    "series": "Shingeki no Kyojin",
     "power": 45,
     "search": "Levi",
     "image": "chars/levi.webp",
@@ -2382,7 +3096,8 @@
   {
     "id": "hinata",
     "name": "Hinata Hyuuga",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 45,
     "image": "chars/hinata.webp",
     "anilistId": 1555
@@ -2390,7 +3105,8 @@
   {
     "id": "giyu",
     "name": "Giyuu Tomioka",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 45,
     "image": "chars/giyu.webp",
     "anilistId": 130050
@@ -2398,7 +3114,8 @@
   {
     "id": "fubuki",
     "name": "Fubuki",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 45,
     "image": "chars/fubuki.webp",
     "anilistId": 81931
@@ -2406,15 +3123,51 @@
   {
     "id": "emilia",
     "name": "Emilia",
-    "anime": "Re:Zero kara Hajimeru Isekai Seikatsu",
+    "category": "anime",
+    "series": "Re:Zero kara Hajimeru Isekai Seikatsu",
     "power": 45,
     "image": "chars/emilia.webp",
     "anilistId": 88572
   },
   {
+    "id": "pikachu",
+    "name": "Pikachu",
+    "category": "games",
+    "series": "Pokémon",
+    "power": 45,
+    "image": "chars/pikachu.webp",
+    "igdbId": 4907
+  },
+  {
+    "id": "kazuya",
+    "name": "Kazuya Mishima",
+    "category": "games",
+    "series": "Tekken",
+    "power": 45,
+    "wikipedia": "Kazuya Mishima",
+    "image": "chars/kazuya.webp"
+  },
+  {
+    "id": "raiden-mgr",
+    "name": "Raiden",
+    "category": "games",
+    "series": "Metal Gear Rising: Revengeance",
+    "power": 45,
+    "wikipedia": "Raiden (Metal Gear)",
+    "image": "chars/raiden-mgr.webp"
+  },
+  {
+    "id": "chosen-undead",
+    "name": "Chosen Undead",
+    "category": "games",
+    "series": "Dark Souls",
+    "power": 45
+  },
+  {
     "id": "robin",
     "name": "Nico Robin",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 44,
     "image": "chars/robin.webp",
     "anilistId": 61
@@ -2422,7 +3175,8 @@
   {
     "id": "rengoku",
     "name": "Kyoujurou Rengoku",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 44,
     "image": "chars/rengoku.webp",
     "anilistId": 129133
@@ -2430,7 +3184,8 @@
   {
     "id": "tengen",
     "name": "Tengen Uzui",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 44,
     "image": "chars/tengen.webp",
     "anilistId": 136071
@@ -2438,7 +3193,8 @@
   {
     "id": "armstrong",
     "name": "Alex Louis Armstrong",
-    "anime": "Fullmetal Alchemist: Brotherhood",
+    "category": "anime",
+    "series": "Fullmetal Alchemist: Brotherhood",
     "power": 44,
     "image": "chars/armstrong.webp",
     "anilistId": 2079
@@ -2446,7 +3202,8 @@
   {
     "id": "mikasa",
     "name": "Mikasa Ackerman",
-    "anime": "Shingeki no Kyojin",
+    "category": "anime",
+    "series": "Shingeki no Kyojin",
     "power": 43,
     "image": "chars/mikasa.webp",
     "anilistId": 40881
@@ -2454,7 +3211,8 @@
   {
     "id": "tanjiro",
     "name": "Tanjiro Kamado",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 42,
     "search": "Tanjirou Kamado",
     "image": "chars/tanjiro.webp",
@@ -2463,7 +3221,8 @@
   {
     "id": "orihime",
     "name": "Orihime Inoue",
-    "anime": "Bleach",
+    "category": "anime",
+    "series": "Bleach",
     "power": 42,
     "image": "chars/orihime.webp",
     "anilistId": 7
@@ -2471,7 +3230,8 @@
   {
     "id": "nobara",
     "name": "Nobara Kugisaki",
-    "anime": "Jujutsu Kaisen",
+    "category": "anime",
+    "series": "Jujutsu Kaisen",
     "power": 42,
     "image": "chars/nobara.webp",
     "anilistId": 133700
@@ -2479,7 +3239,8 @@
   {
     "id": "alphonse",
     "name": "Alphonse Elric",
-    "anime": "Fullmetal Alchemist: Brotherhood",
+    "category": "anime",
+    "series": "Fullmetal Alchemist: Brotherhood",
     "power": 42,
     "image": "chars/alphonse.webp",
     "anilistId": 12
@@ -2487,7 +3248,8 @@
   {
     "id": "quanxi",
     "name": "Quanxi",
-    "anime": "Chainsaw Man",
+    "category": "anime",
+    "series": "Chainsaw Man",
     "power": 42,
     "image": "chars/quanxi.webp",
     "anilistId": 162123
@@ -2495,7 +3257,8 @@
   {
     "id": "maka",
     "name": "Maka Albarn",
-    "anime": "Soul Eater",
+    "category": "anime",
+    "series": "Soul Eater",
     "power": 42,
     "image": "chars/maka.webp",
     "anilistId": 8439
@@ -2503,7 +3266,8 @@
   {
     "id": "nezuko",
     "name": "Nezuko Kamado",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 40,
     "image": "chars/nezuko.webp",
     "anilistId": 127518
@@ -2511,7 +3275,8 @@
   {
     "id": "zenitsu",
     "name": "Zenitsu Agatsuma",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 40,
     "image": "chars/zenitsu.webp",
     "anilistId": 129131
@@ -2519,7 +3284,8 @@
   {
     "id": "power",
     "name": "Power",
-    "anime": "Chainsaw Man",
+    "category": "anime",
+    "series": "Chainsaw Man",
     "power": 40,
     "image": "chars/power.webp",
     "anilistId": 137079
@@ -2527,7 +3293,8 @@
   {
     "id": "kira",
     "name": "Yoshikage Kira",
-    "anime": "JoJo's Bizarre Adventure",
+    "category": "anime",
+    "series": "JoJo's Bizarre Adventure",
     "power": 40,
     "image": "chars/kira.webp",
     "anilistId": 12055
@@ -2535,7 +3302,8 @@
   {
     "id": "kamina",
     "name": "Kamina",
-    "anime": "Tengen Toppa Gurren Lagann",
+    "category": "anime",
+    "series": "Tengen Toppa Gurren Lagann",
     "power": 40,
     "image": "chars/kamina.webp",
     "anilistId": 2075
@@ -2543,7 +3311,8 @@
   {
     "id": "eris",
     "name": "Eris Boreas Greyrat",
-    "anime": "Mushoku Tensei",
+    "category": "anime",
+    "series": "Mushoku Tensei",
     "power": 40,
     "image": "chars/eris.webp",
     "anilistId": 88349
@@ -2551,15 +3320,35 @@
   {
     "id": "turbo-granny",
     "name": "Turbo Granny",
-    "anime": "Dandadan",
+    "category": "anime",
+    "series": "Dandadan",
     "power": 40,
     "image": "chars/turbo-granny.webp",
     "anilistId": 239956
   },
   {
+    "id": "nemesis",
+    "name": "Nemesis",
+    "category": "games",
+    "series": "Resident Evil 3",
+    "power": 40,
+    "wikipedia": "Nemesis (Resident Evil)",
+    "image": "chars/nemesis.webp"
+  },
+  {
+    "id": "wesker",
+    "name": "Albert Wesker",
+    "category": "games",
+    "series": "Resident Evil",
+    "power": 40,
+    "image": "chars/wesker.webp",
+    "igdbId": 8297
+  },
+  {
     "id": "inosuke",
     "name": "Inosuke Hashibira",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 38,
     "image": "chars/inosuke.webp",
     "anilistId": 129130
@@ -2567,7 +3356,8 @@
   {
     "id": "okarun",
     "name": "Okarun",
-    "anime": "Dandadan",
+    "category": "anime",
+    "series": "Dandadan",
     "power": 38,
     "image": "chars/okarun.webp",
     "anilistId": 222593
@@ -2575,7 +3365,8 @@
   {
     "id": "megumin",
     "name": "Megumin",
-    "anime": "Kono Subarashii Sekai ni Shukufuku wo!",
+    "category": "anime",
+    "series": "Kono Subarashii Sekai ni Shukufuku wo!",
     "power": 38,
     "image": "chars/megumin.webp",
     "anilistId": 89361
@@ -2583,7 +3374,8 @@
   {
     "id": "sonic",
     "name": "Speed-o'-Sound Sonic",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 36,
     "search": "Sonic",
     "image": "chars/sonic.webp",
@@ -2592,7 +3384,8 @@
   {
     "id": "josuke",
     "name": "Josuke Higashikata",
-    "anime": "JoJo's Bizarre Adventure",
+    "category": "anime",
+    "series": "JoJo's Bizarre Adventure",
     "power": 36,
     "image": "chars/josuke.webp",
     "anilistId": 13085
@@ -2600,15 +3393,26 @@
   {
     "id": "lucy",
     "name": "Lucy Heartfilia",
-    "anime": "Fairy Tail",
+    "category": "anime",
+    "series": "Fairy Tail",
     "power": 35,
     "image": "chars/lucy.webp",
     "anilistId": 5186
   },
   {
+    "id": "2b",
+    "name": "2B",
+    "category": "games",
+    "series": "NieR: Automata",
+    "power": 35,
+    "wikipedia": "2B (Nier: Automata)",
+    "image": "chars/2b.webp"
+  },
+  {
     "id": "usopp",
     "name": "Usopp",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 34,
     "image": "chars/usopp.webp",
     "anilistId": 724
@@ -2616,7 +3420,8 @@
   {
     "id": "momo",
     "name": "Momo Ayase",
-    "anime": "Dandadan",
+    "category": "anime",
+    "series": "Dandadan",
     "power": 34,
     "image": "chars/momo.webp",
     "anilistId": 222594
@@ -2624,7 +3429,8 @@
   {
     "id": "shikamaru",
     "name": "Shikamaru Nara",
-    "anime": "Naruto Shippuden",
+    "category": "anime",
+    "series": "Naruto Shippuden",
     "power": 32,
     "image": "chars/shikamaru.webp",
     "anilistId": 2007
@@ -2632,7 +3438,8 @@
   {
     "id": "aki",
     "name": "Aki Hayakawa",
-    "anime": "Chainsaw Man",
+    "category": "anime",
+    "series": "Chainsaw Man",
     "power": 32,
     "image": "chars/aki.webp",
     "anilistId": 137081
@@ -2640,7 +3447,8 @@
   {
     "id": "joseph",
     "name": "Joseph Joestar",
-    "anime": "JoJo's Bizarre Adventure",
+    "category": "anime",
+    "series": "JoJo's Bizarre Adventure",
     "power": 32,
     "image": "chars/joseph.webp",
     "anilistId": 6356
@@ -2648,7 +3456,8 @@
   {
     "id": "rem",
     "name": "Rem",
-    "anime": "Re:Zero kara Hajimeru Isekai Seikatsu",
+    "category": "anime",
+    "series": "Re:Zero kara Hajimeru Isekai Seikatsu",
     "power": 32,
     "image": "chars/rem.webp",
     "anilistId": 88575
@@ -2656,7 +3465,8 @@
   {
     "id": "asuna",
     "name": "Asuna",
-    "anime": "Sword Art Online",
+    "category": "anime",
+    "series": "Sword Art Online",
     "power": 32,
     "image": "chars/asuna.webp",
     "anilistId": 36828
@@ -2664,7 +3474,8 @@
   {
     "id": "shinobu",
     "name": "Shinobu Kochou",
-    "anime": "Kimetsu no Yaiba",
+    "category": "anime",
+    "series": "Kimetsu no Yaiba",
     "power": 30,
     "image": "chars/shinobu.webp",
     "anilistId": 136070
@@ -2672,7 +3483,8 @@
   {
     "id": "stain",
     "name": "Stain",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 30,
     "image": "chars/stain.webp",
     "anilistId": 126067
@@ -2680,7 +3492,8 @@
   {
     "id": "uraraka",
     "name": "Ochako Uraraka",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 30,
     "image": "chars/uraraka.webp",
     "anilistId": 89221
@@ -2688,7 +3501,8 @@
   {
     "id": "kenny",
     "name": "Kenny Ackerman",
-    "anime": "Shingeki no Kyojin",
+    "category": "anime",
+    "series": "Shingeki no Kyojin",
     "power": 30,
     "image": "chars/kenny.webp",
     "anilistId": 127443
@@ -2696,7 +3510,8 @@
   {
     "id": "kishibe",
     "name": "Kishibe",
-    "anime": "Chainsaw Man",
+    "category": "anime",
+    "series": "Chainsaw Man",
     "power": 30,
     "image": "chars/kishibe.webp",
     "anilistId": 144593
@@ -2704,7 +3519,8 @@
   {
     "id": "teru",
     "name": "Teruki Hanazawa",
-    "anime": "Mob Psycho 100",
+    "category": "anime",
+    "series": "Mob Psycho 100",
     "power": 30,
     "image": "chars/teru.webp",
     "anilistId": 89621
@@ -2712,7 +3528,8 @@
   {
     "id": "gintoki",
     "name": "Gintoki Sakata",
-    "anime": "Gintama",
+    "category": "anime",
+    "series": "Gintama",
     "power": 30,
     "image": "chars/gintoki.webp",
     "anilistId": 672
@@ -2720,7 +3537,8 @@
   {
     "id": "yujiro",
     "name": "Yuujirou Hanma",
-    "anime": "Baki",
+    "category": "anime",
+    "series": "Baki",
     "power": 30,
     "image": "chars/yujiro.webp",
     "anilistId": 10499
@@ -2728,15 +3546,35 @@
   {
     "id": "ryuk",
     "name": "Ryuk",
-    "anime": "Death Note",
+    "category": "anime",
+    "series": "Death Note",
     "power": 30,
     "image": "chars/ryuk.webp",
     "anilistId": 75
   },
   {
+    "id": "master-chief",
+    "name": "Master Chief",
+    "category": "games",
+    "series": "Halo",
+    "power": 30,
+    "image": "chars/master-chief.webp",
+    "igdbId": 2800
+  },
+  {
+    "id": "geralt",
+    "name": "Geralt of Rivia",
+    "category": "games",
+    "series": "The Witcher 3: Wild Hunt",
+    "power": 30,
+    "image": "chars/geralt.webp",
+    "igdbId": 1453
+  },
+  {
     "id": "nami",
     "name": "Nami",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 28,
     "image": "chars/nami.webp",
     "anilistId": 723
@@ -2744,7 +3582,8 @@
   {
     "id": "touka",
     "name": "Touka Kirishima",
-    "anime": "Tokyo Ghoul",
+    "category": "anime",
+    "series": "Tokyo Ghoul",
     "power": 28,
     "image": "chars/touka.webp",
     "anilistId": 87277
@@ -2752,7 +3591,8 @@
   {
     "id": "akame",
     "name": "Akame",
-    "anime": "Akame ga Kill!",
+    "category": "anime",
+    "series": "Akame ga Kill!",
     "power": 28,
     "image": "chars/akame.webp",
     "anilistId": 63351
@@ -2760,7 +3600,8 @@
   {
     "id": "kagura",
     "name": "Kagura",
-    "anime": "Gintama",
+    "category": "anime",
+    "series": "Gintama",
     "power": 28,
     "image": "chars/kagura.webp",
     "anilistId": 674
@@ -2768,7 +3609,8 @@
   {
     "id": "aizawa",
     "name": "Shouta Aizawa",
-    "anime": "Boku no Hero Academia",
+    "category": "anime",
+    "series": "Boku no Hero Academia",
     "power": 26,
     "image": "chars/aizawa.webp",
     "anilistId": 89225
@@ -2776,7 +3618,8 @@
   {
     "id": "baki",
     "name": "Baki Hanma",
-    "anime": "Baki",
+    "category": "anime",
+    "series": "Baki",
     "power": 26,
     "image": "chars/baki.webp",
     "anilistId": 10498
@@ -2784,7 +3627,8 @@
   {
     "id": "sakamoto",
     "name": "Taro Sakamoto",
-    "anime": "Sakamoto Days",
+    "category": "anime",
+    "series": "Sakamoto Days",
     "power": 26,
     "search": "Tarou Sakamoto",
     "image": "chars/sakamoto.webp",
@@ -2793,7 +3637,8 @@
   {
     "id": "yor",
     "name": "Yor Forger",
-    "anime": "Spy x Family",
+    "category": "anime",
+    "series": "Spy x Family",
     "power": 26,
     "image": "chars/yor.webp",
     "anilistId": 138102
@@ -2801,7 +3646,8 @@
   {
     "id": "suzaku",
     "name": "Suzaku Kururugi",
-    "anime": "Code Geass",
+    "category": "anime",
+    "series": "Code Geass",
     "power": 26,
     "image": "chars/suzaku.webp",
     "anilistId": 559
@@ -2809,15 +3655,35 @@
   {
     "id": "ritsu",
     "name": "Ritsu Kageyama",
-    "anime": "Mob Psycho 100",
+    "category": "anime",
+    "series": "Mob Psycho 100",
     "power": 25,
     "image": "chars/ritsu.webp",
     "anilistId": 89618
   },
   {
+    "id": "chris-redfield",
+    "name": "Chris Redfield",
+    "category": "games",
+    "series": "Resident Evil",
+    "power": 25,
+    "wikipedia": "Chris Redfield",
+    "image": "chars/chris-redfield.webp"
+  },
+  {
+    "id": "steve-minecraft",
+    "name": "Steve",
+    "category": "games",
+    "series": "Minecraft",
+    "power": 25,
+    "wikipedia": "Steve (Minecraft)",
+    "image": "chars/steve-minecraft.webp"
+  },
+  {
     "id": "thorkell",
     "name": "Thorkell",
-    "anime": "Vinland Saga",
+    "category": "anime",
+    "series": "Vinland Saga",
     "power": 22,
     "image": "chars/thorkell.webp",
     "anilistId": 17440
@@ -2825,7 +3691,8 @@
   {
     "id": "leorio",
     "name": "Leorio Paladiknight",
-    "anime": "Hunter x Hunter",
+    "category": "anime",
+    "series": "Hunter x Hunter",
     "power": 20,
     "image": "chars/leorio.webp",
     "anilistId": 29
@@ -2833,7 +3700,8 @@
   {
     "id": "jonathan",
     "name": "Jonathan Joestar",
-    "anime": "JoJo's Bizarre Adventure",
+    "category": "anime",
+    "series": "JoJo's Bizarre Adventure",
     "power": 20,
     "image": "chars/jonathan.webp",
     "anilistId": 8087
@@ -2841,7 +3709,8 @@
   {
     "id": "kiritsugu",
     "name": "Kiritsugu Emiya",
-    "anime": "Fate/Zero",
+    "category": "anime",
+    "series": "Fate/Zero",
     "power": 20,
     "image": "chars/kiritsugu.webp",
     "anilistId": 10010
@@ -2849,15 +3718,26 @@
   {
     "id": "loid",
     "name": "Loid Forger",
-    "anime": "Spy x Family",
+    "category": "anime",
+    "series": "Spy x Family",
     "power": 20,
     "image": "chars/loid.webp",
     "anilistId": 138101
   },
   {
+    "id": "crash",
+    "name": "Crash Bandicoot",
+    "category": "games",
+    "series": "Crash Bandicoot",
+    "power": 20,
+    "wikipedia": "Crash Bandicoot (character)",
+    "image": "chars/crash.webp"
+  },
+  {
     "id": "buggy",
     "name": "Buggy",
-    "anime": "One Piece",
+    "category": "anime",
+    "series": "One Piece",
     "power": 18,
     "image": "chars/buggy.webp",
     "anilistId": 725
@@ -2865,7 +3745,8 @@
   {
     "id": "thorfinn",
     "name": "Thorfinn",
-    "anime": "Vinland Saga",
+    "category": "anime",
+    "series": "Vinland Saga",
     "power": 18,
     "image": "chars/thorfinn.webp",
     "anilistId": 10138
@@ -2873,15 +3754,24 @@
   {
     "id": "tsukasa",
     "name": "Tsukasa Shishiou",
-    "anime": "Dr. Stone",
+    "category": "anime",
+    "series": "Dr. Stone",
     "power": 15,
     "image": "chars/tsukasa.webp",
     "anilistId": 124144
   },
   {
+    "id": "leon",
+    "name": "Leon S. Kennedy",
+    "category": "games",
+    "series": "Resident Evil",
+    "power": 15
+  },
+  {
     "id": "erwin",
     "name": "Erwin Smith",
-    "anime": "Shingeki no Kyojin",
+    "category": "anime",
+    "series": "Shingeki no Kyojin",
     "power": 12,
     "image": "chars/erwin.webp",
     "anilistId": 46496
@@ -2889,7 +3779,8 @@
   {
     "id": "riza",
     "name": "Riza Hawkeye",
-    "anime": "Fullmetal Alchemist: Brotherhood",
+    "category": "anime",
+    "series": "Fullmetal Alchemist: Brotherhood",
     "power": 12,
     "image": "chars/riza.webp",
     "anilistId": 70
@@ -2897,7 +3788,8 @@
   {
     "id": "mikey",
     "name": "Manjirou Sano",
-    "anime": "Tokyo Revengers",
+    "category": "anime",
+    "series": "Tokyo Revengers",
     "version": "Mikey",
     "power": 12,
     "image": "chars/mikey.webp",
@@ -2906,23 +3798,51 @@
   {
     "id": "spike",
     "name": "Spike Spiegel",
-    "anime": "Cowboy Bebop",
+    "category": "anime",
+    "series": "Cowboy Bebop",
     "power": 12,
     "image": "chars/spike.webp",
     "anilistId": 1
   },
   {
+    "id": "solid-snake",
+    "name": "Solid Snake",
+    "category": "games",
+    "series": "Metal Gear Solid",
+    "power": 12,
+    "image": "chars/solid-snake.webp",
+    "igdbId": 5352
+  },
+  {
     "id": "mr-satan",
     "name": "Mr. Satan",
-    "anime": "Dragon Ball Z",
+    "category": "anime",
+    "series": "Dragon Ball Z",
     "power": 10,
     "anilistId": 9377,
     "image": "chars/mr-satan.webp"
   },
   {
+    "id": "aloy",
+    "name": "Aloy",
+    "category": "games",
+    "series": "Horizon Zero Dawn",
+    "power": 10
+  },
+  {
+    "id": "lara-croft",
+    "name": "Lara Croft",
+    "category": "games",
+    "series": "Tomb Raider",
+    "power": 10,
+    "image": "chars/lara-croft.webp",
+    "igdbId": 991
+  },
+  {
     "id": "kazuma",
     "name": "Kazuma Satou",
-    "anime": "Kono Subarashii Sekai ni Shukufuku wo!",
+    "category": "anime",
+    "series": "Kono Subarashii Sekai ni Shukufuku wo!",
     "power": 8,
     "image": "chars/kazuma.webp",
     "anilistId": 89364
@@ -2930,23 +3850,72 @@
   {
     "id": "lelouch",
     "name": "Lelouch Lamperouge",
-    "anime": "Code Geass",
+    "category": "anime",
+    "series": "Code Geass",
     "power": 8,
     "image": "chars/lelouch.webp",
     "anilistId": 417
   },
   {
+    "id": "arthur-morgan",
+    "name": "Arthur Morgan",
+    "category": "games",
+    "series": "Red Dead Redemption 2",
+    "power": 8,
+    "image": "chars/arthur-morgan.webp",
+    "igdbId": 12330
+  },
+  {
+    "id": "nathan-drake",
+    "name": "Nathan Drake",
+    "category": "games",
+    "series": "Uncharted",
+    "power": 8,
+    "image": "chars/nathan-drake.webp",
+    "igdbId": 5238
+  },
+  {
+    "id": "isaac-clarke",
+    "name": "Isaac Clarke",
+    "category": "games",
+    "series": "Dead Space",
+    "power": 8,
+    "wikipedia": "Isaac Clarke",
+    "image": "chars/isaac-clarke.webp"
+  },
+  {
+    "id": "joel",
+    "name": "Joel",
+    "category": "games",
+    "series": "The Last of Us",
+    "power": 7,
+    "image": "chars/joel.webp",
+    "igdbId": 411
+  },
+  {
     "id": "mumen-rider",
     "name": "Mumen Rider",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 6,
     "image": "chars/mumen-rider.webp",
     "anilistId": 81935
   },
   {
+    "id": "cj",
+    "name": "Carl Johnson",
+    "category": "games",
+    "series": "Grand Theft Auto: San Andreas",
+    "version": "CJ",
+    "power": 6,
+    "wikipedia": "Carl Johnson (Grand Theft Auto)",
+    "image": "chars/cj.webp"
+  },
+  {
     "id": "light",
     "name": "Light Yagami",
-    "anime": "Death Note",
+    "category": "anime",
+    "series": "Death Note",
     "power": 5,
     "image": "chars/light.webp",
     "anilistId": 80
@@ -2954,15 +3923,26 @@
   {
     "id": "takemichi",
     "name": "Takemichi Hanagaki",
-    "anime": "Tokyo Revengers",
+    "category": "anime",
+    "series": "Tokyo Revengers",
     "power": 5,
     "image": "chars/takemichi.webp",
     "anilistId": 145342
   },
   {
+    "id": "ellie",
+    "name": "Ellie",
+    "category": "games",
+    "series": "The Last of Us",
+    "power": 5,
+    "image": "chars/ellie.webp",
+    "igdbId": 410
+  },
+  {
     "id": "l",
     "name": "L",
-    "anime": "Death Note",
+    "category": "anime",
+    "series": "Death Note",
     "power": 4,
     "image": "chars/l.webp",
     "anilistId": 71
@@ -2970,7 +3950,8 @@
   {
     "id": "subaru",
     "name": "Subaru Natsuki",
-    "anime": "Re:Zero kara Hajimeru Isekai Seikatsu",
+    "category": "anime",
+    "series": "Re:Zero kara Hajimeru Isekai Seikatsu",
     "power": 3,
     "image": "chars/subaru.webp",
     "anilistId": 88573
@@ -2978,7 +3959,8 @@
   {
     "id": "anya",
     "name": "Anya Forger",
-    "anime": "Spy x Family",
+    "category": "anime",
+    "series": "Spy x Family",
     "power": 3,
     "image": "chars/anya.webp",
     "anilistId": 138100
@@ -2986,7 +3968,8 @@
   {
     "id": "misa",
     "name": "Misa Amane",
-    "anime": "Death Note",
+    "category": "anime",
+    "series": "Death Note",
     "power": 3,
     "image": "chars/misa.webp",
     "anilistId": 835
@@ -2994,7 +3977,8 @@
   {
     "id": "king-opm",
     "name": "King",
-    "anime": "One Punch Man",
+    "category": "anime",
+    "series": "One Punch Man",
     "power": 2,
     "search": "King",
     "image": "chars/king-opm.webp",
@@ -3003,7 +3987,8 @@
   {
     "id": "reigen",
     "name": "Arataka Reigen",
-    "anime": "Mob Psycho 100",
+    "category": "anime",
+    "series": "Mob Psycho 100",
     "power": 2,
     "image": "chars/reigen.webp",
     "anilistId": 89334
@@ -3011,7 +3996,8 @@
   {
     "id": "senku",
     "name": "Senkuu Ishigami",
-    "anime": "Dr. Stone",
+    "category": "anime",
+    "series": "Dr. Stone",
     "power": 2,
     "image": "chars/senku.webp",
     "anilistId": 124142
@@ -3019,7 +4005,8 @@
   {
     "id": "shinji",
     "name": "Shinji Ikari",
-    "anime": "Neon Genesis Evangelion",
+    "category": "anime",
+    "series": "Neon Genesis Evangelion",
     "power": 2,
     "image": "chars/shinji.webp",
     "anilistId": 89

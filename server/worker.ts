@@ -16,7 +16,7 @@ export default {
         case 'POST /api/games':
           return await createGame(request, env, ctx);
         case 'GET /api/scores':
-          return await getLeaderboard(env);
+          return await getLeaderboard(request, env);
         case 'POST /api/scores':
           return await submitScore(request, env);
         default:

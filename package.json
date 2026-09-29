@@ -10,11 +10,12 @@
     "preview": "vite preview",
     "test": "vitest run",
     "validate": "node scripts/validate-data.mjs",
-    "fetch:images": "node scripts/fetch-images.mjs",
+    "fetch:images": "node --env-file-if-exists=.env scripts/fetch-images.mjs",
     "db:migrate:local": "wrangler d1 migrations apply power-rank --local",
     "db:migrate:remote": "wrangler d1 migrations apply power-rank --remote",
     "deploy": "npm run build && wrangler deploy",
-    "rescore": "node scripts/rescore.mjs"
+    "rescore": "node scripts/rescore.mjs",
+    "import:image": "node scripts/import-image.mjs"
   },
   "dependencies": {
     "@fontsource/chakra-petch": "^5.3.0",

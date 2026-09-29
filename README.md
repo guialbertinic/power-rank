@@ -56,6 +56,26 @@ src/
    - Achou o personagem errado? Adicione `"anilistId"` e rode `npm run fetch:images -- <id>`.
 3. `npm run validate`.
 
+## Categorias
+
+Cada personagem tem `category` (`anime` ou `games`) e `series` (a obra). O jogador escolhe **Animes**,
+**Games** ou **Free for All** (todos misturados); cada modo tem o próprio ranking. A escala de `power` é a mesma
+para todas as categorias, para o Free for All fazer sentido. Um modo só fica disponível com pelo menos 10 personagens.
+
+### Imagens de games (IGDB)
+
+`npm run fetch:images` busca as imagens de games no IGDB, que exige uma conta de desenvolvedor da Twitch (grátis):
+
+1. Ative a autenticação em dois fatores na sua conta Twitch.
+2. Em https://dev.twitch.tv/console, registre um aplicativo (redirect `http://localhost`, categoria
+   Website Integration, cliente Confidencial).
+3. Em "Gerenciar", copie o Client ID e gere um Client Secret.
+4. Crie `.env` na raiz do projeto (já está no .gitignore):
+   ```
+   IGDB_CLIENT_ID=...
+   IGDB_CLIENT_SECRET=...
+   ```
+
 ## Deploy (Cloudflare Workers, grátis)
 
 O Worker `power-rank` está conectado ao repositório no GitHub (Workers Builds): cada push na `main` roda

@@ -1,3 +1,7 @@
 node_modules
 dist
 .wrangler
+
+# Credenciais locais (IGDB etc.)
+.env
+.dev.vars

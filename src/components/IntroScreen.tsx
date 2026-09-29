@@ -1,18 +1,22 @@
 import type { FormEvent } from 'react';
+import type { Mode } from '../game/modes';
 import { NICK_MAX_LENGTH } from '../nick';
 import Leaderboard from './Leaderboard';
 
 interface Props {
   nick: string;
   onNickChange: (nick: string) => void;
+  /** Categoria escolhida no seletor do título; o ranking abaixo acompanha. */
+  mode: Mode;
+  canStart: boolean;
   starting: boolean;
   onStart: () => void;
 }
 
-export default function IntroScreen({ nick, onNickChange, starting, onStart }: Props) {
+export default function IntroScreen({ nick, onNickChange, mode, canStart, starting, onStart }: Props) {
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (nick.trim()) onStart();
+    if (nick.trim() && canStart) onStart();
   };
 
   return (
@@ -30,11 +34,11 @@ export default function IntroScreen({ nick, onNickChange, starting, onStart }: P
           spellCheck={false}
           disabled={starting}
         />
-        <button className="btn btn-primary btn-lg" disabled={starting || !nick.trim()}>
+        <button className="btn btn-primary btn-lg" disabled={starting || !nick.trim() || !canStart}>
           {starting ? 'Sorteando...' : 'Começar'}
         </button>
       </form>
-      <Leaderboard highlight={nick} />
+      <Leaderboard mode={mode} highlight={nick} />
     </div>
   );
 }

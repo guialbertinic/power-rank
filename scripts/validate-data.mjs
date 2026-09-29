@@ -15,7 +15,8 @@ for (const [i, c] of characters.entries()) {
   if (seen.has(c.id)) errors.push(`${where}: id duplicado`);
   seen.add(c.id);
   if (!c.name) errors.push(`${where}: falta name`);
-  if (!c.anime) errors.push(`${where}: falta anime`);
+  if (!c.series) errors.push(`${where}: falta series`);
+  if (!['anime', 'games'].includes(c.category)) errors.push(`${where}: category deve ser anime ou games`);
   if (typeof c.power !== 'number' || c.power < 0 || c.power > 100) errors.push(`${where}: power deve ser 0-100`);
   if (c.image && !existsSync(join(root, 'public', c.image))) errors.push(`${where}: imagem não encontrada: ${c.image}`);
 }

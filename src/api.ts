@@ -1,3 +1,5 @@
+import type { Mode } from './game/modes';
+
 export interface LeaderboardEntry {
   name: string;
   score: number;
@@ -24,9 +26,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 /** Sorteia uma partida no servidor. Retorna null se a API não estiver disponível. */
-export async function createGame(name: string): Promise<{ gameId: string; characterIds: string[] } | null> {
+export async function createGame(
+  name: string,
+  mode: Mode,
+): Promise<{ gameId: string; characterIds: string[] } | null> {
   try {
-    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name }) });
+    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, mode }) });
   } catch {
     return null;
   }
@@ -47,7 +52,7 @@ export function submitScoreOnce(gameId: string, placements: string[]): Promise<S
   return pending;
 }
 
-export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
-  const { scores } = await request<{ scores: LeaderboardEntry[] }>('/api/scores');
+export async function fetchLeaderboard(mode: Mode): Promise<LeaderboardEntry[]> {
+  const { scores } = await request<{ scores: LeaderboardEntry[] }>(`/api/scores?mode=${mode}`);
   return scores;
 }

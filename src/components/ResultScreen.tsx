@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MODES, type Mode } from '../game/modes';
 import { MAX_SCORE, rankTitle, scoreGame } from '../game/scoring';
 import type { Character } from '../game/types';
 import { tierClass, tierForPower } from '../ui/tiers';
@@ -18,6 +19,7 @@ function hitLevel(pairsWrong: number): number {
 }
 
 interface Props {
+  mode: Mode;
   gameId: string | null;
   nick: string;
   slots: Character[];
@@ -26,14 +28,14 @@ interface Props {
   onChangeNick: () => void;
 }
 
-export default function ResultScreen({ gameId, nick, slots, starting, onRestart, onChangeNick }: Props) {
+export default function ResultScreen({ mode, gameId, nick, slots, starting, onRestart, onChangeNick }: Props) {
   const { total, results, correctOrder } = scoreGame(slots);
   const [submitted, setSubmitted] = useState(false);
 
   return (
     <section className="result">
       <div className="panel score-panel">
-        <p className="score-label">Pontuação</p>
+        <p className="score-label">Pontuação · {MODES.find((m) => m.id === mode)?.label}</p>
         <p className="score-value">
           {total}
           <span>/{MAX_SCORE}</span>
@@ -89,7 +91,7 @@ export default function ResultScreen({ gameId, nick, slots, starting, onRestart,
 
       {gameId && (
         <div className="result-leaderboard">
-          <Leaderboard refreshKey={submitted ? 1 : 0} highlight={nick} />
+          <Leaderboard mode={mode} refreshKey={submitted ? 1 : 0} highlight={nick} />
         </div>
       )}
     </section>

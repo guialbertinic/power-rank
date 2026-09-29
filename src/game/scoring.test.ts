@@ -3,7 +3,7 @@ import { correctRange, MAX_SCORE, scoreGame } from './scoring';
 import { drawCharacters } from './draw';
 import type { Character } from './types';
 
-const char = (id: string, power: number): Character => ({ id, name: id, anime: 'x', power });
+const char = (id: string, power: number): Character => ({ id, name: id, category: 'anime', series: 'x', power });
 
 describe('correctRange', () => {
   it('accepts every tied position', () => {

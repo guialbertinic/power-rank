@@ -19,7 +19,7 @@ export default function PowerCard({ character, badge }: { character: Character; 
           <div className="power-card-info">
             {character.version && <span className="power-card-version">{character.version}</span>}
             <h2 className="power-card-name">{character.name}</h2>
-            <p className="power-card-anime">{character.anime}</p>
+            <p className="power-card-series">{character.series}</p>
           </div>
         </div>
       </article>

@@ -1,30 +1,34 @@
 import { badRequest, CHARACTERS_BY_ID, GAME_TTL_MS, json, LEADERBOARD_SIZE, nameKey, type Env } from './lib';
+import { DEFAULT_MODE, isMode } from '../src/game/modes';
 import { scoreGame } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
-/** Melhor partida de cada jogador (empate: quem chegou primeiro). */
+/** Melhor partida de cada jogador num modo (empate: quem chegou primeiro). Recebe o modo como parâmetro. */
 const BEST_PER_PLAYER = `
   SELECT name_key, name, score, created_at FROM (
     SELECT name_key, name, score, created_at,
            ROW_NUMBER() OVER (PARTITION BY name_key ORDER BY score DESC, created_at ASC) AS rn
-    FROM scores
+    FROM scores WHERE mode = ?
   ) WHERE rn = 1`;
 
-/** GET /api/scores: top do ranking global, uma linha por jogador. */
-export async function getLeaderboard(env: Env): Promise<Response> {
+/** GET /api/scores?mode=anime: top do ranking daquele modo, uma linha por jogador. */
+export async function getLeaderboard(request: Request, env: Env): Promise<Response> {
+  const mode = new URL(request.url).searchParams.get('mode') ?? DEFAULT_MODE;
+  if (!isMode(mode)) return badRequest('Categoria inválida');
+
   const { results } = await env.DB.prepare(
     `SELECT name, score, created_at AS createdAt FROM (${BEST_PER_PLAYER})
      ORDER BY score DESC, created_at ASC LIMIT ?`,
   )
-    .bind(LEADERBOARD_SIZE)
+    .bind(mode, LEADERBOARD_SIZE)
     .all();
   return json({ scores: results });
 }
 
 /**
  * POST /api/scores: { gameId, placements } → { score, best, isNewBest, rank }.
- * `placements` são os ids na ordem escolhida (posição 1 primeiro). O nick vem da partida
- * e a pontuação é recalculada aqui. `rank` é a posição do melhor resultado do jogador.
+ * `placements` são os ids na ordem escolhida (posição 1 primeiro). Nick e modo vêm da partida
+ * e a pontuação é recalculada aqui. `rank` é a posição do melhor resultado do jogador no modo.
  */
 export async function submitScore(request: Request, env: Env): Promise<Response> {
   const body = (await request.json().catch(() => null)) as { gameId?: unknown; placements?: unknown } | null;
@@ -39,10 +43,10 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   const game = await env.DB.prepare(
     `UPDATE games SET submitted = 1
      WHERE id = ? AND submitted = 0 AND created_at > ? AND name IS NOT NULL
-     RETURNING character_ids, name`,
+     RETURNING character_ids, name, mode`,
   )
     .bind(body.gameId, Date.now() - GAME_TTL_MS)
-    .first<{ character_ids: string; name: string }>();
+    .first<{ character_ids: string; name: string; mode: string }>();
   if (!game) return badRequest('Partida inexistente, expirada ou já enviada');
 
   const drawn: string[] = JSON.parse(game.character_ids);
@@ -59,19 +63,19 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   const { total } = scoreGame(slots as Character[]);
   const key = nameKey(game.name);
 
-  const previous = await env.DB.prepare('SELECT MAX(score) AS best FROM scores WHERE name_key = ?')
-    .bind(key)
+  const previous = await env.DB.prepare('SELECT MAX(score) AS best FROM scores WHERE mode = ? AND name_key = ?')
+    .bind(game.mode, key)
     .first<{ best: number | null }>();
 
   await env.DB.prepare(
-    'INSERT INTO scores (game_id, name, name_key, score, placements, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+    'INSERT INTO scores (game_id, name, name_key, mode, score, placements, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
   )
-    .bind(body.gameId, game.name, key, total, JSON.stringify(placements), Date.now())
+    .bind(body.gameId, game.name, key, game.mode, total, JSON.stringify(placements), Date.now())
     .run();
 
   const best = Math.max(total, previous?.best ?? 0);
   const better = await env.DB.prepare(`SELECT COUNT(*) AS n FROM (${BEST_PER_PLAYER}) WHERE score > ?`)
-    .bind(best)
+    .bind(game.mode, best)
     .first<{ n: number }>();
 
   return json({

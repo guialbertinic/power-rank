@@ -1,19 +1,25 @@
 import { badRequest, CHARACTERS, GAME_TTL_MS, json, sanitizeName, type Env } from './lib';
 import { drawCharacters } from '../src/game/draw';
+import { DEFAULT_MODE, isMode, poolFor } from '../src/game/modes';
 import { SLOTS } from '../src/game/scoring';
 
-/** POST /api/games: { name } → sorteia uma partida para esse nick e devolve { gameId, characterIds }. */
+/** POST /api/games: { name, mode? } → sorteia uma partida para esse nick e devolve { gameId, characterIds }. */
 export async function createGame(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  const body = (await request.json().catch(() => null)) as { name?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as { name?: unknown; mode?: unknown } | null;
   const name = sanitizeName(body?.name);
   if (!name) return badRequest('Nick inválido');
+  const mode = body?.mode ?? DEFAULT_MODE;
+  if (!isMode(mode)) return badRequest('Categoria inválida');
+
+  const pool = poolFor(mode, CHARACTERS);
+  if (pool.length < SLOTS) return badRequest('Categoria ainda sem personagens suficientes');
 
   const gameId = crypto.randomUUID();
-  const characterIds = drawCharacters(CHARACTERS, SLOTS).map((c) => c.id);
+  const characterIds = drawCharacters(pool, SLOTS).map((c) => c.id);
   const now = Date.now();
 
-  await env.DB.prepare('INSERT INTO games (id, character_ids, name, created_at) VALUES (?, ?, ?, ?)')
-    .bind(gameId, JSON.stringify(characterIds), name, now)
+  await env.DB.prepare('INSERT INTO games (id, character_ids, name, mode, created_at) VALUES (?, ?, ?, ?, ?)')
+    .bind(gameId, JSON.stringify(characterIds), name, mode, now)
     .run();
 
   // Limpeza ocasional de partidas abandonadas.

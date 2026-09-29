@@ -11,14 +11,19 @@ const TIER_LABEL: Record<Tier, string> = { ss: 'SS · 95+', s: 'S · 85+', a: 'A
  * agrupados por tier, com filtro por obra e busca. Serve para revisar a escala de `power`.
  */
 export default function ReviewScreen({ characters }: { characters: Character[] }) {
-  const [anime, setAnime] = useState('');
+  const [category, setCategory] = useState('');
+  const [series, setSeries] = useState('');
   const [query, setQuery] = useState('');
 
-  const animes = useMemo(() => [...new Set(characters.map((c) => c.anime))].sort(), [characters]);
+  const seriesList = useMemo(
+    () => [...new Set(characters.filter((c) => !category || c.category === category).map((c) => c.series))].sort(),
+    [characters, category],
+  );
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
     const filtered = characters
-      .filter((c) => !anime || c.anime === anime)
+      .filter((c) => !category || c.category === category)
+      .filter((c) => !series || c.series === series)
       .filter((c) => !q || `${c.name} ${c.version ?? ''} ${c.id}`.toLowerCase().includes(q))
       .sort((a, b) => b.power - a.power || a.name.localeCompare(b.name));
     const byTier = new Map<Tier, Character[]>();
@@ -27,7 +32,7 @@ export default function ReviewScreen({ characters }: { characters: Character[] }
       byTier.set(tier, [...(byTier.get(tier) ?? []), c]);
     }
     return [...byTier];
-  }, [characters, anime, query]);
+  }, [characters, category, series, query]);
 
   const missingImages = characters.filter((c) => !c.image).length;
 
@@ -35,13 +40,21 @@ export default function ReviewScreen({ characters }: { characters: Character[] }
     <section className="review">
       <div className="panel review-toolbar">
         <h3 className="section-title">
-          Revisão · {characters.length} personagens · {animes.length} obras
+          Revisão · {characters.length} personagens · {seriesList.length} obras
           {missingImages > 0 && ` · ${missingImages} sem imagem`}
         </h3>
         <div className="review-filters">
-          <select value={anime} onChange={(e) => setAnime(e.target.value)}>
+          <select value={category} onChange={(e) => {
+              setCategory(e.target.value);
+              setSeries('');
+            }}>
+            <option value="">Todas as categorias</option>
+            <option value="anime">Animes</option>
+            <option value="games">Games</option>
+          </select>
+          <select value={series} onChange={(e) => setSeries(e.target.value)}>
             <option value="">Todas as obras</option>
-            {animes.map((a) => (
+            {seriesList.map((a) => (
               <option key={a}>{a}</option>
             ))}
           </select>
@@ -61,7 +74,7 @@ export default function ReviewScreen({ characters }: { characters: Character[] }
                 <span className="row-name">
                   {c.name}
                   <small>
-                    {c.anime}
+                    {c.series}
                     {c.version && ` · ${c.version}`} · <code>{c.id}</code>
                   </small>
                 </span>

@@ -1,10 +1,15 @@
 import type { Character } from '../game/types';
 
+/** Hash curto e estável de uma string (base 36). */
+function hashString(value: string): string {
+  let hash = 0;
+  for (const ch of value) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  return hash.toString(36);
+}
+
 /** Placeholder para personagens sem imagem: iniciais sobre um gradiente derivado do id. */
 export function fallbackBackground(id: string): string {
-  let hash = 0;
-  for (const ch of id) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-  const hue = hash % 360;
+  const hue = parseInt(hashString(id), 36) % 360;
   return `linear-gradient(135deg, hsl(${hue} 70% 45%), hsl(${(hue + 40) % 360} 70% 25%))`;
 }
 
@@ -18,12 +23,17 @@ export function initials(name: string): string {
 }
 
 /**
- * URL da imagem do personagem. As imagens ficam em cache por dias (public/_headers), então o id do
- * AniList entra na URL: se a imagem for trocada por outro personagem, a URL muda e o cache é ignorado.
+ * URL da imagem do personagem. As imagens ficam em cache por dias (public/_headers), então o id da
+ * fonte (AniList/IGDB/Wikipédia/import manual) entra na URL: se a imagem for trocada por outro personagem, a URL muda e o cache é ignorado.
  */
 export function characterImageUrl(character: Character): string | null {
   if (!character.image) return null;
-  const version = character.anilistId ? `?v=${character.anilistId}` : '';
+  const sourceId =
+    character.imageVersion ??
+    character.anilistId ??
+    character.igdbId ??
+    (character.wikipedia && hashString(character.wikipedia));
+  const version = sourceId ? `?v=${sourceId}` : '';
   return `${import.meta.env.BASE_URL}${character.image}${version}`;
 }
 
