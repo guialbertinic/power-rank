@@ -104,25 +104,31 @@ try {
     await sleep(600);
     return text(item, '.shop-action');
   }
-  /** Item da lista pelo texto (nome do item ou, nos títulos, o próprio título). */
+  /** Item da loja (cor, moldura ou título) pelo nome. */
   async function shopItem(label) {
-    for (const item of await ana.$$('.shop-list .shop-item')) {
-      const texts = await item.$$eval('.shop-item-label, .player-title', (els) => els.map((e) => e.textContent));
-      if (texts.includes(label)) return item;
-    }
-    throw new Error(`Item não encontrado na loja: ${label}`);
+    const item = await ana.$(`[data-label="${label}"]`);
+    if (!item) throw new Error(`Item não encontrado na loja: ${label}`);
+    return item;
   }
   const tabs = async (i) => (await ana.$$('.shop-tabs .mode-option'))[i].click();
+  const filterBy = async (i) => (await ana.$$('.shop-filter-option'))[i].click();
 
   await ana.waitForSelector('.shop-list .shop-item .shop-action');
+  check('cor do nick sem avatar repetido', !(await ana.$('.shop-list .player-frame')));
   const nameColor = await buyAndEquip(await shopItem('Fogo'));
   check('compra e equipa cor do nick (Fogo)', nameColor === 'Equipado', nameColor ?? '');
+  await filterBy(1);
+  check('filtro "Obtidos" mostra só o que tem', (await ana.$$('.shop-list .shop-item')).length === 1);
+  await filterBy(2);
+  check('filtro "Não obtidos" esconde o que tem', !(await ana.$('[data-label="Fogo"]')));
+  await filterBy(0);
   await tabs(1);
   await sleep(200);
+  check('moldura sem avatar do jogador', Boolean(await ana.$('.shop-frame-empty')) && !(await ana.$('.shop-list .avatar')));
   check('compra e equipa moldura (Lendária)', (await buyAndEquip(await shopItem('Lendária'))) === 'Equipado');
   await tabs(2);
   await sleep(200);
-  check('títulos separados por grupo', (await ana.$$('.shop-group')).length >= 5);
+  check('títulos em lista, um por linha', (await ana.$$('.shop-rows .shop-row')).length >= 20);
   check('compra e equipa título', (await buyAndEquip(await shopItem('Iniciante Próspero'))) === 'Equipado');
   await tabs(3);
   await ana.type('.shop-search', 'son goku');

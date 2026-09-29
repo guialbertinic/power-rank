@@ -17,6 +17,14 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'avatar', label: 'Avatar' },
 ];
 
+type Filter = 'all' | 'owned' | 'missing';
+
+const FILTERS: { id: Filter; label: string }[] = [
+  { id: 'all', label: 'Todos' },
+  { id: 'owned', label: 'Obtidos' },
+  { id: 'missing', label: 'Não obtidos' },
+];
+
 interface Props {
   identity: Identity & { token: string };
   profile: Profile;
@@ -32,6 +40,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
   const busy = pending !== null;
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<Filter>('all');
   const owned = useMemo(() => new Set(profile.owned), [profile.owned]);
 
   const act = async (itemId: string, action: () => Promise<Profile>) => {
@@ -95,37 +104,61 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
     );
   };
 
+  /** Filtro "Todos / Obtidos / Não obtidos". */
+  const visible = (itemId: string) =>
+    filter === 'all' || (filter === 'owned' ? owned.has(itemId) : !owned.has(itemId));
+
+  const button = (c: Cosmetic) => itemButton(c.slot, c.id, c.price, profile.look[c.slot] === c.id);
+
+  /** Cor: o próprio nome da cor escrito com o efeito. Moldura: um quadro vazio com a moldura. */
   const cosmeticItem = (c: Cosmetic) => (
-    <li key={c.id} className="shop-item">
-      <PlayerTag name={identity.name} look={{ ...profile.look, [c.slot]: c.id }} size={40} avatarOnly={c.slot === 'frame'} />
-      {/* No título, a prévia já mostra o texto. */}
-      {c.slot !== 'title' && <span className="shop-item-label">{c.label}</span>}
-      {itemButton(c.slot, c.id, c.price, profile.look[c.slot] === c.id)}
+    <li key={c.id} className="shop-item" data-label={c.label}>
+      {c.slot === 'nameColor' ? (
+        <span className={`shop-color-sample cosmetic-${c.id}`}>{c.label}</span>
+      ) : (
+        <>
+          <span className={`player-frame cosmetic-${c.id}`}>
+            <span className="player-frame-border">
+              <span className="shop-frame-empty" />
+            </span>
+          </span>
+          <span className="shop-item-label">{c.label}</span>
+        </>
+      )}
+      {button(c)}
     </li>
   );
 
-  /** Itens do espaço, do mais barato ao mais caro; títulos separados por grupo. */
+  /** Título: uma linha por título, sem prévia do jogador. */
+  const titleRow = (c: Cosmetic) => (
+    <li key={c.id} className="shop-row" data-label={c.label}>
+      <span className="shop-title-text">{c.label}</span>
+      {button(c)}
+    </li>
+  );
+
+  /** Itens do espaço, do mais barato ao mais caro. */
   const cosmetics = (slot: Cosmetic['slot']) => {
-    const items = COSMETICS.filter((c) => c.slot === slot).sort((a, b) => a.price - b.price);
-    if (slot !== 'title') return <ol className="shop-list">{items.map(cosmeticItem)}</ol>;
-    const groups = [...new Set(items.map((c) => c.group))];
-    return groups.map((group) => (
-      <section key={group} className="shop-group">
-        <h3 className="shop-group-title">{group}</h3>
-        <ol className="shop-list">{items.filter((c) => c.group === group).map(cosmeticItem)}</ol>
-      </section>
-    ));
+    const items = COSMETICS.filter((c) => c.slot === slot && visible(c.id)).sort((a, b) => a.price - b.price);
+    if (!items.length) return <p className="muted shop-empty">Nenhum item aqui.</p>;
+    return slot === 'title' ? (
+      <ol className="shop-rows">{items.map(titleRow)}</ol>
+    ) : (
+      <ol className="shop-list">{items.map(cosmeticItem)}</ol>
+    );
   };
 
   const avatars = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = POOL.filter((c) => c.image && (!q || `${c.name} ${c.series}`.toLowerCase().includes(q)));
+    const list = POOL.filter(
+      (c) => c.image && visible(avatarItemId(c.id)) && (!q || `${c.name} ${c.series}`.toLowerCase().includes(q)),
+    );
     // Os que você já tem primeiro, depois em ordem alfabética (nunca por poder).
     return list.sort(
       (a, b) =>
         Number(owned.has(avatarItemId(b.id))) - Number(owned.has(avatarItemId(a.id))) || a.name.localeCompare(b.name),
     );
-  }, [query, owned]);
+  }, [query, owned, filter]);
 
   const avatarItem = (c: Character) => (
     <li key={c.id} className="shop-avatar">
@@ -165,6 +198,19 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
       {error && <p className="error shop-error">{error}</p>}
 
       <div className="panel">
+        <div className="shop-filter" role="radiogroup" aria-label="Mostrar">
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              role="radio"
+              aria-checked={filter === f.id}
+              className={`shop-filter-option${filter === f.id ? ' selected' : ''}`}
+              onClick={() => setFilter(f.id)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
         {tab === 'avatar' ? (
           <>
             <input
@@ -174,7 +220,11 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
               placeholder={`Buscar entre ${POOL.length} personagens`}
               aria-label="Buscar personagem"
             />
-            <ol className="shop-avatars">{avatars.map(avatarItem)}</ol>
+            {avatars.length ? (
+              <ol className="shop-avatars">{avatars.map(avatarItem)}</ol>
+            ) : (
+              <p className="muted shop-empty">Nenhum personagem aqui.</p>
+            )}
           </>
         ) : (
           cosmetics(tab)

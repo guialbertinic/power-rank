@@ -1871,19 +1871,79 @@ input:focus {
   text-align: center;
 }
 
-/* Títulos: um bloco por grupo (Iniciante, Otaku...). */
-.shop-group + .shop-group {
-  margin-top: 20px;
+/* Filtro Todos / Obtidos / Não obtidos. */
+.shop-filter {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
-.shop-group-title {
-  margin: 0 0 10px;
-  font-family: var(--font-display);
+.shop-filter-option {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text-2);
+  font: inherit;
   font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-2);
+  cursor: pointer;
+}
+
+.shop-filter-option.selected {
+  border-color: var(--tier-a);
+  color: var(--text);
+}
+
+.shop-empty {
+  text-align: center;
+}
+
+/* Cor do nick: o nome da cor escrito com o próprio efeito. */
+.shop-color-sample {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Moldura: quadro vazio, só para ver a moldura. */
+.shop-frame-empty {
+  width: 44px;
+  height: 44px;
+  background: var(--bg);
+}
+
+/* Títulos: lista simples, um por linha. */
+.shop-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.shop-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+}
+
+.shop-title-text {
+  min-width: 0;
+  font-weight: 600;
 }
 
 .shop-list {
