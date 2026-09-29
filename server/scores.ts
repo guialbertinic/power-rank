@@ -1,4 +1,6 @@
 import { badRequest, CHARACTERS_BY_ID, GAME_TTL_MS, json, LEADERBOARD_SIZE, nameKey, type Env } from './lib';
+import { creditCoins, toLook } from './profile';
+import { coinsForScore } from '../src/game/economy';
 import { DEFAULT_MODE, isMode } from '../src/game/modes';
 import { scoreGame } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
@@ -11,22 +13,25 @@ const BEST_PER_PLAYER = `
     FROM scores WHERE mode = ?
   ) WHERE rn = 1`;
 
-/** GET /api/scores?mode=anime: top do ranking daquele modo, uma linha por jogador. */
+/** GET /api/scores?mode=anime: top do ranking daquele modo, uma linha por jogador, com o visual equipado. */
 export async function getLeaderboard(request: Request, env: Env): Promise<Response> {
   const mode = new URL(request.url).searchParams.get('mode') ?? DEFAULT_MODE;
   if (!isMode(mode)) return badRequest('Categoria inválida');
 
   const { results } = await env.DB.prepare(
-    `SELECT name, score, created_at AS createdAt FROM (${BEST_PER_PLAYER})
-     ORDER BY score DESC, created_at ASC LIMIT ?`,
+    `SELECT b.name, b.score, b.created_at AS createdAt, p.avatar, p.name_color, p.frame
+     FROM (${BEST_PER_PLAYER}) b LEFT JOIN players p ON p.name_key = b.name_key
+     ORDER BY b.score DESC, b.created_at ASC LIMIT ?`,
   )
     .bind(mode, LEADERBOARD_SIZE)
-    .all();
-  return json({ scores: results });
+    .all<{ name: string; score: number; createdAt: number; avatar: string | null; name_color: string | null; frame: string | null }>();
+  return json({
+    scores: results.map(({ name, score, createdAt, ...look }) => ({ name, score, createdAt, look: toLook(look) })),
+  });
 }
 
 /**
- * POST /api/scores: { gameId, placements } → { score, best, isNewBest, rank }.
+ * POST /api/scores: { gameId, placements } → { score, best, isNewBest, rank, coinsEarned, coins }.
  * `placements` são os ids na ordem escolhida (posição 1 primeiro). Nick e modo vêm da partida
  * e a pontuação é recalculada aqui. `rank` é a posição do melhor resultado do jogador no modo.
  */
@@ -67,11 +72,13 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
     .bind(game.mode, key)
     .first<{ best: number | null }>();
 
+  const coinsEarned = coinsForScore(total);
   await env.DB.prepare(
-    'INSERT INTO scores (game_id, name, name_key, mode, score, placements, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO scores (game_id, name, name_key, mode, score, placements, coins, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
   )
-    .bind(body.gameId, game.name, key, game.mode, total, JSON.stringify(placements), Date.now())
+    .bind(body.gameId, game.name, key, game.mode, total, JSON.stringify(placements), coinsEarned, Date.now())
     .run();
+  const coins = await creditCoins(env, game.name, coinsEarned);
 
   const best = Math.max(total, previous?.best ?? 0);
   const better = await env.DB.prepare(`SELECT COUNT(*) AS n FROM (${BEST_PER_PLAYER}) WHERE score > ?`)
@@ -83,5 +90,7 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
     best,
     isNewBest: previous?.best == null || total > previous.best,
     rank: (better?.n ?? 0) + 1,
+    coinsEarned,
+    coins,
   });
 }

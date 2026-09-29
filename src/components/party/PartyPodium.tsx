@@ -1,6 +1,8 @@
 import { podiumOrder, type PartyPlayer, type PartyState } from '../../game/party';
 import { MAX_SCORE, rankTitle } from '../../game/scoring';
 import type { Character } from '../../game/types';
+import Coins from '../Coins';
+import PlayerTag from '../PlayerTag';
 import RankBadge from '../RankBadge';
 import RankingComparison from '../RankingComparison';
 
@@ -38,6 +40,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
           if (!player) return <div key={place} className={`podium-step ${className} empty`} />;
           return (
             <div key={place} role="listitem" className={`podium-step ${className}${player.id === you ? ' you' : ''}`}>
+              <PlayerTag name={player.name} look={player.look} size={44} avatarOnly />
               <span className="podium-name">{player.name}</span>
               <span className="podium-score">{player.score}</span>
               <div className="podium-block">
@@ -58,7 +61,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
             >
               <RankBadge position={i + 1} small />
               <span className="row-name">
-                {p.name}
+                <PlayerTag name={p.name} look={p.look} />
                 {!p.connected && <span className="party-tag party-tag-left">saiu</span>}
               </span>
               <span className="row-score">{p.score}</span>
@@ -82,6 +85,9 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
             <span>/{MAX_SCORE}</span>
           </p>
           <p className="title-badge">{rankTitle(me.score)}</p>
+          <p className="coins-earned">
+            {me.coinsEarned ? <Coins amount={me.coinsEarned} prefix="+" /> : 'Faça 500+ pontos para ganhar moedas'}
+          </p>
         </div>
       )}
 

@@ -35,10 +35,14 @@ npm run rescore -- --local   # recalcula pontuações gravadas com a regra/poder
 data/characters.json      base de personagens (fonte da verdade, ordenada por power desc)
 public/chars/<id>.webp    imagens 240px (≈18 KB cada)
 public/_headers           cache: /chars 7 dias, /assets imutável
-migrations/               schema do D1 (0001 scores, 0002 melhor por jogador, 0003 categorias, 0004 donos de nick)
+migrations/               schema do D1 (0001 scores, 0002 melhor por jogador, 0003 categorias, 0004 donos de nick,
+                          0005 moedas e cosméticos)
 scripts/                  fetch-images, import-image, validate-data, rescore (+ lib/images.mjs)
-server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick), party.ts (Durable Object), lib.ts
-src/game/                 lógica pura e compartilhada com o server: types, draw, scoring, modes, party (protocolo)
+server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick), profile.ts (moedas, loja),
+                          party.ts (Durable Object), lib.ts
+src/game/                 lógica pura e compartilhada com o server: types, draw, scoring, modes, party (protocolo),
+                          economy (moedas por pontuação), cosmetics (catálogo da loja)
+src/data.ts               a base de personagens (POOL, POOL_BY_ID) para o front
 src/party/                cliente da party: usePartyRoom (WebSocket + reconexão), session (pid, link de convite)
 src/components/party/     telas da party: PartyScreen, Lobby, Play, Waiting, Podium, PlayerList
 src/components/           telas e componentes (Intro, Playing, Result, Leaderboard, PowerCard...)
@@ -76,13 +80,29 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `GET /api/scores?mode=` | Top 20 do modo, **só o melhor resultado de cada nick** (sem diferenciar maiúsculas). |
 
 | `POST /api/party` `{ mode, pid }` | Cria a sala (código de 6 letras, sem I/O) e devolve `{ code }`. |
-| `GET /api/party/:code/ws?pid=&name=` | WebSocket da sala (encaminhado ao Durable Object). |
+| `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |
+| `POST /api/profile` `{ name, token }` | Saldo, itens comprados e visual equipado. |
+| `POST /api/shop/buy` `{ name, token, itemId }` | Compra: registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no próprio UPDATE; sem saldo, desfaz. Clique duplo não cobra duas vezes. |
+| `POST /api/profile/equip` `{ name, token, slot, itemId | null }` | Equipa (ou tira) um item que o jogador tem. |
 
 `scores` guarda todas as partidas (histórico); o ranking é uma consulta com `ROW_NUMBER() OVER (PARTITION BY name_key)`.
 **Nick com dono (sem login):** o primeiro navegador que usa um nick fica com ele (`players`). Cada aparelho do dono
 tem um token (`player_tokens`). Para levar o nick a outro aparelho, o dono toca em "Sincronizar dispositivo" na home,
 que gera um código XXXX-XXXX-XXXX (cada novo código invalida o anterior); no outro aparelho, digita o nick e o código. Tokens e código ficam no banco só como hash SHA-256. Criar partida solo e entrar em sala da party
 exigem o token.
+
+## Economia e cosméticos
+
+- **Moedas** (`src/game/economy.ts`), sempre creditadas no servidor ao gravar o resultado (solo e party):
+  < 500 pontos: 0 (anti-spam, sem limite diário) · 500–599: 5 · 600–749: 10 · 750–849: 20 · 850–949: 35 · 950+: 60.
+  Bônus de pódio na party (1º +20, 2º +10, 3º +5) só com 2+ jogadores que terminaram **e** 500+ pontos.
+  O `rescore` não mexe em moedas já creditadas.
+- **Loja** (`ShopScreen`, catálogo em `src/game/cosmetics.ts`): cor do nick, moldura do avatar e avatar
+  (qualquer personagem da base, preço único de 50: preço por força revelaria o poder).
+- **Visual** (`PlayerTag`): avatar + moldura + nick colorido, no ranking, na lista da party, no pódio e na home.
+  Cada cosmético é uma classe `cosmetic-<id>` em `styles.css`. Moldura: brilho no wrapper (`filter`),
+  borda no interno (`clip-path`).
+- A party lê o visual do jogador ao entrar na sala (junto da verificação do token, antes das checagens).
 
 ## Party (multiplayer)
 

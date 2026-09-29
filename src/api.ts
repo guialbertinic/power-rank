@@ -1,9 +1,11 @@
+import type { Look, Profile } from './game/cosmetics';
 import type { Mode } from './game/modes';
 
 export interface LeaderboardEntry {
   name: string;
   score: number;
   createdAt: number;
+  look: Look;
 }
 
 export interface SubmitResult {
@@ -13,6 +15,9 @@ export interface SubmitResult {
   isNewBest: boolean;
   /** Posição do melhor resultado do jogador no ranking global. */
   rank: number;
+  /** Moedas que esta partida rendeu e o saldo depois dela (null se o nick não tiver dono). */
+  coinsEarned: number;
+  coins: number | null;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -108,6 +113,24 @@ export async function createParty(mode: Mode, pid: string): Promise<string> {
     body: JSON.stringify({ mode, pid }),
   });
   return code;
+}
+
+interface Auth {
+  name: string;
+  token: string;
+}
+
+/** Saldo, itens comprados e visual equipado do próprio jogador. */
+export function fetchProfile(auth: Auth): Promise<Profile> {
+  return request('/api/profile', { method: 'POST', body: JSON.stringify(auth) });
+}
+
+export function buyItem(auth: Auth, itemId: string): Promise<Profile> {
+  return request('/api/shop/buy', { method: 'POST', body: JSON.stringify({ ...auth, itemId }) });
+}
+
+export function equipItem(auth: Auth, slot: 'avatar' | 'nameColor' | 'frame', itemId: string | null): Promise<Profile> {
+  return request('/api/profile/equip', { method: 'POST', body: JSON.stringify({ ...auth, slot, itemId }) });
 }
 
 export async function fetchLeaderboard(mode: Mode): Promise<LeaderboardEntry[]> {

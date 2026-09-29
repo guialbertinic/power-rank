@@ -1,11 +1,12 @@
-import { lazy, Suspense, useReducer, useState } from 'react';
-import characters from '../data/characters.json';
-import { createGame, createParty } from './api';
+import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
+import { createGame, createParty, fetchProfile } from './api';
+import type { Profile } from './game/cosmetics';
 import { drawCharacters } from './game/draw';
 import { MODES, poolFor, type Mode } from './game/modes';
 import { isPartyCode } from './game/party';
 import { SLOTS } from './game/scoring';
 import type { Character } from './game/types';
+import { POOL, POOL_BY_ID } from './data';
 import { loadIdentity, loadMode, saveIdentity, saveMode, type Identity } from './nick';
 import { clearCodeFromUrl, codeFromUrl, newPid, partyPid, rememberPartyPid } from './party/session';
 import { preloadImages } from './ui/fallback';
@@ -15,9 +16,7 @@ import NickScreen from './components/NickScreen';
 import PartyScreen from './components/party/PartyScreen';
 import PlayingScreen from './components/PlayingScreen';
 import ResultScreen from './components/ResultScreen';
-
-const POOL = characters as Character[];
-const POOL_BY_ID = new Map(POOL.map((c) => [c.id, c]));
+import ShopScreen from './components/ShopScreen';
 
 // Tela de revisão da base (http://localhost:5173/?review). Só existe em dev: sai do build de produção.
 const ReviewScreen = import.meta.env.DEV ? lazy(() => import('./components/ReviewScreen')) : null;
@@ -30,6 +29,8 @@ type State =
   /** Escolher o nick: primeira tela de quem ainda não tem um (ou cujo nick deixou de valer). */
   | { phase: 'nick'; reason: string | null }
   | { phase: 'intro' }
+  /** Loja e personalização do perfil. */
+  | { phase: 'shop' }
   /** Na party, o estado do jogo vem da sala (PartyScreen); aqui só fica como entrar nela. */
   | { phase: 'party'; code: string; pid: string }
   | {
@@ -47,6 +48,7 @@ type Action =
   | { type: 'party'; code: string; pid: string }
   | { type: 'place'; slot: number }
   | { type: 'nick'; reason?: string }
+  | { type: 'shop' }
   | { type: 'home' };
 
 function reducer(state: State, action: Action): State {
@@ -74,6 +76,8 @@ function reducer(state: State, action: Action): State {
       return { phase: 'party', code: action.code, pid: action.pid };
     case 'nick':
       return { phase: 'nick', reason: action.reason ?? null };
+    case 'shop':
+      return { phase: 'shop' };
     case 'home':
       return { phase: 'intro' };
   }
@@ -120,6 +124,25 @@ export default function App() {
   });
   const [starting, setStarting] = useState(false);
   const [partyError, setPartyError] = useState<string | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  // Saldo e visual são recarregados ao voltar para a home ou abrir a loja (depois de partidas e da party).
+  const token = identity?.token;
+  const name = identity?.name;
+  useEffect(() => {
+    if (!name || !token || (state.phase !== 'intro' && state.phase !== 'shop')) return;
+    let cancelled = false;
+    fetchProfile({ name, token })
+      .then((p) => {
+        if (!cancelled) setProfile(p);
+      })
+      .catch(() => {
+        // Sem conexão: a home funciona sem saldo e sem loja.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [name, token, state.phase]);
 
   const changeMode = (next: Mode) => {
     setMode(next);
@@ -177,6 +200,8 @@ export default function App() {
   const eyebrow =
     state.phase === 'party'
       ? 'Party'
+      : state.phase === 'shop'
+        ? 'Loja'
       : MODES.find((m) => m.id === (state.phase === 'playing' || state.phase === 'result' ? state.mode : mode))?.label;
 
   return (
@@ -210,6 +235,8 @@ export default function App() {
       {!showReview && state.phase === 'intro' && identity && (
         <IntroScreen
           identity={identity}
+          profile={profile}
+          onOpenShop={() => dispatch({ type: 'shop' })}
           onChangeNick={() => dispatch({ type: 'nick' })}
           mode={mode}
           canStart={isModeAvailable(mode)}
@@ -219,6 +246,9 @@ export default function App() {
           onJoinParty={joinRoom}
           partyError={partyError}
         />
+      )}
+      {state.phase === 'shop' && identity?.token && profile && (
+        <ShopScreen identity={{ ...identity, token: identity.token }} profile={profile} onProfileChange={setProfile} />
       )}
       {state.phase === 'party' && identity && (
         <PartyScreen

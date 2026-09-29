@@ -2,6 +2,7 @@ import { createGame } from './games';
 import { json, type Env } from './lib';
 import { connectParty, createParty } from './party';
 import { claimPlayer, createSyncCode, recoverPlayer } from './players';
+import { buyItem, equipItem, getProfile } from './profile';
 import { getLeaderboard, submitScore } from './scores';
 
 // O Durable Object das salas da Party precisa ser exportado pelo módulo principal do Worker.
@@ -37,6 +38,12 @@ export default {
           return await recoverPlayer(request, env);
         case 'POST /api/players/sync-code':
           return await createSyncCode(request, env);
+        case 'POST /api/profile':
+          return await getProfile(request, env);
+        case 'POST /api/profile/equip':
+          return await equipItem(request, env);
+        case 'POST /api/shop/buy':
+          return await buyItem(request, env);
         default:
           return json({ error: 'Not found' }, { status: 404 });
       }

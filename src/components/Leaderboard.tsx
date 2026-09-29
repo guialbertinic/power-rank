@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchLeaderboard, type LeaderboardEntry } from '../api';
 import { MODES, type Mode } from '../game/modes';
 import { sameNick } from '../nick';
+import PlayerTag from './PlayerTag';
 import RankBadge from './RankBadge';
 
 interface Props {
@@ -43,7 +44,9 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
           {scores.map((s, i) => (
             <li key={i} className={`row row-leader${highlight && sameNick(s.name, highlight) ? ' highlight' : ''}`}>
               <RankBadge position={i + 1} small />
-              <span className="row-name">{s.name}</span>
+              <span className="row-name">
+                <PlayerTag name={s.name} look={s.look} />
+              </span>
               <span className="row-score">{s.score}</span>
             </li>
           ))}

@@ -20,6 +20,14 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 - [ ] Contagem regressiva opcional ("todos têm 60s depois que o primeiro terminar").
 - [ ] Rate limit na criação de salas.
 
+## Economia e cosméticos
+
+- [ ] **Gambling** (slot/roleta/pachinko) contra a máquina: sorteio só no servidor, débito e crédito numa operação
+      atômica, animação só "encena" o resultado. Moedas nunca compráveis com dinheiro real (senão vira regulação).
+- [ ] Fase 2: ícones/emblemas em SVG ao lado do nick, efeitos animados mais elaborados, itens raros.
+- [ ] Fase 3: conquistas ("10/10", "venceu 5 parties") que desbloqueiam itens exclusivos.
+- [ ] Balancear preços e ganhos depois de ver os dados reais (`SELECT SUM(coins) FROM scores`, itens mais comprados).
+
 ## Conteúdo
 
 - [ ] Revisar os valores de `power` em `/?review` (principalmente games e os anime mais discutíveis).

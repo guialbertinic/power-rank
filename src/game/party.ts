@@ -1,3 +1,4 @@
+import type { Look } from './cosmetics';
 import type { Mode } from './modes';
 
 /**
@@ -22,10 +23,14 @@ export interface PartyPlayer {
   /** Quantos personagens já posicionou na partida atual. */
   progress: number;
   finished: boolean;
+  /** Visual equipado do jogador. */
+  look: Look;
   /** Só aparecem no pódio. */
   score?: number;
   placements?: string[];
   finishedAt?: number;
+  /** Moedas ganhas na rodada (pontuação + bônus de pódio). */
+  coinsEarned?: number;
 }
 
 export interface PartyState {

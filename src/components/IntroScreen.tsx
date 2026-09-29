@@ -1,12 +1,18 @@
 import { useState, type FormEvent } from 'react';
 import type { Mode } from '../game/modes';
 import { isPartyCode, normalizePartyCode, PARTY_CODE_LENGTH } from '../game/party';
+import type { Profile } from '../game/cosmetics';
 import type { Identity } from '../nick';
+import Coins from './Coins';
+import PlayerTag from './PlayerTag';
 import Leaderboard from './Leaderboard';
 import SyncDevice from './SyncDevice';
 
 interface Props {
   identity: Identity;
+  /** Saldo e visual (null enquanto carrega ou sem conexão). */
+  profile: Profile | null;
+  onOpenShop: () => void;
   onChangeNick: () => void;
   /** Categoria escolhida no seletor do título; o ranking abaixo acompanha. */
   mode: Mode;
@@ -22,7 +28,8 @@ interface Props {
 
 /** Home: quem está jogando, SOLO / PARTY e o ranking da categoria escolhida no título. */
 export default function IntroScreen(props: Props) {
-  const { identity, onChangeNick, mode, canStart, busy, onSolo, onCreateParty, onJoinParty, partyError } = props;
+  const { identity, profile, onOpenShop, onChangeNick, mode, canStart, busy, onSolo, onCreateParty, onJoinParty, partyError } =
+    props;
   const [partyOpen, setPartyOpen] = useState(false);
   const [code, setCode] = useState('');
 
@@ -35,12 +42,24 @@ export default function IntroScreen(props: Props) {
     <div className="intro">
       <div className="playing-as-block">
         <p className="playing-as">
-          Jogando como <strong>{identity.name}</strong>
+          Jogando como
+          {profile ? <PlayerTag name={identity.name} look={profile.look} size={30} /> : <strong>{identity.name}</strong>}
           <button className="link-button" onClick={onChangeNick} disabled={busy}>
             Trocar
           </button>
         </p>
+        {profile && (
+          <p className="playing-as-coins">
+            <Coins amount={profile.coins} />
+            <button className="btn btn-secondary btn-sm" onClick={onOpenShop} disabled={busy}>
+              Loja
+            </button>
+          </p>
+        )}
         <SyncDevice identity={identity} />
+        {profile && profile.coins > 0 && (
+          <p className="muted sync-warning">Sincronize outro dispositivo para não perder suas moedas.</p>
+        )}
       </div>
 
       <div className="play-buttons">

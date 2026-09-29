@@ -1,5 +1,6 @@
 import { SLOTS } from '../../game/scoring';
 import type { PartyPlayer, PartyState } from '../../game/party';
+import PlayerTag from '../PlayerTag';
 
 /** Situação do jogador durante a partida. */
 function status(player: PartyPlayer, phase: PartyState['phase']): string | null {
@@ -21,7 +22,7 @@ export default function PlayerList({ state, you }: { state: PartyState; you: str
           >
             <span className="party-player-index">{i + 1}</span>
             <span className="row-name">
-              {p.name}
+              <PlayerTag name={p.name} look={p.look} />
               {p.id === state.hostId && <span className="party-tag">dono</span>}
               {p.id === you && <span className="party-tag party-tag-you">você</span>}
             </span>
