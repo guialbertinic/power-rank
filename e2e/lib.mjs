@@ -97,16 +97,23 @@ export async function get(path) {
 /** Senha das contas de teste. */
 export const PASSWORD = 'e2e-senha';
 
+/** Token de teste do Turnstile: as chaves de teste do .dev.vars aceitam qualquer token. */
+export const TURNSTILE_TEST_TOKEN = 'XXXX.DUMMY.TOKEN.XXXX';
+
+/** O servidor recusa partidas mais rápidas que isso (server/security.ts → MIN_GAME_MS). */
+export const MIN_GAME_MS = 3000;
+
 /** Cria (ou entra n)a conta de um nick de teste e devolve { name, token }. */
 export async function player(name) {
   const full = nick(name);
-  const { data } = await post('/players', { name: full, password: PASSWORD });
+  const { data } = await post('/players', { name: full, password: PASSWORD, turnstile: TURNSTILE_TEST_TOKEN });
   return { name: full, token: data.token };
 }
 
 /** Joga uma partida solo com a ordem dada ('perfect' ou 'reversed') e devolve a resposta do /scores. */
 export async function playSolo(auth, order = 'perfect', mode = 'anime') {
   const { data: game } = await post('/games', { ...auth, mode });
+  await sleep(MIN_GAME_MS + 100); // o servidor recusa partidas rápidas demais
   const ids = perfectOrder(game.characterIds);
   return (await post('/scores', { gameId: game.gameId, placements: order === 'perfect' ? ids : ids.reverse() })).data;
 }
@@ -204,6 +211,8 @@ export async function chooseNick(page, name, waitFor = '.play-buttons') {
   await page.waitForSelector('input[aria-label="Confirmar senha"]');
   await page.type('input[aria-label="Senha"]', PASSWORD);
   await page.type('input[aria-label="Confirmar senha"]', PASSWORD);
+  // O botão só libera quando o anti-bot (Turnstile de teste) resolve.
+  await page.waitForSelector('.nick-screen .btn-primary:not([disabled])', { timeout: 15000 });
   await page.click('.nick-screen .btn-primary');
   await page.waitForSelector(waitFor);
 }
@@ -226,6 +235,7 @@ export async function placeAll(page, count = 10) {
   for (let i = 0; i < count; i++) {
     await page.waitForSelector('.rank-slots button:not([disabled])');
     await (await page.$$('.rank-slots button:not([disabled])'))[0].click();
-    await sleep(120);
+    // Ritmo humano: o servidor recusa partidas de 10 personagens em menos de 3 s.
+    await sleep(350);
   }
 }

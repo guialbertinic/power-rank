@@ -3,6 +3,13 @@ import type { PartyRoom } from './party';
 export interface Env {
   DB: D1Database;
   PARTY: DurableObjectNamespace<PartyRoom>;
+  /** Limites por IP (wrangler.jsonc → ratelimits). Opcionais: sem o binding, não limita. */
+  RL_AUTH?: RateLimit;
+  RL_PLAY?: RateLimit;
+  RL_CASINO?: RateLimit;
+  /** Cloudflare Turnstile (anti-bot na criação de conta). Sem as duas, fica desligado. */
+  TURNSTILE_SITE_KEY?: string;
+  TURNSTILE_SECRET?: string;
 }
 
 /** Tempo máximo entre sortear a partida e enviar a pontuação. */

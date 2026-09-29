@@ -2,6 +2,7 @@ import { DurableObject } from 'cloudflare:workers';
 import { loadCatalog } from './catalog';
 import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
 import { playerAccess } from './players';
+import { MIN_GAME_MS, nickProblem } from './security';
 import { creditCoins, lookOf } from './profile';
 import { EMPTY_LOOK, type Look } from '../src/game/cosmetics';
 import { coinsForScore, podiumBonus } from '../src/game/economy';
@@ -41,6 +42,8 @@ interface StoredPlayer {
   playerId: number | null;
   /** Moedas ganhas na rodada (pontuação + bônus de pódio). */
   coinsEarned?: number;
+  /** Terminou rápido demais (script): sem moedas e fora do ranking. */
+  tooFast?: boolean;
 }
 
 interface StoredRoom {
@@ -121,6 +124,7 @@ export class PartyRoom extends DurableObject<Env> {
     const isMember = this.room!.players.some((p) => p.pid === pid);
     const access = isMember || name === null ? null : await playerAccess(this.env, name, token);
     const verified = isMember || access !== null;
+    const guestProblem = access?.kind === 'guest' ? nickProblem(access.name) : null;
     const look = access?.kind === 'account' ? await lookOf(this.env, access.id) : EMPTY_LOOK;
     // Conta: vale o nick atual dela (pode ter sido trocado em outro dispositivo).
     const displayName = access?.name ?? name;
@@ -137,6 +141,7 @@ export class PartyRoom extends DurableObject<Env> {
       if (room.players.length >= PARTY_MAX_PLAYERS) return `Sala cheia (máximo ${PARTY_MAX_PLAYERS})`;
       if (!displayName) return 'Nick inválido';
       if (!verified || !access) return 'Nick não verificado. Escolha seu nick de novo.';
+      if (guestProblem) return guestProblem;
       if (room.players.some((p) => nameKey(p.name) === nameKey(displayName))) return 'Esse nick já está na sala';
       if (access.kind === 'account' && room.players.some((p) => p.playerId === access.id)) return 'Você já está na sala';
       room.players.push({
@@ -227,12 +232,15 @@ export class PartyRoom extends DurableObject<Env> {
         // Pontuação sempre calculada aqui, nunca vem do cliente.
         // Pelas posições relativas guardadas no início da rodada (mesmo resultado que pelo poder real).
         const score = scoreGame(withRanks(placements.map((id) => ({ id })), room.ranks ?? {})).total;
+        // Rápido demais para ser gente: aparece no pódio, mas sem moedas (e sem ranking, ver recordScore).
+        const tooFast = room.startedAt !== undefined && Date.now() - room.startedAt < MIN_GAME_MS;
         Object.assign(player, {
           finished: true,
           progress: SLOTS,
           placements,
           score,
-          coinsEarned: player.playerId === null ? 0 : coinsForScore(score),
+          coinsEarned: player.playerId === null || tooFast ? 0 : coinsForScore(score),
+          tooFast,
           finishedAt: Date.now(),
         });
         this.ctx.waitUntil(this.recordScore(room.mode, player, room.startedAt));
@@ -300,7 +308,7 @@ export class PartyRoom extends DurableObject<Env> {
     ranking.slice(0, 3).forEach((ranked, i) => {
       const bonus = podiumBonus(i + 1, ranking.length, ranked.score ?? 0);
       const player = room.players.find((p) => p.id === ranked.id);
-      if (!player || !bonus || player.playerId === null) return;
+      if (!player || !bonus || player.playerId === null || player.tooFast) return;
       player.coinsEarned = (player.coinsEarned ?? 0) + bonus;
       this.ctx.waitUntil(creditCoins(this.env, player.playerId, bonus));
     });
@@ -321,6 +329,8 @@ export class PartyRoom extends DurableObject<Env> {
     const coins = playerId === null ? 0 : coinsForScore(player.score ?? 0);
     const now = Date.now();
     const durationMs = startedAt ? (player.finishedAt ?? now) - startedAt : null;
+    // Rápido demais para ser gente: o pódio da sala mostra, mas não entra no ranking nem rende moedas.
+    if (durationMs !== null && durationMs < MIN_GAME_MS) return;
     try {
       await this.env.DB.batch([
         this.env.DB.prepare(

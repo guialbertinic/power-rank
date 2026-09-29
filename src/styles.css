@@ -324,6 +324,21 @@ input:focus {
   width: 100%;
 }
 
+/* Widget do anti-bot (Turnstile), centralizado no formulário de criar conta. */
+.turnstile {
+  display: grid;
+  justify-items: center;
+}
+
+.catalog-status {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  max-width: 420px;
+  margin: 20vh auto 0;
+  text-align: center;
+}
+
 .nick-screen-form input {
   width: min(100%, 320px);
   padding: 12px 16px;

@@ -4,6 +4,7 @@ import {
   BASE,
   check,
   cleanTestData,
+  MIN_GAME_MS,
   d1,
   ensureServer,
   finish,
@@ -11,6 +12,7 @@ import {
   nick,
   partyClient,
   PASSWORD,
+  TURNSTILE_TEST_TOKEN,
   perfectOrder,
   player,
   playSolo,
@@ -33,9 +35,44 @@ section('Catálogo');
   const guestGame = await post('/games', { name: nick('Catalogo'), mode: 'anime' });
   check('partida traz os personagens sem power', guestGame.data.characters?.length === 10 && !guestGame.data.characters.some((c) => 'power' in c));
   const ids = perfectOrder(guestGame.data.characterIds);
+  await sleep(MIN_GAME_MS + 100);
   const { data: scored } = await post('/scores', { gameId: guestGame.data.gameId, placements: ids });
   const ranksOk = ids.every((id, i) => i === 0 || scored.ranks[ids[i - 1]] <= scored.ranks[id]);
   check('resultado traz a ordem correta (ranks) e não o power', scored.score === 1000 && ranksOk && !JSON.stringify(scored).includes('power'));
+}
+
+// ---------- Segurança ----------
+section('Segurança');
+{
+  const noBot = await post('/players', { name: nick('SemTurnstile'), password: PASSWORD });
+  check('conta nova sem anti-bot é recusada (403)', noBot.status === 403 && noBot.data.code === 'turnstile');
+  const rude = await post('/players', { name: 'E2eFuck', password: PASSWORD, turnstile: TURNSTILE_TEST_TOKEN });
+  check('nick ofensivo é recusado', rude.status === 400);
+  check('nick ofensivo disfarçado (c4r4lh0) é recusado', (await post('/players', { name: 'E2eC4r4lh0', password: PASSWORD, turnstile: TURNSTILE_TEST_TOKEN })).status === 400);
+  check('palavra comum com trecho parecido passa (Computador)', !(await get('/players/status?name=E2eComputador')).problem);
+  const original = await player('Original');
+  const fake = await post('/players', { name: 'E2eOrlglnal', password: PASSWORD, turnstile: TURNSTILE_TEST_TOKEN });
+  check('nick que imita outra conta é recusado (i → l)', fake.status === 409 && fake.data.code === 'nick_lookalike', JSON.stringify(fake.data));
+  check('status avisa o problema do nick', Boolean((await get('/players/status?name=E2eOrlglnal')).problem));
+  check('convidado com nick ofensivo não joga', (await post('/games', { name: 'E2eBitch', mode: 'anime' })).status === 400);
+  check('convidado não imita conta', (await post('/games', { name: 'E2eOrlglnal', mode: 'anime' })).status === 401);
+  check('renomear para nick ofensivo é recusado', (await post('/players/rename', { token: original.token, name: 'E2ePorra' })).status === 400);
+
+  const fast = await post('/games', { ...original, mode: 'anime' });
+  const tooFast = await post('/scores', { gameId: fast.data.gameId, placements: perfectOrder(fast.data.characterIds) });
+  check('partida rápida demais é recusada', tooFast.status === 400 && tooFast.data.code === 'too_fast');
+
+  // Limite por IP: no dev só vale com o cabeçalho de teste.
+  const statuses = [];
+  for (let i = 0; i < 25; i++) {
+    const res = await fetch(`${BASE}/api/players`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-rate-limit-test': '1' },
+      body: JSON.stringify({ name: '' }),
+    });
+    statuses.push(res.status);
+  }
+  check('muitas tentativas seguidas → 429', statuses.includes(429), statuses.join(','));
 }
 
 // ---------- Conta e convidado ----------
@@ -51,7 +88,7 @@ section('Conta e convidado');
   check('conta sem senha é recusada', (await post('/players', { name: guest })).status === 400);
 
   const name = nick('Dono');
-  const { status, data: a } = await post('/players', { name, password: 'segredo1' });
+  const { status, data: a } = await post('/players', { name, password: 'segredo1', turnstile: TURNSTILE_TEST_TOKEN });
   check('nick livre + senha cria a conta', status === 200 && Boolean(a.token));
   const st = await get(`/players/status?name=${name.toUpperCase()}`);
   check('status: existe e tem senha', st.exists === true && st.hasPassword === true);
@@ -318,9 +355,11 @@ section('Party');
   await sleep(400);
   check('reconecta na mesma vaga', g2.you === g.you && h.player(guest.name)?.connected === true);
 
+  await sleep(MIN_GAME_MS); // o servidor não conta rodada terminada rápido demais
   h.send({ type: 'finish', placements: perfectOrder(ids) });
   await sleep(400);
   check('pontuação escondida até o pódio', h.state.phase === 'playing' && h.state.players.every((p) => p.score === undefined));
+  check('ordem correta escondida até o pódio', h.state.ranks === undefined);
   g2.send({ type: 'finish', placements: ['x'] });
   await sleep(300);
   check('posições inválidas são recusadas', g2.errors.includes('Posições inválidas'));
@@ -329,6 +368,7 @@ section('Party');
   const ph = h.player(host.name);
   const pg = h.player(guest.name);
   check('todos terminaram → pódio', h.state.phase === 'podium');
+  check('pódio revela a ordem correta (ranks), sem power', Object.keys(h.state.ranks ?? {}).length === 10 && !JSON.stringify(h.state).includes('power'));
   check('1º com 1000 ganha 60 + 20 de pódio', ph.score === 1000 && ph.coinsEarned === 80);
   check('chute não ganha bônus de pódio', pg.score < 500 && pg.coinsEarned === 0, `${pg.score} pts`);
 

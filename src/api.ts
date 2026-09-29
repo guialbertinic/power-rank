@@ -63,11 +63,17 @@ export type ClaimResult =
  * Escolhe um nick: fica com ele se estiver livre (com a senha, se vier uma), confirma se o token for do dono,
  * ou entra com a senha num nick que já é seu em outro dispositivo.
  */
-export async function claimNick(name: string, token: string | null, password?: string): Promise<ClaimResult> {
+export async function claimNick(
+  name: string,
+  token: string | null,
+  password?: string,
+  /** Token do anti-bot (Turnstile), exigido ao criar conta quando está ligado. */
+  turnstile?: string | null,
+): Promise<ClaimResult> {
   try {
     const data = await request<{ name: string; token: string }>('/api/players', {
       method: 'POST',
-      body: JSON.stringify({ name, token, password: password || undefined }),
+      body: JSON.stringify({ name, token, password: password || undefined, turnstile: turnstile || undefined }),
     });
     return { ok: true, ...data };
   } catch (err) {
@@ -80,7 +86,8 @@ export async function claimNick(name: string, token: string | null, password?: s
 }
 
 /** Consulta um nick sem ficar com ele: já tem dono? tem senha? */
-export function nickStatus(name: string): Promise<{ exists: boolean; hasPassword: boolean }> {
+/** `problem`: motivo para o nick não poder ser usado por conta nova nem convidado (ofensivo, imita outra conta). */
+export function nickStatus(name: string): Promise<{ exists: boolean; hasPassword: boolean; problem: string | null }> {
   return request(`/api/players/status?name=${encodeURIComponent(name)}`);
 }
 
@@ -106,13 +113,20 @@ export async function createGame(
   name: string,
   token: string | null,
   mode: Mode,
-): Promise<{ gameId: string; characterIds: string[]; characters: CharacterInfo[] } | 'unauthorized' | null> {
+): Promise<{ gameId: string; characterIds: string[]; characters: CharacterInfo[] } | 'unauthorized' | { error: string } | null> {
   try {
     return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode }) });
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) return 'unauthorized';
+    // Recusa do servidor (ex: nick não permitido, muitas partidas seguidas): mostra o motivo.
+    if (err instanceof ApiError) return { error: err.message };
     return null;
   }
+}
+
+/** Configuração pública do servidor (ex: chave do anti-bot; null = desligado). */
+export function fetchConfig(): Promise<{ turnstileSiteKey: string | null }> {
+  return request('/api/config');
 }
 
 const submissions = new Map<string, Promise<SubmitResult>>();

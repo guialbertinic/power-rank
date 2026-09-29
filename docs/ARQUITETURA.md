@@ -29,6 +29,23 @@ src/styles/tokens.css     design tokens · src/styles.css componentes
 src/ui/                   tiers (posição/poder → cor), fallback (URL de imagem, preload, iniciais)
 ```
 
+## Segurança (`server/security.ts`)
+
+- **Limite por IP** (bindings `RL_AUTH` 20/min, `RL_PLAY` 60/min, `RL_CASINO` 60/min no `wrangler.jsonc`): conta,
+  login, troca de nick/senha · partidas, pontuação, criar sala · cassino, caixa, loja. Estourou: 429
+  `{ code: 'rate_limited' }`. No dev local não limita, exceto com o cabeçalho `x-rate-limit-test: 1` (teste e2e).
+- **Anti-bot (Cloudflare Turnstile)** só na criação de conta (tela do nick e "Criar conta" do convidado).
+  Ligado quando existem `TURNSTILE_SITE_KEY` (var) e `TURNSTILE_SECRET` (secret); o site pega a chave em
+  `GET /api/config`. Desligado = sem widget e sem checagem. No dev, `.dev.vars` usa as chaves de teste (sempre passam).
+- **Nicks:** `nickProblem` recusa ofensas (lista PT/EN, também disfarçadas: "c4r4lh0") em conta nova, troca de nick e
+  convidado; `lookalikeOf` recusa nick que imita outra conta (i/l/1, 0/o, separadores — "AIbertini"). Nicks antigos
+  não mudam. `GET /api/players/status` devolve `problem` para a tela avisar antes.
+- **Placar honesto:** partida solo enviada em menos de `MIN_GAME_MS` (3 s) é recusada (`too_fast`); na party, quem
+  termina rápido demais aparece no pódio sem moedas e fora do ranking.
+- **Cabeçalhos** (`public/_headers`, só no site publicado): CSP (só o próprio site + challenges.cloudflare.com para o
+  Turnstile), `frame-ancestors 'none'`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`. Mexeu na CSP? Rode
+  `npm run build`, `npx vite preview --port 4173` e `npm run e2e:csp`.
+
 ## Personagens: banco e o que o site sabe
 
 - O servidor lê os personagens da tabela `characters` (`server/catalog.ts`, cache em memória de 5 min). Inativos

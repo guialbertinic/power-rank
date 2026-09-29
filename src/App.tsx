@@ -105,10 +105,11 @@ function initialState(identity: Identity | null): State {
 async function newGame(
   identity: Identity,
   mode: Mode,
-): Promise<{ gameId: string; drawn: CharacterInfo[] } | 'unauthorized' | 'offline'> {
+): Promise<{ gameId: string; drawn: CharacterInfo[] } | 'unauthorized' | { error: string }> {
   const game = await createGame(identity.name, identity.token, mode);
   if (game === 'unauthorized') return game;
-  if (!game) return 'offline';
+  if (!game) return { error: 'Sem conexão com o servidor. Tente de novo.' };
+  if ('error' in game) return game;
   rememberCharacters(game.characters);
   await preloadImages(game.characters);
   return { gameId: game.gameId, drawn: game.characters };
@@ -212,8 +213,8 @@ function Game() {
           ? 'Confirme seu nick de novo para continuar.'
           : 'Esse nick agora é de uma conta. Entre com a senha ou escolha outro.';
         dispatch({ type: 'nick', reason });
-      } else if (game === 'offline') {
-        setSoloError('Sem conexão com o servidor. Tente de novo.');
+      } else if ('error' in game) {
+        setSoloError(game.error);
       } else {
         setSoloError(null);
         dispatch({ type: 'start', mode, ...game });

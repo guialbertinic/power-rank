@@ -27,6 +27,7 @@ npm run build          # typecheck (front + server) + build
 npm test               # unitários (src/game)
 npm run e2e:api        # e2e sem navegador (precisa do dev rodando)
 npm run e2e:ui         # e2e com Edge headless (sem screenshots)
+npm run e2e:csp        # CSP no build de produção (precisa de: npm run build + npx vite preview --port 4173)
 npm run validate       # valida data/characters.json
 npm run characters:sync # copia data/characters.json para o D1 local (-- --remote: produção, o usuário roda)
 npm run contact-sheet -- <ids> | --category games | --series "X" | --recent N   # mosaico de imagens

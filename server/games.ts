@@ -1,6 +1,7 @@
 import { loadCatalog, publicInfo } from './catalog';
 import { badRequest, GAME_TTL_MS, json, sanitizeName, type Env } from './lib';
 import { playerAccess } from './players';
+import { nickProblem } from './security';
 import { drawCharacters } from '../src/game/draw';
 import { DEFAULT_MODE, isMode, poolFor } from '../src/game/modes';
 import { SLOTS } from '../src/game/scoring';
@@ -16,6 +17,9 @@ export async function createGame(request: Request, env: Env, ctx: ExecutionConte
   if (!name) return badRequest('Nick inválido');
   const access = await playerAccess(env, name, body?.token);
   if (!access) return json({ error: 'Nick não verificado' }, { status: 401 });
+  // Contas antigas mantêm o nick; convidado com nick ofensivo não joga.
+  const problem = access.kind === 'guest' ? nickProblem(name) : null;
+  if (problem) return badRequest(problem);
   const mode = body?.mode ?? DEFAULT_MODE;
   if (!isMode(mode)) return badRequest('Categoria inválida');
 

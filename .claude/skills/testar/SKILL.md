@@ -34,6 +34,10 @@ o servidor e rode `npm run db:migrate:local` antes.
   "dono sai → outro vira dono"): esses testes esperam com `sleep` fixo e às vezes perdem a corrida. Rode de novo
   antes de investigar; se repetir, é real. Em teste novo, espere o estado (`waitForFunction`/`waitForSelector`,
   como o `buyAndEquip` da loja), não um tempo fixo.
+- Regras do servidor que os testes respeitam: partida solo leva ≥ 3 s (`playSolo` espera; `placeAll` posiciona em
+  ritmo humano); conta nova precisa do token do anti-bot (`player()` manda `TURNSTILE_TEST_TOKEN`; na UI,
+  `chooseNick` espera o botão liberar). Limite por IP só vale com `x-rate-limit-test: 1`.
+- Mudou `public/_headers` (CSP)? `npm run build`, `npx vite preview --port 4173` (em segundo plano) e `npm run e2e:csp`.
 - Falha que se repete num texto: confira se o usuário não mudou a mensagem na tela (ele edita textos direto);
   ajuste o teste ao texto dele, não o contrário.
 

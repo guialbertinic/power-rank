@@ -3,6 +3,7 @@ import { claimNick, setPassword } from '../api';
 import { passwordProblem, PASSWORD_MAX_LENGTH } from '../game/account';
 import type { Profile } from '../game/cosmetics';
 import type { Identity } from '../nick';
+import Turnstile from './Turnstile';
 
 interface Props {
   identity: Identity;
@@ -30,6 +31,10 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
   const [saving, setSaving] = useState(false);
   const [created, setCreated] = useState(false);
   const [sync, setSync] = useState<SyncStatus>('idle');
+  /** Anti-bot ao criar conta (convidado): token do widget, se é exigido e chave para gerar outro. */
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileRequired, setTurnstileRequired] = useState<boolean | null>(null); // null = ainda não sabe
+  const [turnstileKey, setTurnstileKey] = useState(0);
 
   if (!open) {
     return (
@@ -47,7 +52,7 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
       await onRefresh();
       return;
     }
-    const result = await claimNick(identity.name, null, password);
+    const result = await claimNick(identity.name, null, password, turnstileToken);
     if (!result.ok) {
       throw new Error(result.taken ? 'Esse nick acabou de virar conta de outra pessoa. Troque de nick.' : result.error);
     }
@@ -66,7 +71,12 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
         setPasswordValue('');
         setConfirm('');
       })
-      .catch((err) => setError(err instanceof TypeError ? 'Sem conexão com o servidor.' : err.message))
+      .catch((err) => {
+        setError(err instanceof TypeError ? 'Sem conexão com o servidor.' : err.message);
+        // O token do anti-bot vale uma vez só: gera outro para a próxima tentativa.
+        setTurnstileToken(null);
+        setTurnstileKey((k) => k + 1);
+      })
       .finally(() => setSaving(false));
   };
 
@@ -120,7 +130,12 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
             autoComplete="new-password"
             disabled={saving}
           />
-          <button className="btn btn-primary btn-sm" disabled={saving || !password || !confirm} aria-busy={saving}>
+          {isGuest && <Turnstile key={turnstileKey} onToken={setTurnstileToken} onReady={setTurnstileRequired} />}
+          <button
+            className="btn btn-primary btn-sm"
+            disabled={saving || !password || !confirm || (isGuest && turnstileRequired !== false && !turnstileToken)}
+            aria-busy={saving}
+          >
             {isGuest ? 'Criar conta' : 'Criar senha'}
           </button>
           {error && <p className="error">{error}</p>}

@@ -19,7 +19,8 @@
     "e2e:api": "node e2e/api.mjs",
     "e2e:ui": "node e2e/ui.mjs",
     "contact-sheet": "node scripts/contact-sheet.mjs",
-    "characters:sync": "node scripts/sync-characters.mjs"
+    "characters:sync": "node scripts/sync-characters.mjs",
+    "e2e:csp": "node e2e/csp.mjs"
   },
   "dependencies": {
     "@fontsource/chakra-petch": "^5.3.0",

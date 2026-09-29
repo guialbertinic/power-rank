@@ -16,7 +16,7 @@ Objetivo: **abrir o site para pessoas testarem**. Na ordem:
 | # | Item | Tipo | Dif. | Status |
 |---|---|---|---|---|
 | 1 | Personagens no banco + tirar o `power` do código do site | Arquitetura | 🟡 | ✅ |
-| 2 | Segurança para teste aberto (rate limit, cabeçalhos, anti-bot, nicks, placar honesto) | Arquitetura | 🟡 | 🚧 |
+| 2 | Segurança para teste aberto (rate limit, cabeçalhos, anti-bot, nicks, placar honesto) | Arquitetura | 🟡 | ✅ |
 | 3 | Tradução para inglês + menu de configurações com idioma | Feature | 🟡 | 🚧 |
 
 Quick wins logo depois: trocar os sprites do cassino por arte própria · termos de uso e privacidade · botão
@@ -222,7 +222,7 @@ o site — qualquer um que abra o código do site vê o `power` de todos. Migrar
 
 ## Segurança
 
-### 🚧 Pacote para teste aberto · `Arquitetura` 🟡
+### ✅ Pacote para teste aberto · `Arquitetura` 🟡
 - **Esconder o `power`** do site — ver "Personagens no banco" · 🟡
 - **Rate limit** por IP/conta: criar conta, login (já tem bloqueio por nick após 5 senhas erradas), partidas,
   envio de pontuação, giros do cassino, caixas, criação de salas da party · 🟢/🟡

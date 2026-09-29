@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { claimNick, nickStatus } from '../api';
 import { passwordProblem, PASSWORD_MAX_LENGTH } from '../game/account';
 import { NICK_MAX_LENGTH, suggestedNick, tokenFor, type Identity } from '../nick';
+import Turnstile from './Turnstile';
 
 interface Props {
   /** Convite pendente: depois de escolher o nick, o jogador entra direto nessa sala. */
@@ -33,6 +34,14 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
   const [error, setError] = useState<string | null>(reason);
   /** Botão que está esperando o servidor (mostra o loading nele). */
   const [pending, setPending] = useState<'login' | 'guest' | 'password' | null>(null);
+  /** Anti-bot na criação de conta: token do widget e se ele é exigido (desligado = não precisa). */
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileRequired, setTurnstileRequired] = useState<boolean | null>(null); // null = ainda não sabe
+  const [turnstileKey, setTurnstileKey] = useState(0);
+  const resetTurnstile = () => {
+    setTurnstileToken(null);
+    setTurnstileKey((k) => k + 1);
+  };
   const busy = pending !== null;
 
   const run = (button: 'login' | 'guest' | 'password', action: () => Promise<void>) => {
@@ -65,7 +74,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
     if (!name) return;
     run('login', async () => {
       const status = await nickStatus(name);
-      if (!status.exists) return goTo({ kind: 'create', name });
+      if (!status.exists) return status.problem ? setError(status.problem) : goTo({ kind: 'create', name });
       if (await tryStoredToken(name)) return;
       goTo(status.hasPassword ? { kind: 'login', name } : { kind: 'no-password', name });
     });
@@ -76,7 +85,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
     if (!name) return;
     run('guest', async () => {
       const status = await nickStatus(name);
-      if (!status.exists) return onDone({ name, token: null });
+      if (!status.exists) return status.problem ? setError(status.problem) : onDone({ name, token: null });
       if (await tryStoredToken(name)) return;
       setError('Esse nick já está em uso.');
     });
@@ -91,9 +100,11 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
     }
     const { name } = step;
     run('password', async () => {
-      const result = await claimNick(name, null, password);
+      const result = await claimNick(name, null, password, turnstileToken);
       if (result.ok) return onDone({ name: result.name, token: result.token });
       setError(result.taken ? 'Esse nick acabou de virar conta de outra pessoa. Escolha outro.' : result.error);
+      // O token do anti-bot vale uma vez só: gera outro para a próxima tentativa.
+      if (step.kind === 'create') resetTurnstile();
     });
   };
 
@@ -146,9 +157,10 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
           <input type="text" value={step.name} autoComplete="username" readOnly hidden />
           {passwordInput(password, setPassword, 'Senha', creating ? 'new-password' : 'current-password')}
           {creating && passwordInput(confirm, setConfirm, 'Confirmar senha', 'new-password')}
+          {creating && <Turnstile key={turnstileKey} onToken={setTurnstileToken} onReady={setTurnstileRequired} />}
           <button
             className="btn btn-primary btn-lg"
-            disabled={busy || !password || (creating && !confirm)}
+            disabled={busy || !password || (creating && (!confirm || (turnstileRequired !== false && !turnstileToken)))}
             aria-busy={pending === 'password'}
           >
             {creating ? 'Criar conta' : 'Entrar'}

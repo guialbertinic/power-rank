@@ -7,6 +7,7 @@ import { connectParty, createParty } from './party';
 import { claimPlayer, playerStatus, renamePlayer, setPassword } from './players';
 import { buyItem, equipItem, getProfile } from './profile';
 import { getLeaderboard, submitScore } from './scores';
+import { getConfig, rateLimit } from './security';
 
 // O Durable Object das salas da Party precisa ser exportado pelo módulo principal do Worker.
 export { PartyRoom } from './party';
@@ -23,10 +24,15 @@ export default {
     const route = `${request.method} ${pathname}`;
 
     try {
+      const limited = await rateLimit(request, env, route);
+      if (limited) return limited;
+
       const partySocket = request.method === 'GET' ? PARTY_SOCKET.exec(pathname) : null;
       if (partySocket) return await connectParty(request, env, partySocket[1].toUpperCase());
 
       switch (route) {
+        case 'GET /api/config':
+          return getConfig(env);
         case 'GET /api/characters':
           return await getCharacters(env);
         case 'GET /api/dev/characters':

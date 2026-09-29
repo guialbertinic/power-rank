@@ -1,4 +1,5 @@
 import { loadCatalog } from './catalog';
+import { MIN_GAME_MS } from './security';
 import { badRequest, GAME_TTL_MS, json, LEADERBOARD_SIZE, nameKey, type Env } from './lib';
 import { creditCoins, toLook } from './profile';
 import { coinsForScore } from '../src/game/economy';
@@ -138,6 +139,8 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   const now = Date.now();
   // Do sorteio ao envio, medido aqui (o cliente não informa tempo).
   const durationMs = now - game.created_at;
+  // Ninguém posiciona 10 personagens em menos de alguns segundos: é script. A partida já foi consumida.
+  if (durationMs < MIN_GAME_MS) return json({ error: 'Partida rápida demais para valer.', code: 'too_fast' }, { status: 400 });
   const insert = (coins: number) =>
     env.DB.prepare(
       `INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, duration_ms, created_at)

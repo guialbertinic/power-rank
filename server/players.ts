@@ -1,4 +1,5 @@
 import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
+import { lookalikeOf, nickProblem, verifyTurnstile } from './security';
 import { passwordProblem } from '../src/game/account';
 
 /** PBKDF2: o número de iterações fica gravado junto do hash, para poder subir depois sem invalidar senhas. */
@@ -78,8 +79,10 @@ export async function playerAccess(env: Env, name: string, token: unknown): Prom
     const account = await accountByToken(env, token);
     return account && { kind: 'account', ...account };
   }
+  // Convidado não usa nick de conta, nem um parecido demais com o de uma conta (ex: "AIbertini").
   const taken = await env.DB.prepare('SELECT 1 FROM players WHERE name_key = ?').bind(nameKey(name)).first();
-  return taken ? null : { kind: 'guest', name };
+  if (taken || (await lookalikeOf(env, name))) return null;
+  return { kind: 'guest', name };
 }
 
 const unauthorized = () => json({ error: 'Nick não verificado' }, { status: 401 });
@@ -93,16 +96,21 @@ interface OwnerRow {
 }
 
 /**
- * GET /api/players/status?name= → { exists, hasPassword }: consulta um nick sem ficar com ele
+ * GET /api/players/status?name= → { exists, hasPassword, problem }: consulta um nick sem ficar com ele
  * (a tela do nick decide se pede a senha ou se oferece criar uma conta).
  */
 export async function playerStatus(request: Request, env: Env): Promise<Response> {
   const name = sanitizeName(new URL(request.url).searchParams.get('name'));
   if (!name) return badRequest('Nick inválido');
-  const row = await env.DB.prepare('SELECT password_hash IS NOT NULL AS has_password FROM players WHERE name_key = ?')
-    .bind(nameKey(name))
-    .first<{ has_password: number }>();
-  return json({ exists: Boolean(row), hasPassword: Boolean(row?.has_password) });
+  const [row, lookalike] = await Promise.all([
+    env.DB.prepare('SELECT password_hash IS NOT NULL AS has_password FROM players WHERE name_key = ?')
+      .bind(nameKey(name))
+      .first<{ has_password: number }>(),
+    lookalikeOf(env, name),
+  ]);
+  // `problem`: nick que não pode ser usado por uma conta nova nem por convidado (ofensivo ou imitando outra conta).
+  const problem = nickProblem(name) ?? (lookalike ? 'Parecido demais com o nick ' + lookalike + '. Escolha outro.' : null);
+  return json({ exists: Boolean(row), hasPassword: Boolean(row?.has_password), problem });
 }
 
 /**
@@ -117,7 +125,7 @@ export async function playerStatus(request: Request, env: Env): Promise<Response
  */
 export async function claimPlayer(request: Request, env: Env): Promise<Response> {
   const body = (await request.json().catch(() => null)) as
-    | { name?: unknown; token?: unknown; password?: unknown }
+    | { name?: unknown; token?: unknown; password?: unknown; turnstile?: unknown }
     | null;
   const name = sanitizeName(body?.name);
   if (!name) return badRequest('Nick inválido');
@@ -138,8 +146,15 @@ export async function claimPlayer(request: Request, env: Env): Promise<Response>
     return login(env, owner, password);
   }
 
-  const problem = passwordProblem(password);
+  const problem = passwordProblem(password) ?? nickProblem(name);
   if (problem) return badRequest(problem);
+  const lookalike = await lookalikeOf(env, name);
+  if (lookalike) {
+    return json({ error: `Parecido demais com o nick ${lookalike}. Escolha outro.`, code: 'nick_lookalike' }, { status: 409 });
+  }
+  if (!(await verifyTurnstile(env, body?.turnstile, request))) {
+    return json({ error: 'Confirme que você não é um robô.', code: 'turnstile' }, { status: 403 });
+  }
   // INSERT OR IGNORE: se duas pessoas pedirem o mesmo nick ao mesmo tempo, só uma fica com ele (name_key é UNIQUE).
   const created = await env.DB.prepare(
     'INSERT OR IGNORE INTO players (name, name_key, password_hash, created_at) VALUES (?, ?, ?, ?) RETURNING id',
@@ -199,6 +214,13 @@ export async function renamePlayer(request: Request, env: Env): Promise<Response
   if (!account) return unauthorized();
   const name = sanitizeName(body?.name);
   if (!name) return badRequest('Nick inválido');
+  // Só mudar maiúsculas do próprio nick não passa pelo filtro (é o mesmo nick).
+  if (nameKey(name) !== nameKey(account.name)) {
+    const problem = nickProblem(name);
+    if (problem) return badRequest(problem);
+    const lookalike = await lookalikeOf(env, name, account.id);
+    if (lookalike) return json({ error: `Parecido demais com o nick ${lookalike}. Escolha outro.` }, { status: 409 });
+  }
 
   try {
     // name_key é UNIQUE: se outra conta já usa o nick (ou pegou agora), o UPDATE falha.

@@ -167,6 +167,7 @@ try {
   await bruno.waitForSelector('.sync-password-form');
   await bruno.type('input[aria-label="Nova senha"]', PASSWORD);
   await bruno.type('input[aria-label="Repita a senha"]', PASSWORD);
+  await bruno.waitForSelector('.sync-password-form .btn-primary:not([disabled])', { timeout: 15000 }); // anti-bot
   await bruno.click('.sync-password-form .btn-primary');
   await bruno.waitForSelector('.sync-panel ::-p-text(Conta pronta)');
   check('convidado cria a conta pelo menu', Boolean(await bruno.$('.profile-bar .coins')) && !(await bruno.$('.profile-guest')));

@@ -1,4 +1,5 @@
 import { json, type Env } from './lib';
+import { isLocalRequest } from './security';
 import type { Character, CharacterInfo } from '../src/game/types';
 
 /**
@@ -69,9 +70,6 @@ export async function getCharacters(env: Env): Promise<Response> {
   const list = active.map(publicInfo).sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
   return json(list, { headers: { 'Cache-Control': 'public, max-age=300' } });
 }
-
-/** A rota de dev só responde no servidor local (npm run dev): em produção o host nunca é localhost. */
-export const isLocalRequest = (request: Request) => ['localhost', '127.0.0.1'].includes(new URL(request.url).hostname);
 
 /** GET /api/dev/characters → Character[] com `power`, só no dev local (tela /?review). */
 export async function getCharactersWithPower(request: Request, env: Env): Promise<Response> {
