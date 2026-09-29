@@ -1,0 +1,309 @@
+[
+  {
+    "id": "saitama",
+    "name": "Saitama",
+    "anime": "One Punch Man",
+    "power": 100,
+    "image": "chars/saitama.jpg",
+    "anilistId": 73935
+  },
+  {
+    "id": "goku",
+    "name": "Son Goku",
+    "anime": "Dragon Ball Super",
+    "version": "Ultra Instinto",
+    "power": 99,
+    "image": "chars/goku.png",
+    "anilistId": 246
+  },
+  {
+    "id": "vegeta",
+    "name": "Vegeta",
+    "anime": "Dragon Ball Super",
+    "version": "Ultra Ego",
+    "power": 97,
+    "image": "chars/vegeta.jpg",
+    "anilistId": 9393
+  },
+  {
+    "id": "rimuru",
+    "name": "Rimuru Tempest",
+    "anime": "Tensei shitara Slime Datta Ken",
+    "version": "Demon Lord",
+    "power": 96,
+    "image": "chars/rimuru.png",
+    "anilistId": 123962
+  },
+  {
+    "id": "father",
+    "name": "Father",
+    "anime": "Fullmetal Alchemist: Brotherhood",
+    "version": "Após absorver Deus",
+    "power": 91,
+    "image": "chars/father.png",
+    "anilistId": 15542
+  },
+  {
+    "id": "naruto",
+    "name": "Naruto Uzumaki",
+    "anime": "Naruto Shippuden",
+    "version": "Guerra final",
+    "power": 89,
+    "image": "chars/naruto.png",
+    "anilistId": 17
+  },
+  {
+    "id": "ichigo",
+    "name": "Ichigo Kurosaki",
+    "anime": "Bleach",
+    "version": "Thousand-Year Blood War",
+    "power": 89,
+    "image": "chars/ichigo.png",
+    "anilistId": 5
+  },
+  {
+    "id": "madara",
+    "name": "Madara Uchiha",
+    "anime": "Naruto Shippuden",
+    "version": "Jinchuuriki do Juubi",
+    "power": 88,
+    "image": "chars/madara.png",
+    "anilistId": 53901
+  },
+  {
+    "id": "aizen",
+    "name": "Sousuke Aizen",
+    "anime": "Bleach",
+    "version": "Fusão com Hougyoku",
+    "power": 88,
+    "image": "chars/aizen.png",
+    "anilistId": 1086
+  },
+  {
+    "id": "luffy",
+    "name": "Monkey D. Luffy",
+    "anime": "One Piece",
+    "version": "Gear 5",
+    "power": 87,
+    "image": "chars/luffy.png",
+    "anilistId": 40
+  },
+  {
+    "id": "sasuke",
+    "name": "Sasuke Uchiha",
+    "anime": "Naruto Shippuden",
+    "version": "Guerra final",
+    "power": 86,
+    "image": "chars/sasuke.png",
+    "anilistId": 13
+  },
+  {
+    "id": "meliodas",
+    "name": "Meliodas",
+    "anime": "Nanatsu no Taizai",
+    "version": "Rei Demônio",
+    "power": 86,
+    "image": "chars/meliodas.png",
+    "anilistId": 72921
+  },
+  {
+    "id": "boros",
+    "name": "Boros",
+    "anime": "One Punch Man",
+    "power": 84,
+    "image": "chars/boros.png",
+    "anilistId": 89263
+  },
+  {
+    "id": "sukuna",
+    "name": "Ryoumen Sukuna",
+    "anime": "Jujutsu Kaisen",
+    "version": "Forma verdadeira",
+    "power": 84,
+    "image": "chars/sukuna.png",
+    "anilistId": 133701
+  },
+  {
+    "id": "mob",
+    "name": "Shigeo Kageyama",
+    "anime": "Mob Psycho 100",
+    "version": "???%",
+    "power": 83,
+    "image": "chars/mob.png",
+    "anilistId": 89616
+  },
+  {
+    "id": "gojo",
+    "name": "Satoru Gojo",
+    "anime": "Jujutsu Kaisen",
+    "power": 82,
+    "image": "chars/gojo.png",
+    "anilistId": 127691
+  },
+  {
+    "id": "eren",
+    "name": "Eren Yeager",
+    "anime": "Shingeki no Kyojin",
+    "version": "Titã Fundador",
+    "power": 80,
+    "image": "chars/eren.jpg",
+    "anilistId": 40882
+  },
+  {
+    "id": "zoro",
+    "name": "Roronoa Zoro",
+    "anime": "One Piece",
+    "power": 78,
+    "image": "chars/zoro.png",
+    "anilistId": 62
+  },
+  {
+    "id": "tatsumaki",
+    "name": "Tatsumaki",
+    "anime": "One Punch Man",
+    "power": 76,
+    "image": "chars/tatsumaki.png",
+    "anilistId": 81929
+  },
+  {
+    "id": "makima",
+    "name": "Makima",
+    "anime": "Chainsaw Man",
+    "power": 74,
+    "image": "chars/makima.png",
+    "anilistId": 137080
+  },
+  {
+    "id": "asta",
+    "name": "Asta",
+    "anime": "Black Clover",
+    "power": 72,
+    "image": "chars/asta.png",
+    "anilistId": 123285
+  },
+  {
+    "id": "meruem",
+    "name": "Meruem",
+    "anime": "Hunter x Hunter",
+    "power": 70,
+    "image": "chars/meruem.png",
+    "anilistId": 23277
+  },
+  {
+    "id": "yuji",
+    "name": "Yuji Itadori",
+    "anime": "Jujutsu Kaisen",
+    "power": 70,
+    "search": "Yuuji Itadori",
+    "image": "chars/yuji.png",
+    "anilistId": 127212
+  },
+  {
+    "id": "frieren",
+    "name": "Frieren",
+    "anime": "Sousou no Frieren",
+    "power": 68,
+    "image": "chars/frieren.png",
+    "anilistId": 176754
+  },
+  {
+    "id": "netero",
+    "name": "Isaac Netero",
+    "anime": "Hunter x Hunter",
+    "power": 66,
+    "image": "chars/netero.jpg",
+    "anilistId": 14489
+  },
+  {
+    "id": "deku",
+    "name": "Izuku Midoriya",
+    "anime": "Boku no Hero Academia",
+    "version": "Final",
+    "power": 65,
+    "image": "chars/deku.png",
+    "anilistId": 89028
+  },
+  {
+    "id": "allmight",
+    "name": "All Might",
+    "anime": "Boku no Hero Academia",
+    "version": "Auge",
+    "power": 62,
+    "image": "chars/allmight.jpg",
+    "anilistId": 89224
+  },
+  {
+    "id": "denji",
+    "name": "Denji",
+    "anime": "Chainsaw Man",
+    "power": 60,
+    "image": "chars/denji.png",
+    "anilistId": 130102
+  },
+  {
+    "id": "kenshiro",
+    "name": "Kenshiro",
+    "anime": "Hokuto no Ken",
+    "power": 58,
+    "image": "chars/kenshiro.jpg",
+    "anilistId": 2511
+  },
+  {
+    "id": "muzan",
+    "name": "Muzan Kibutsuji",
+    "anime": "Kimetsu no Yaiba",
+    "power": 55,
+    "image": "chars/muzan.jpg",
+    "anilistId": 129132
+  },
+  {
+    "id": "genos",
+    "name": "Genos",
+    "anime": "One Punch Man",
+    "power": 54,
+    "image": "chars/genos.jpg",
+    "anilistId": 73979
+  },
+  {
+    "id": "killua",
+    "name": "Killua Zoldyck",
+    "anime": "Hunter x Hunter",
+    "power": 52,
+    "image": "chars/killua.jpg",
+    "anilistId": 27
+  },
+  {
+    "id": "edward",
+    "name": "Edward Elric",
+    "anime": "Fullmetal Alchemist: Brotherhood",
+    "power": 48,
+    "image": "chars/edward.jpg",
+    "anilistId": 11
+  },
+  {
+    "id": "levi",
+    "name": "Levi Ackerman",
+    "anime": "Shingeki no Kyojin",
+    "power": 45,
+    "search": "Levi",
+    "image": "chars/levi.png",
+    "anilistId": 45627
+  },
+  {
+    "id": "tanjiro",
+    "name": "Tanjiro Kamado",
+    "anime": "Kimetsu no Yaiba",
+    "power": 42,
+    "search": "Tanjirou Kamado",
+    "image": "chars/tanjiro.png",
+    "anilistId": 126071
+  },
+  {
+    "id": "light",
+    "name": "Light Yagami",
+    "anime": "Death Note",
+    "power": 5,
+    "image": "chars/light.png",
+    "anilistId": 80
+  }
+]
