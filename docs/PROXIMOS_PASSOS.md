@@ -29,7 +29,6 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 ## Economia e cosméticos
 
 - [x] **Cassino** v1: caça-níquel com pote acumulado compartilhado (jackpot proporcional à aposta), ~95% de retorno.
-- [ ] Cassino: trocar os ícones SVG pelas imagens dos símbolos (o usuário vai mandar PNG/JPG).
 - [ ] Cassino: olhar o retorno real depois de uns dias (`SELECT SUM(prize) * 1.0 / SUM(bet) FROM casino_spins`).
 - [ ] Mais jogos no cassino (roleta, raspadinha, gacha de cosméticos exclusivos).
 - [x] Loja ampliada: 16 cores, 13 molduras (algumas animadas), 27 títulos (embaixo do nick), filtro obtidos.

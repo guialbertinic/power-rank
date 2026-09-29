@@ -235,6 +235,9 @@ try {
   await (await ana.waitForSelector('.profile-bar ::-p-text(Cassino)')).click();
   await ana.waitForSelector('.casino-machine');
   check('pote acumulado aparece', /\d/.test((await text(ana, '.casino-pot .coins')) ?? ''));
+  await ana.waitForFunction(() => [...document.querySelectorAll('.casino-reel img')].every((i) => i.complete), { timeout: 5000 });
+  const broken = await ana.$$eval('.casino-reel img', (imgs) => imgs.filter((i) => !i.naturalWidth).map((i) => i.src));
+  check('imagens dos símbolos carregam', broken.length === 0, broken.join(', '));
   const balanceBefore = Number((await text(ana, '.casino-balance .coins'))?.replace(/\D/g, ''));
   await ana.click('.casino-spin');
   check('rolos giram', Boolean(await ana.$('.casino-strip')));

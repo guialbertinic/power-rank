@@ -109,7 +109,7 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 
 - Regras em `src/game/casino.ts` (compartilhado; `casino.test.ts` calcula o retorno exato das 7³ combinações).
   Servidor em `server/casino.ts`, tela `CasinoScreen` (botão "Cassino" na `ProfileBar`, só contas), ícones em
-  `CasinoIcon` (SVG provisório; imagens futuras em `public/cassino/<id>.webp`).
+  `public/cassino/<id>.webp` (160px, fundo transparente, via `CasinoIcon`).
 - 3 rolos, 7 símbolos com pesos. 3 iguais e pares pagam multiplicadores da aposta (10–100, de 10 em 10); a chance
   não depende da aposta. Tabela fixa ≈ 90% de retorno + pote ≈ 95% no longo prazo. Jackpot (3 Esferas do Dragão)
   ≈ 1 a cada 4.600 giros.

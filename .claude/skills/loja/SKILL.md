@@ -50,8 +50,8 @@ Exige migração (`ALTER TABLE players ADD COLUMN <coluna> TEXT`, sem risco para
 
 Regras e calibração em `src/game/casino.ts` + `casino.test.ts` (retorno exato; mexeu em peso ou multiplicador,
 rode `npm test` e mantenha a tabela fixa perto de 90%). Detalhes em `docs/ARQUITETURA.md` → "Cassino".
-Trocar os ícones SVG por imagens: converter com `sharp` para `public/cassino/<id>.webp` (~128px, fundo
-transparente) e fazer o `CasinoIcon` renderizar `<img>`. O pote é compartilhado: em teste, não assuma que só o
+Ícone novo/trocado: PNG/WebP com fundo transparente → `sharp` (trim, contain 160×160, webp q85) em
+`public/cassino/<id>.webp` (o id é o do símbolo em casino.ts). O pote é compartilhado: em teste, não assuma que só o
 teste está jogando.
 
 ## UI da loja

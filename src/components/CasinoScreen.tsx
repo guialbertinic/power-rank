@@ -13,7 +13,7 @@ import {
 } from '../game/casino';
 import type { Profile } from '../game/cosmetics';
 import type { Identity } from '../nick';
-import CasinoIcon from './CasinoIcon';
+import CasinoIcon, { preloadCasinoIcons } from './CasinoIcon';
 import Coins from './Coins';
 
 interface Props {
@@ -56,6 +56,7 @@ export default function CasinoScreen({ identity, profile, onProfileChange }: Pro
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
+    preloadCasinoIcons();
     fetchCasino()
       .then(setCasino)
       .catch(() => setError('Sem conexão com o servidor.'));
