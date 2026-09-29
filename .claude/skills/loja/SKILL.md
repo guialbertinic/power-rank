@@ -46,6 +46,14 @@ Exige migração (`ALTER TABLE players ADD COLUMN <coluna> TEXT`, sem risco para
   prêmio numa operação só (`env.DB.batch`) ou com a condição de saldo no próprio UPDATE. O cliente só anima.
 - Moedas nunca compráveis com dinheiro real.
 
+## Cassino
+
+Regras e calibração em `src/game/casino.ts` + `casino.test.ts` (retorno exato; mexeu em peso ou multiplicador,
+rode `npm test` e mantenha a tabela fixa perto de 90%). Detalhes em `docs/ARQUITETURA.md` → "Cassino".
+Trocar os ícones SVG por imagens: converter com `sharp` para `public/cassino/<id>.webp` (~128px, fundo
+transparente) e fazer o `CasinoIcon` renderizar `<img>`. O pote é compartilhado: em teste, não assuma que só o
+teste está jogando.
+
 ## UI da loja
 
 Cor = o nome da cor com o efeito; moldura = quadro vazio (`.shop-frame-empty`); título = por categoria, 2 por

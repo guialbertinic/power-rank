@@ -1,3 +1,4 @@
+import { getCasino, spin } from './casino';
 import { createGame } from './games';
 import { json, type Env } from './lib';
 import { connectParty, createParty } from './party';
@@ -24,6 +25,10 @@ export default {
       if (partySocket) return await connectParty(request, env, partySocket[1].toUpperCase());
 
       switch (route) {
+        case 'GET /api/casino':
+          return await getCasino(env);
+        case 'POST /api/casino/spin':
+          return await spin(request, env);
         case 'POST /api/games':
           return await createGame(request, env, ctx);
         case 'GET /api/scores':

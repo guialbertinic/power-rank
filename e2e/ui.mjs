@@ -228,6 +228,24 @@ try {
   check('"?" explica o desempate e o acumulado', /menos tempo/.test((await text(ana, '.leaderboard-help')) ?? ''));
   await ana.click('.leaderboard-help-toggle');
 
+  // ---------- Cassino ----------
+  section('Cassino');
+  await ana.click('.home-button');
+  await ana.waitForSelector('.profile-bar .coins');
+  await (await ana.waitForSelector('.profile-bar ::-p-text(Cassino)')).click();
+  await ana.waitForSelector('.casino-machine');
+  check('pote acumulado aparece', /\d/.test((await text(ana, '.casino-pot .coins')) ?? ''));
+  const balanceBefore = Number((await text(ana, '.casino-balance .coins'))?.replace(/\D/g, ''));
+  await ana.click('.casino-spin');
+  check('rolos giram', Boolean(await ana.$('.casino-strip')));
+  await ana.waitForFunction(() => !document.querySelector('.casino-strip'), { timeout: 8000 });
+  const spinText = await text(ana, '.casino-result');
+  check('rolos param e mostram o resultado', Boolean(spinText) && spinText !== 'Girando...', spinText ?? '');
+  const balanceAfter = Number((await text(ana, '.casino-balance .coins'))?.replace(/\D/g, ''));
+  check('saldo atualiza depois do giro', balanceAfter !== balanceBefore || /volta/.test(spinText ?? ''), `${balanceBefore} → ${balanceAfter}`);
+  await ana.click('.casino-header .leaderboard-help-toggle');
+  check('"?" mostra a tabela de prêmios', (await ana.$$('.casino-table tbody tr')).length === 7);
+
   // ---------- Trocar nick e sair ----------
   section('Trocar nick e sair');
   await ana.click('.home-button');

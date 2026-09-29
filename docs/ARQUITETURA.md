@@ -11,7 +11,7 @@ public/_headers           cache: /chars 7 dias, /assets imutável
 migrations/               schema do D1 (0001 scores · 0002 melhor por jogador · 0003 categorias ·
                           0004 donos de nick · 0005 moedas e cosméticos ·
                           0006 senha do nick · 0007 jogador por id · 0008 títulos ·
-                          0009 tempo da partida)
+                          0009 tempo da partida · 0010 cassino)
 scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet (+ lib/images.mjs)
 e2e/                      testes e2e: api.mjs (sem navegador), ui.mjs (Edge headless), lib.mjs (utilitários)
 server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick),
@@ -55,6 +55,8 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `GET /api/scores?mode=&period=today\|total` | Top 20 do modo, só contas (nick atual + visual). `today` (padrão): melhor do dia, com `durationMs`; `total`: soma do melhor de cada dia, com `days`. |
 | `POST /api/party` `{ mode, pid }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
 | `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |
+| `GET /api/casino` | `{ pot, lastWinner }`: pote acumulado e último ganhador do jackpot. |
+| `POST /api/casino/spin` `{ token, bet }` | Só contas. Aposta 10–100 (de 10 em 10). Sorteia no servidor, debita/credita e devolve `{ reels, outcome, prize, coins, pot, jackpot }`. 402 sem saldo. |
 | `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado e `hasPassword`. |
 | `POST /api/shop/buy` `{ token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
 | `POST /api/profile/equip` `{ token, slot, itemId \| null }` | Equipa (ou tira) um item que o jogador tem. |
@@ -102,6 +104,20 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - **Visual** (`PlayerTag`): avatar + moldura + nick colorido + título embaixo do nick, no ranking, party, pódio e
   `ProfileBar`. Cada cor/moldura é a classe `cosmetic-<id>` em `styles.css` (anéis que giram usam o `@property
   --cosmetic-angle`).
+
+## Cassino (caça-níquel)
+
+- Regras em `src/game/casino.ts` (compartilhado; `casino.test.ts` calcula o retorno exato das 7³ combinações).
+  Servidor em `server/casino.ts`, tela `CasinoScreen` (botão "Cassino" na `ProfileBar`, só contas), ícones em
+  `CasinoIcon` (SVG provisório; imagens futuras em `public/cassino/<id>.webp`).
+- 3 rolos, 7 símbolos com pesos. 3 iguais e pares pagam multiplicadores da aposta (10–100, de 10 em 10); a chance
+  não depende da aposta. Tabela fixa ≈ 90% de retorno + pote ≈ 95% no longo prazo. Jackpot (3 Esferas do Dragão)
+  ≈ 1 a cada 4.600 giros.
+- **Pote** (`casino_pot`, uma linha): recebe 5% de cada aposta. Jackpot = maior entre 100× a aposta e
+  `pote × 50% × aposta/100`; só essa parte sai do pote (o mínimo excedente vem "da casa"). O `UPDATE` do pote
+  calcula e desconta o prêmio na mesma operação (dois jackpots simultâneos não levam o mesmo pote).
+- Débito: `coins = coins - aposta + prêmio WHERE coins >= aposta` (prêmio fixo no mesmo UPDATE); jackpot é creditado
+  logo depois. Todo giro vai para `casino_spins` (auditoria/balanceamento).
 
 ## Party (multiplayer)
 

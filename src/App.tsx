@@ -18,6 +18,7 @@ import PartyScreen from './components/party/PartyScreen';
 import PlayingScreen from './components/PlayingScreen';
 import ResultScreen from './components/ResultScreen';
 import ShopScreen from './components/ShopScreen';
+import CasinoScreen from './components/CasinoScreen';
 
 // Tela de revisão da base (http://localhost:5173/?review). Só existe em dev: sai do build de produção.
 const ReviewScreen = import.meta.env.DEV ? lazy(() => import('./components/ReviewScreen')) : null;
@@ -32,6 +33,8 @@ type State =
   | { phase: 'intro' }
   /** Loja e personalização do perfil. */
   | { phase: 'shop' }
+  /** Cassino (caça-níquel), só para contas. */
+  | { phase: 'casino' }
   /** Na party, o estado do jogo vem da sala (PartyScreen); aqui só fica como entrar nela. */
   | { phase: 'party'; code: string; pid: string }
   | {
@@ -50,6 +53,7 @@ type Action =
   | { type: 'place'; slot: number }
   | { type: 'nick'; reason?: string }
   | { type: 'shop' }
+  | { type: 'casino' }
   | { type: 'home' };
 
 function reducer(state: State, action: Action): State {
@@ -79,6 +83,8 @@ function reducer(state: State, action: Action): State {
       return { phase: 'nick', reason: action.reason ?? null };
     case 'shop':
       return { phase: 'shop' };
+    case 'casino':
+      return { phase: 'casino' };
     case 'home':
       return { phase: 'intro' };
   }
@@ -155,7 +161,7 @@ export default function App() {
   const token = identity?.token;
   const name = identity?.name;
   useEffect(() => {
-    if (!name || !token || (state.phase !== 'intro' && state.phase !== 'shop')) return;
+    if (!name || !token || (state.phase !== 'intro' && state.phase !== 'shop' && state.phase !== 'casino')) return;
     let cancelled = false;
     fetchProfile({ name, token })
       .then((p) => {
@@ -244,6 +250,8 @@ export default function App() {
       ? 'Party'
       : state.phase === 'shop'
         ? 'Loja'
+      : state.phase === 'casino'
+        ? 'Cassino'
       : MODES.find((m) => m.id === (state.phase === 'playing' || state.phase === 'result' ? state.mode : mode))?.label;
 
   return (
@@ -253,6 +261,7 @@ export default function App() {
           identity={identity}
           profile={profile}
           onOpenShop={() => dispatch({ type: 'shop' })}
+          onOpenCasino={() => dispatch({ type: 'casino' })}
           onIdentityChange={changeIdentity}
           onLeave={leave}
           onRefresh={refreshProfile}
@@ -296,6 +305,9 @@ export default function App() {
           onJoinParty={joinRoom}
           partyError={partyError}
         />
+      )}
+      {state.phase === 'casino' && identity?.token && profile && (
+        <CasinoScreen identity={{ ...identity, token: identity.token }} profile={profile} onProfileChange={setProfile} />
       )}
       {state.phase === 'shop' && identity?.token && profile && (
         <ShopScreen identity={{ ...identity, token: identity.token }} profile={profile} onProfileChange={setProfile} />

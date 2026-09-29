@@ -1,3 +1,4 @@
+import type { Outcome, SymbolId } from './game/casino';
 import type { CosmeticSlot, Look, Profile } from './game/cosmetics';
 import type { Mode } from './game/modes';
 
@@ -150,6 +151,31 @@ export function buyItem(auth: Auth, itemId: string): Promise<Profile> {
 
 export function equipItem(auth: Auth, slot: CosmeticSlot, itemId: string | null): Promise<Profile> {
   return request('/api/profile/equip', { method: 'POST', body: JSON.stringify({ ...auth, slot, itemId }) });
+}
+
+export interface CasinoState {
+  pot: number;
+  lastWinner: { name: string; prize: number; at: number } | null;
+}
+
+export interface SpinResult {
+  reels: SymbolId[];
+  outcome: Outcome;
+  prize: number;
+  /** Saldo depois do giro. */
+  coins: number;
+  pot: number;
+  jackpot: boolean;
+}
+
+/** Pote acumulado e último ganhador do jackpot. */
+export function fetchCasino(): Promise<CasinoState> {
+  return request('/api/casino');
+}
+
+/** Gira o caça-níquel: o servidor debita a aposta, sorteia e credita o prêmio. */
+export function spinCasino(token: string, bet: number): Promise<SpinResult> {
+  return request('/api/casino/spin', { method: 'POST', body: JSON.stringify({ token, bet }) });
 }
 
 export async function fetchLeaderboard(mode: Mode, period: Period): Promise<LeaderboardEntry[]> {

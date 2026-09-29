@@ -163,6 +163,45 @@ section('Ranking');
   check('período inválido é recusado', (await fetch(`${BASE}/api/scores?mode=anime&period=ano`)).status === 400);
 }
 
+// ---------- Cassino ----------
+section('Cassino');
+{
+  const me = await player('Cassino');
+  check('convidado não joga (401)', (await post('/casino/spin', { bet: 10 })).status === 401);
+  check('aposta fora da regra é recusada', (await post('/casino/spin', { ...me, bet: 15 })).status === 400);
+  check('sem saldo: 402', (await post('/casino/spin', { ...me, bet: 10 })).status === 402);
+
+  d1(`UPDATE players SET coins = 2000 WHERE name_key = '${me.name.toLowerCase()}'`);
+  const { pot: potBefore } = await get('/casino');
+  const PAIR = { dragonball: 5, sharingan: 3, deathnote: 2, bandana: 2, hat: 1, shuriken: 1, pokeball: 1 };
+  const THREE = { sharingan: 60, deathnote: 30, bandana: 20, hat: 12, shuriken: 8, pokeball: 5 };
+  let expectedCoins = 2000;
+  let prizesOk = true;
+  let jackpots = 0;
+  for (let i = 0; i < 25; i++) {
+    const bet = i % 2 ? 10 : 50;
+    const { status, data } = await post('/casino/spin', { ...me, bet });
+    if (status !== 200) {
+      prizesOk = false;
+      break;
+    }
+    const [a, b, c] = data.reels;
+    const pair = a === b || a === c ? a : b === c ? b : null;
+    const expected = a === b && b === c ? (a === 'dragonball' ? null : THREE[a] * bet) : pair ? PAIR[pair] * bet : 0;
+    if (expected === null) jackpots++;
+    else if (data.prize !== expected) prizesOk = false;
+    expectedCoins += data.prize - bet;
+    if (data.coins !== expectedCoins) prizesOk = false;
+  }
+  check('prêmio segue a tabela e o saldo fecha giro a giro', prizesOk, `saldo esperado ${expectedCoins}`);
+  const { pot: potAfter } = await get('/casino');
+  // 13 giros de 50 (+3 cada) e 12 de 10 (+1 cada) = +51, se não saiu jackpot. O pote é compartilhado: se alguém
+  // jogar ao mesmo tempo (ex: no dev local), ele cresce mais.
+  check('pote recebe 5% de cada aposta', jackpots > 0 || potAfter - potBefore >= 51, `${potBefore} → ${potAfter}`);
+  const logged = d1(`SELECT COUNT(*) AS n FROM casino_spins WHERE player_id = (SELECT id FROM players WHERE name_key = '${me.name.toLowerCase()}')`);
+  check('todo giro fica registrado', /"n": 25/.test(logged));
+}
+
 // ---------- Party ----------
 section('Party');
 {
