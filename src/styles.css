@@ -284,7 +284,7 @@ input:focus {
   display: grid;
   justify-items: center;
   gap: 28px;
-  max-width: 520px;
+  max-width: 640px;
   margin: 0 auto;
 }
 
@@ -753,7 +753,7 @@ input:focus {
 }
 
 .result-leaderboard {
-  max-width: 520px;
+  max-width: 640px;
   margin: 20px auto 0;
 }
 
@@ -827,6 +827,41 @@ input:focus {
 .row-leader.highlight {
   background: rgba(255, 42, 109, 0.1);
   box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* Ranking: 3 primeiros no pódio, do 4º em diante linhas maiores para ler nome e avatar. */
+.leaderboard-podium {
+  margin-bottom: 16px;
+}
+
+.leaderboard-podium .podium-name {
+  font-size: 1.05rem;
+}
+
+.leaderboard-podium .podium-step.first .podium-name {
+  font-size: 1.2rem;
+}
+
+.podium-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.leaderboard-rows .row {
+  min-height: 52px;
+}
+
+.leaderboard-rows .row-name {
+  font-size: 1.05rem;
+}
+
+.leaderboard-rows .row-score {
+  font-size: 1.15rem;
 }
 
 /* Power Meter: segmentos inclinados que acendem em sequência */
@@ -1307,8 +1342,15 @@ input:focus {
   text-transform: uppercase;
 }
 
-.podium-step.you .podium-name {
+/* Você no pódio: ciano, a não ser que tenha cor de nick equipada (aí vale a cor comprada). */
+.podium-step.you .podium-name:not([class*='cosmetic-name']) {
   color: var(--tier-a);
+}
+
+.podium-step.you .podium-block {
+  box-shadow:
+    0 -6px 24px color-mix(in srgb, var(--tier-color) 25%, transparent),
+    inset 0 0 0 1px var(--accent);
 }
 
 .podium-score {

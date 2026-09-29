@@ -191,7 +191,13 @@ try {
   await sleep(1000);
   check('resultado mostra moedas (ou o aviso de 500+)', /^\+\d+$|500\+/.test((await text(ana, '.coins-earned')) ?? ''));
   check('resultado solo sem valores de poder', !(await ana.$('.row-power')));
-  check('ranking mostra o visual do jogador', Boolean(await ana.$('.leaderboard .row.highlight .cosmetic-frame-legend')));
+  check(
+    'ranking mostra o visual do jogador',
+    Boolean(await ana.$('.leaderboard :is(.row.highlight, .podium-step.you) .cosmetic-frame-legend')),
+  );
+  const podium = await ana.$$eval('.leaderboard-podium .podium-step:not(.empty)', (els) => els.length);
+  const firstRow = await text(ana, '.leaderboard-rows .row .rank-badge');
+  check('3 primeiros no pódio, lista começa no 4º', podium >= 1 && podium <= 3 && (firstRow === null || firstRow === '4'), `${podium} / ${firstRow}`);
 
   // ---------- Trocar nick e sair ----------
   section('Trocar nick e sair');
