@@ -907,6 +907,80 @@ input:focus {
   margin-bottom: 16px;
 }
 
+.leaderboard-empty {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* Skeleton do ranking: posições sem jogador (vazias) e, enquanto carrega, pulsando. */
+.skeleton-avatar,
+.skeleton-bar {
+  display: block;
+  flex-shrink: 0;
+  background: var(--surface-2);
+}
+
+.skeleton-avatar {
+  width: 52px;
+  height: 52px;
+  clip-path: var(--clip-chamfer-sm);
+}
+
+.skeleton-avatar.large {
+  width: 64px;
+  height: 64px;
+}
+
+.skeleton-avatar.small {
+  width: 36px;
+  height: 36px;
+}
+
+.skeleton-bar {
+  width: 60%;
+  height: 0.8em;
+  margin: 0.25em 0;
+  border-radius: var(--radius);
+}
+
+.podium-step.placeholder .podium-score,
+.row-placeholder .row-score {
+  color: var(--text-2);
+}
+
+.podium-step.placeholder .podium-block {
+  opacity: 0.45;
+}
+
+.row-placeholder {
+  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+}
+
+.row-placeholder .row-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.row-placeholder .skeleton-avatar,
+.row-placeholder .skeleton-bar {
+  background: var(--surface);
+}
+
+.row-placeholder .skeleton-bar {
+  width: 35%;
+}
+
+.leaderboard-loading :is(.skeleton-avatar, .skeleton-bar) {
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
 .leaderboard-podium .podium-name {
   font-size: 1.05rem;
 }
@@ -2144,11 +2218,17 @@ input:focus {
   color: var(--bg);
 }
 
-.shop-action.confirm {
+/* "Confirmar?" continua dourado no hover (o hover genérico escurece o fundo e o texto escuro sumia). */
+.shop-action.confirm,
+.shop-action.confirm:hover:not(:disabled) {
   --spinner-color: var(--bg);
   background: #ffd700;
   border-color: transparent;
   color: var(--bg);
+}
+
+.shop-action.confirm:hover:not(:disabled) {
+  filter: brightness(1.12);
 }
 
 /* O botão em loading também fica disabled, mas não apaga: é ele que mostra o spinner. */

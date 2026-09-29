@@ -21,6 +21,9 @@ const STEPS = [
   { place: 3, className: 'third tier-a' },
 ];
 
+/** O ranking mostra sempre pelo menos estas posições (pódio + lista), mesmo vazio. */
+const MIN_POSITIONS = 10;
+
 const PERIODS: { id: Period; label: string }[] = [
   { id: 'today', label: 'Hoje' },
   { id: 'total', label: 'Acumulado' },
@@ -62,9 +65,25 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
 
   const isYou = (s: LeaderboardEntry) => Boolean(highlight && sameNick(s.name, highlight));
 
+  const loading = scores === null;
+  const entries = scores ?? [];
+  /** Posições da lista (do 4º em diante): sempre até o 10º, vazias quando ainda não tem jogador. */
+  const rowCount = Math.max(MIN_POSITIONS, entries.length) - 3;
+
   const podiumStep = ({ place, className }: (typeof STEPS)[number]) => {
-    const s = scores?.[place - 1];
-    if (!s) return <div key={place} className={`podium-step ${className} empty`} />;
+    const s = entries[place - 1];
+    if (!s) {
+      return (
+        <div key={place} role="listitem" className={`podium-step ${className} placeholder`}>
+          <span className={`skeleton-avatar${place === 1 ? ' large' : ''}`} />
+          <span className="skeleton-bar" />
+          <span className="podium-score">—</span>
+          <div className="podium-block">
+            <span className="podium-place">{place}º</span>
+          </div>
+        </div>
+      );
+    }
     const title = s.look.title ? cosmeticById(s.look.title)?.label : undefined;
     return (
       <div key={place} role="listitem" className={`podium-step ${className}${isYou(s) ? ' you' : ''}`}>
@@ -119,33 +138,43 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
           </p>
         </div>
       )}
-      {scores === null && <p className="muted">Carregando...</p>}
       {scores?.length === 0 && (
-        <p className="muted">{period === 'today' ? 'Ninguém jogou hoje ainda.' : 'Ninguém jogou ainda.'} Seja o primeiro.</p>
+        <p className="muted leaderboard-empty">
+          {period === 'today' ? 'Ninguém jogou hoje ainda.' : 'Ninguém jogou ainda.'} Seja o primeiro.
+        </p>
       )}
-      {scores && scores.length > 0 && (
-        <>
-          <div className="podium leaderboard-podium" role="list" aria-label="Pódio">
-            {STEPS.map(podiumStep)}
-          </div>
-          {scores.length > 3 && (
-            <ol className="row-list leaderboard-rows" start={4}>
-              {scores.slice(3).map((s, i) => (
-                <li key={i} className={`row row-leader${isYou(s) ? ' highlight' : ''}`}>
-                  <RankBadge position={i + 4} small />
-                  <span className="row-name">
-                    <PlayerTag name={s.name} look={s.look} size={36} />
-                  </span>
-                  <span className="row-score">
-                    {s.score}
-                    {detail(s) && <small className="row-detail">{detail(s)}</small>}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </>
-      )}
+      {/* Skeleton: pódio e posições aparecem sempre; pulsam enquanto carrega e ficam vazias se faltar jogador. */}
+      <div className={loading ? 'leaderboard-loading' : undefined} aria-busy={loading}>
+        <div className="podium leaderboard-podium" role="list" aria-label="Pódio">
+          {STEPS.map(podiumStep)}
+        </div>
+        <ol className="row-list leaderboard-rows" start={4}>
+          {Array.from({ length: rowCount }, (_, i) => {
+            const s = entries[i + 3];
+            return s ? (
+              <li key={i} className={`row row-leader${isYou(s) ? ' highlight' : ''}`}>
+                <RankBadge position={i + 4} small />
+                <span className="row-name">
+                  <PlayerTag name={s.name} look={s.look} size={36} />
+                </span>
+                <span className="row-score">
+                  {s.score}
+                  {detail(s) && <small className="row-detail">{detail(s)}</small>}
+                </span>
+              </li>
+            ) : (
+              <li key={i} className="row row-leader row-placeholder">
+                <RankBadge position={i + 4} small />
+                <span className="row-name">
+                  <span className="skeleton-avatar small" />
+                  <span className="skeleton-bar" />
+                </span>
+                <span className="row-score">—</span>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
     </div>
   );
 }

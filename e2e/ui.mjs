@@ -33,13 +33,13 @@ try {
   await chooseNick(ana, nick('Ana'));
   const bar = await ana.$eval('.profile-bar', (el) => {
     const r = el.getBoundingClientRect();
-    return { right: Math.round(innerWidth - r.right), top: Math.round(r.top) };
+    return { right: Math.round(document.documentElement.clientWidth - r.right), top: Math.round(r.top) };
   });
   check('barra de perfil no canto superior direito', bar.right <= 20 && bar.top <= 20, JSON.stringify(bar));
   const centers = await ana.evaluate(() =>
     ['.play-buttons', '.leaderboard'].map((s) => {
       const r = document.querySelector(s).getBoundingClientRect();
-      return Math.round(r.left + r.width / 2 - innerWidth / 2);
+      return Math.round(r.left + r.width / 2 - document.documentElement.clientWidth / 2);
     }),
   );
   check('SOLO/PARTY e ranking centralizados', centers.every((c) => Math.abs(c) <= 2), centers.join(', '));
@@ -211,9 +211,14 @@ try {
     'ranking mostra o visual do jogador',
     Boolean(await ana.$('.leaderboard :is(.row.highlight, .podium-step.you) .cosmetic-frame-legend')),
   );
-  const podium = await ana.$$eval('.leaderboard-podium .podium-step:not(.empty)', (els) => els.length);
+  const podium = await ana.$$eval('.leaderboard-podium .podium-step', (els) => els.length);
   const firstRow = await text(ana, '.leaderboard-rows .row .rank-badge');
-  check('3 primeiros no pódio, lista começa no 4º', podium >= 1 && podium <= 3 && (firstRow === null || firstRow === '4'), `${podium} / ${firstRow}`);
+  const positions = await ana.$$eval('.leaderboard-rows .row', (els) => els.length);
+  check(
+    'pódio com 3 degraus, lista do 4º ao 10º (vazias se faltar jogador)',
+    podium === 3 && firstRow === '4' && positions >= 7,
+    `${podium} / ${firstRow} / ${positions}`,
+  );
   check('Hoje mostra o tempo no pódio', /^\d+s$|^\d+:\d\d$/.test((await text(ana, '.leaderboard-podium .podium-detail')) ?? ''));
   await ana.click('.leaderboard-periods button:nth-child(2)');
   await ana.waitForSelector('.leaderboard-podium .podium-detail ::-p-text(dia)');

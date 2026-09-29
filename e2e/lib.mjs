@@ -193,7 +193,7 @@ export async function launchBrowser() {
 }
 
 export const text = (page, selector) => page.$eval(selector, (el) => el.textContent.trim()).catch(() => null);
-export const overflowX = (page) => page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+export const overflowX = (page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
 /** Cria a conta na primeira tela (Login → nick livre → senha) e espera a home (ou a sala, se veio de convite). */
 export async function chooseNick(page, name, waitFor = '.play-buttons') {
