@@ -20,9 +20,10 @@ Requer Node 22.12+ (o projeto usa Node 24, fixado em `.node-version`).
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
-npm test           # testes da lógica de pontuação
-npm run build      # gera dist/ (site estático)
+npm run db:migrate:local   # cria o D1 local em .wrangler/ (uma vez, e a cada migração nova)
+npm run dev                # http://localhost:5173 — front + API (Worker) + D1 local, com hot reload
+npm test                   # testes da lógica de pontuação
+npm run build              # gera dist/client (site) e dist/power_rank (Worker)
 ```
 
 ## Estrutura
@@ -33,6 +34,10 @@ public/chars/            imagens dos personagens
 scripts/
   fetch-images.mjs       baixa imagens do AniList para quem não tem `image`
   validate-data.mjs      checa ids, campos e imagens
+server/                  API (Cloudflare Worker)
+  worker.ts              roteador de /api/*
+  games.ts, scores.ts    rotas
+migrations/              schema do D1
 src/
   game/                  lógica pura (sorteio, pontuação) + testes
   components/            telas: Intro, Playing, Result
@@ -51,16 +56,23 @@ src/
    - Achou o personagem errado? Adicione `"anilistId"` e rode `npm run fetch:images -- <id>`.
 3. `npm run validate`.
 
-## Deploy grátis (Cloudflare Pages)
+## Deploy (Cloudflare Workers, grátis)
 
-1. Suba este diretório para um repositório no GitHub.
-2. Cloudflare Dashboard → Workers & Pages → Create → Pages → conectar o repo.
-3. Build command: `npm run build` · Output directory: `dist` · (se o jogo estiver numa subpasta do repo,
-   configure o "Root directory").
-4. Cada push na branch principal faz deploy automático.
+O Worker `power-rank` está conectado ao repositório no GitHub (Workers Builds): cada push na `main` roda
+`npm run build` e `npx wrangler deploy`. Configuração em `wrangler.jsonc`: os assets do Vite são servidos
+direto, e só `/api/*` passa pelo Worker. Deploy manual: `npm run deploy`.
 
-## Próximo passo: ranking global
+## Ranking global (Worker + D1)
 
-- `functions/api/scores.ts` → Cloudflare Pages Functions (vira `/api/scores` automaticamente).
-- Banco: Cloudflare D1 (SQLite), tabela `scores(id, name, score, character_ids, positions, created_at)`.
-- O servidor recalcula a pontuação a partir de `characters.json` em vez de confiar no número enviado pelo cliente.
+| Rota | O que faz |
+|---|---|
+| `POST /api/games` | Sorteia os 10 personagens no servidor e grava a partida. Devolve `{ gameId, characterIds }`. |
+| `POST /api/scores` | `{ gameId, name, placements }`. Confere que `placements` usa exatamente os personagens da partida, recalcula a pontuação com `src/game/scoring.ts` e grava. Cada partida só pode ser enviada uma vez, em até 1h. |
+| `GET /api/scores` | Top 20. |
+
+Se a API falhar, o jogo sorteia localmente e esconde o envio ao ranking.
+
+### Nova migração
+
+Crie `migrations/0002_nome.sql`, rode `npm run db:migrate:local` para testar e `npm run db:migrate:remote`
+antes de dar push no código que depende dela.

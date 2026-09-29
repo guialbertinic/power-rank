@@ -1,11 +1,22 @@
+import { useState } from 'react';
 import { MAX_SCORE, rankTitle, scoreGame, type Range } from '../game/scoring';
 import type { Character } from '../game/types';
 import Avatar from './Avatar';
+import Leaderboard from './Leaderboard';
+import SubmitScore from './SubmitScore';
 
 const formatRange = ({ min, max }: Range) => (min === max ? `#${min}` : `#${min}–${max}`);
 
-export default function ResultScreen({ slots, onRestart }: { slots: Character[]; onRestart: () => void }) {
+interface Props {
+  gameId: string | null;
+  slots: Character[];
+  starting: boolean;
+  onRestart: () => void;
+}
+
+export default function ResultScreen({ gameId, slots, starting, onRestart }: Props) {
   const { total, results, correctOrder } = scoreGame(slots);
+  const [submittedAs, setSubmittedAs] = useState<string | undefined>();
 
   return (
     <section className="result">
@@ -14,8 +25,11 @@ export default function ResultScreen({ slots, onRestart }: { slots: Character[];
           {total} <span>/ {MAX_SCORE}</span>
         </p>
         <p className="score-title">{rankTitle(total)}</p>
-        <button className="btn-primary" onClick={onRestart} autoFocus>
-          Jogar de novo
+        {gameId && (
+          <SubmitScore gameId={gameId} placements={slots.map((c) => c.id)} onSubmitted={setSubmittedAs} />
+        )}
+        <button className="btn-primary" onClick={onRestart} disabled={starting}>
+          {starting ? 'Sorteando...' : 'Jogar de novo'}
         </button>
       </div>
 
@@ -54,6 +68,12 @@ export default function ResultScreen({ slots, onRestart }: { slots: Character[];
           </ol>
         </div>
       </div>
+
+      {gameId && (
+        <div className="result-leaderboard">
+          <Leaderboard refreshKey={submittedAs ? 1 : 0} highlight={submittedAs} />
+        </div>
+      )}
     </section>
   );
 }

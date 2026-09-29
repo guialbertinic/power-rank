@@ -5,11 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p server",
+    "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "validate": "node scripts/validate-data.mjs",
-    "fetch:images": "node scripts/fetch-images.mjs"
+    "fetch:images": "node scripts/fetch-images.mjs",
+    "db:migrate:local": "wrangler d1 migrations apply power-rank --local",
+    "db:migrate:remote": "wrangler d1 migrations apply power-rank --remote",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "react": "^19.3.0",
@@ -19,11 +23,18 @@
     "node": ">=22.12"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.62.0",
+    "@cloudflare/workers-types": "^5.20260929.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.2",
+    "wrangler": "^4.143.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "workerd@1.20260926.1": true
   }
 }

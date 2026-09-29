@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "power-rank",
+  "main": "server/worker.ts",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    // Rotas do React caem no index.html; /api/* vai sempre para o Worker.
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "power-rank",
+      "database_id": "5130a3c3-6a0c-4622-9010-ed30ab6df7d1",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "observability": { "enabled": true }
+}
