@@ -1,0 +1,72 @@
+/*
+ * Design system: Dark Battle Interface.
+ * Tokens de cor, tipografia e forma. Componentes usam só estas variáveis.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Superfícies */
+  --bg: #0a0c10;
+  --surface: #121620;
+  --surface-2: #181d2a;
+  --border: #232b3e;
+  --grid-line: rgba(138, 150, 176, 0.08);
+
+  /* Texto */
+  --text: #f0f4fc;
+  --text-2: #8a96b0;
+
+  /* Tiers: --tier-*: cor sólida (borda, brilho, texto); --tier-*-fill: preenchimento de badges */
+  --tier-ss: #ffb000;
+  --tier-ss-fill: linear-gradient(135deg, #ffd700, #ff4500);
+  --tier-s: #ff2a6d;
+  --tier-a: #05d9e8;
+  --tier-b: #0056ff;
+  --tier-b-text: #4d8bff;
+  --tier-c: #00e676;
+  --tier-d: #7a8b9e;
+
+  /* Ação principal */
+  --accent: #ff2a6d;
+  --accent-fill: linear-gradient(135deg, #ff2a6d, #9a00e6);
+
+  /* Tipografia */
+  --font-display: 'Chakra Petch', 'Arial Narrow', sans-serif;
+  --font-body: 'Rajdhani', 'Arial Narrow', sans-serif;
+  --tracking-display: 0.06em;
+
+  /* Forma: nada de cantos muito arredondados */
+  --radius: 2px;
+  --chamfer: 12px;
+  --chamfer-sm: 6px;
+  --clip-chamfer: polygon(
+    var(--chamfer) 0,
+    100% 0,
+    100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%,
+    0 100%,
+    0 var(--chamfer)
+  );
+  --clip-chamfer-sm: polygon(
+    var(--chamfer-sm) 0,
+    100% 0,
+    100% calc(100% - var(--chamfer-sm)),
+    calc(100% - var(--chamfer-sm)) 100%,
+    0 100%,
+    0 var(--chamfer-sm)
+  );
+  --clip-slant: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/*
+ * Cada tier expõe para o componente:
+ * --tier-color (borda/brilho), --tier-fill (fundo do badge), --tier-text (texto), --tier-on (texto sobre o badge).
+ */
+.tier-ss { --tier-color: var(--tier-ss); --tier-fill: var(--tier-ss-fill); --tier-text: var(--tier-ss);     --tier-on: var(--bg); }
+.tier-s  { --tier-color: var(--tier-s);  --tier-fill: var(--tier-s);       --tier-text: var(--tier-s);      --tier-on: var(--bg); }
+.tier-a  { --tier-color: var(--tier-a);  --tier-fill: var(--tier-a);       --tier-text: var(--tier-a);      --tier-on: var(--bg); }
+.tier-b  { --tier-color: var(--tier-b);  --tier-fill: var(--tier-b);       --tier-text: var(--tier-b-text); --tier-on: #fff; }
+.tier-c  { --tier-color: var(--tier-c);  --tier-fill: var(--tier-c);       --tier-text: var(--tier-c);      --tier-on: var(--bg); }
+.tier-d  { --tier-color: var(--tier-d);  --tier-fill: var(--tier-d);       --tier-text: var(--tier-d);      --tier-on: var(--bg); }

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchLeaderboard, type LeaderboardEntry } from '../api';
+import { sameNick } from '../nick';
+import RankBadge from './RankBadge';
 
 /** Top do ranking global. `refreshKey` força recarregar (ex: depois de enviar uma pontuação). */
 export default function Leaderboard({ refreshKey = 0, highlight }: { refreshKey?: number; highlight?: string }) {
@@ -24,16 +26,16 @@ export default function Leaderboard({ refreshKey = 0, highlight }: { refreshKey?
 
   return (
     <div className="panel leaderboard">
-      <h3>Ranking global</h3>
+      <h3 className="section-title">Ranking global</h3>
       {scores === null && <p className="muted">Carregando...</p>}
-      {scores?.length === 0 && <p className="muted">Ninguém jogou ainda. Seja o primeiro!</p>}
+      {scores?.length === 0 && <p className="muted">Ninguém jogou ainda. Seja o primeiro.</p>}
       {scores && scores.length > 0 && (
-        <ol className="result-list">
+        <ol className="row-list">
           {scores.map((s, i) => (
-            <li key={i} className={s.name === highlight ? 'highlight' : undefined}>
-              <span className="slot-pos">#{i + 1}</span>
-              <span className="slot-name">{s.name}</span>
-              <span className="result-points">{s.score}</span>
+            <li key={i} className={`row row-leader${highlight && sameNick(s.name, highlight) ? ' highlight' : ''}`}>
+              <RankBadge position={i + 1} small />
+              <span className="row-name">{s.name}</span>
+              <span className="row-score">{s.score}</span>
             </li>
           ))}
         </ol>

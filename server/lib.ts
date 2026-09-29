@@ -31,3 +31,8 @@ export function sanitizeName(raw: unknown): string | null {
     .slice(0, NAME_MAX_LENGTH);
   return name || null;
 }
+
+/** Identidade do jogador no ranking: "Albertini" e "albertini" são o mesmo. */
+export function nameKey(name: string): string {
+  return name.normalize('NFC').toLocaleLowerCase('pt-BR');
+}

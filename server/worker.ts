@@ -14,7 +14,7 @@ export default {
     try {
       switch (route) {
         case 'POST /api/games':
-          return await createGame(env, ctx);
+          return await createGame(request, env, ctx);
         case 'GET /api/scores':
           return await getLeaderboard(env);
         case 'POST /api/scores':

@@ -60,5 +60,5 @@ export function rankTitle(total: number): string {
   if (total >= 700) return 'Mestre do Power Scaling';
   if (total >= 500) return 'Veterano';
   if (total >= 300) return 'Aprendiz';
-  return 'Assistiu só o primeiro episódio';
+  return 'Só viu o trailer';
 }

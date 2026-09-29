@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import type { Character } from '../game/types';
+import { tierClass, tierForPosition } from '../ui/tiers';
 import Avatar from './Avatar';
+import PowerCard from './PowerCard';
+import RankBadge from './RankBadge';
 
 interface Props {
   current: Character;
@@ -21,34 +24,33 @@ export default function PlayingScreen({ current, index, slots, onPlace }: Props)
     return () => window.removeEventListener('keydown', onKey);
   }, [slots.length, onPlace]);
 
+  const counter = `${String(index + 1).padStart(2, '0')}/${String(slots.length).padStart(2, '0')}`;
+
   return (
     <section className="playing">
-      <div className="panel current">
-        <p className="counter">
-          Personagem {index + 1} de {slots.length}
-        </p>
-        <div key={current.id} className="current-card">
-          <Avatar character={current} size={160} />
-          <h2>{current.name}</h2>
-          <p className="anime">{current.anime}</p>
-          {current.version && <p className="version">{current.version}</p>}
-        </div>
-        <p className="hint">Escolha uma posição ao lado (ou tecle 1–9, 0 = 10)</p>
+      <div className="playing-card">
+        <PowerCard key={current.id} character={current} badge={counter} />
+        <p className="hint">Teclas 1–9 · 0 = 10</p>
       </div>
 
-      <ol className="panel slots">
+      <ol className="rank-slots">
         {slots.map((character, i) => (
           <li key={i}>
-            <button className="slot" disabled={character !== null} onClick={() => onPlace(i)}>
-              <span className="slot-pos">#{i + 1}</span>
-              {character ? (
-                <>
-                  <Avatar character={character} size={36} />
-                  <span className="slot-name">{character.name}</span>
-                </>
-              ) : (
-                <span className="slot-empty">Colocar aqui</span>
-              )}
+            <button
+              className={`rank-slot ${tierClass(tierForPosition(i + 1))}${character ? ' filled' : ''}`}
+              disabled={character !== null}
+              onClick={() => onPlace(i)}
+              aria-label={character ? `Posição ${i + 1}: ${character.name}` : `Colocar na posição ${i + 1}`}
+            >
+              <RankBadge position={i + 1} />
+              <span className="rank-slot-body">
+                {character && (
+                  <>
+                    <Avatar character={character} size={36} />
+                    <span className="rank-slot-name">{character.name}</span>
+                  </>
+                )}
+              </span>
             </button>
           </li>
         ))}

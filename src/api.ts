@@ -4,6 +4,15 @@ export interface LeaderboardEntry {
   createdAt: number;
 }
 
+export interface SubmitResult {
+  score: number;
+  /** Melhor pontuação do jogador, contando esta partida. */
+  best: number;
+  isNewBest: boolean;
+  /** Posição do melhor resultado do jogador no ranking global. */
+  rank: number;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...init,
@@ -14,20 +23,28 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
-/** Sorteia uma partida no servidor. Retorna null se a API não estiver disponível (ex: `npm run dev` sem backend). */
-export async function createGame(): Promise<{ gameId: string; characterIds: string[] } | null> {
+/** Sorteia uma partida no servidor. Retorna null se a API não estiver disponível. */
+export async function createGame(name: string): Promise<{ gameId: string; characterIds: string[] } | null> {
   try {
-    return await request('/api/games', { method: 'POST' });
+    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name }) });
   } catch {
     return null;
   }
 }
 
-export function submitScore(gameId: string, name: string, placements: string[]) {
-  return request<{ score: number; rank: number }>('/api/scores', {
-    method: 'POST',
-    body: JSON.stringify({ gameId, name, placements }),
-  });
+const submissions = new Map<string, Promise<SubmitResult>>();
+
+/** Envia o resultado da partida uma única vez, mesmo que seja chamado de novo (ex: StrictMode). */
+export function submitScoreOnce(gameId: string, placements: string[]): Promise<SubmitResult> {
+  let pending = submissions.get(gameId);
+  if (!pending) {
+    pending = request<SubmitResult>('/api/scores', {
+      method: 'POST',
+      body: JSON.stringify({ gameId, placements }),
+    });
+    submissions.set(gameId, pending);
+  }
+  return pending;
 }
 
 export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
