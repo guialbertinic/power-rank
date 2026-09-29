@@ -52,6 +52,15 @@ export function submitScoreOnce(gameId: string, placements: string[]): Promise<S
   return pending;
 }
 
+/** Cria uma sala da Party; o dono entra em seguida pelo WebSocket com o mesmo `pid`. */
+export async function createParty(mode: Mode, pid: string): Promise<string> {
+  const { code } = await request<{ code: string }>('/api/party', {
+    method: 'POST',
+    body: JSON.stringify({ mode, pid }),
+  });
+  return code;
+}
+
 export async function fetchLeaderboard(mode: Mode): Promise<LeaderboardEntry[]> {
   const { scores } = await request<{ scores: LeaderboardEntry[] }>(`/api/scores?mode=${mode}`);
   return scores;

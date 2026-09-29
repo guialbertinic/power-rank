@@ -910,3 +910,339 @@ input:focus {
     white-space: nowrap;
   }
 }
+
+/* ---------- Party (multiplayer) ---------- */
+
+.play-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-party {
+  color: var(--text);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.btn-party.active {
+  color: var(--bg);
+  background: var(--tier-a);
+}
+
+.party-entry {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.party-entry-or {
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.party-join {
+  display: flex;
+  gap: 8px;
+}
+
+.party-join input {
+  width: 9.5em;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  text-align: center;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.party-entry-hint {
+  font-size: 0.9rem;
+}
+
+.party {
+  display: grid;
+  gap: 16px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+/* A coluna da party é estreita: a comparação de rankings fica uma embaixo da outra. */
+.party .result-columns {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* A partida da party usa o layout do solo, que é mais largo. */
+.party:has(.playing) {
+  max-width: none;
+}
+
+.party-code-panel,
+.party-waiting-panel,
+.party-message {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.party-code {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 12vw, 3.6rem);
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  color: var(--tier-a);
+  text-shadow: 0 0 22px rgba(5, 217, 232, 0.35);
+}
+
+.party-code-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+}
+
+.party-actions {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+}
+
+.party-waiting-text,
+.party-waiting-title {
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.party-waiting-title {
+  font-size: 1.3rem;
+  color: var(--text);
+}
+
+.party-player {
+  padding-left: 12px;
+}
+
+.party-player.you {
+  box-shadow: inset 3px 0 0 var(--tier-a);
+}
+
+.party-player.offline {
+  opacity: 0.45;
+}
+
+.party-player-index {
+  width: 1.4em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-style: italic;
+  color: var(--text-2);
+}
+
+.party-tag {
+  margin-left: 8px;
+  padding: 1px 8px;
+  background: var(--accent-fill);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  vertical-align: middle;
+  clip-path: var(--clip-slant);
+}
+
+.party-tag-you {
+  background: var(--tier-a);
+  color: var(--bg);
+}
+
+.party-progress {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.party-progress .seg {
+  width: 6px;
+  height: 12px;
+  background: var(--border);
+  transform: skewX(-20deg);
+  transition: background 0.2s;
+}
+
+.party-progress .seg.on {
+  background: var(--tier-a);
+}
+
+.party-player.done .party-progress .seg.on {
+  background: var(--tier-c);
+}
+
+.party-status {
+  min-width: 5.5em;
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.party-player.done .party-status {
+  color: var(--tier-c);
+}
+
+.party-spinner {
+  width: 26px;
+  height: 26px;
+  margin-top: 6px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.party-banner {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  z-index: 10;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 600;
+  clip-path: var(--clip-chamfer-sm);
+}
+
+.party-banner-notice {
+  top: 56px;
+  border-color: var(--tier-s);
+  color: var(--tier-s);
+}
+
+/* Pódio: 2º, 1º, 3º, com degraus nas cores dos tiers */
+.podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.podium-step {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  animation: podium-rise 0.6s var(--ease-out) both;
+}
+
+.podium-step.first {
+  animation-delay: 0.45s;
+}
+
+.podium-step.second {
+  animation-delay: 0.2s;
+}
+
+.podium-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.podium-step.you .podium-name {
+  color: var(--tier-a);
+}
+
+.podium-score {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--tier-text);
+}
+
+.podium-block {
+  display: grid;
+  place-items: start center;
+  width: 100%;
+  padding-top: 10px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--tier-color) 35%, var(--surface)), var(--surface));
+  border-top: 3px solid var(--tier-color);
+  box-shadow: 0 -6px 24px color-mix(in srgb, var(--tier-color) 25%, transparent);
+  clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
+}
+
+.podium-step.first .podium-block {
+  height: 150px;
+}
+
+.podium-step.second .podium-block {
+  height: 110px;
+}
+
+.podium-step.third .podium-block {
+  height: 80px;
+}
+
+.podium-place {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--tier-text);
+}
+
+.podium-step.empty {
+  visibility: hidden;
+}
+
+@keyframes podium-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@media (max-width: 760px) {
+  .play-buttons .btn-lg {
+    padding: 16px 40px;
+  }
+
+  .podium-step.first .podium-block {
+    height: 120px;
+  }
+
+  .podium-step.second .podium-block {
+    height: 90px;
+  }
+
+  .podium-step.third .podium-block {
+    height: 64px;
+  }
+
+  .party-progress .seg {
+    width: 4px;
+  }
+}

@@ -1,0 +1,352 @@
+import { DurableObject } from 'cloudflare:workers';
+import { badRequest, CHARACTERS, CHARACTERS_BY_ID, json, nameKey, sanitizeName, type Env } from './lib';
+import { drawCharacters } from '../src/game/draw';
+import { isMode, poolFor, type Mode } from '../src/game/modes';
+import {
+  isPartyCode,
+  PARTY_CODE_ALPHABET,
+  PARTY_CODE_LENGTH,
+  PARTY_MAX_PLAYERS,
+  type ClientMessage,
+  type PartyPhase,
+  type PartyState,
+  type ServerMessage,
+} from '../src/game/party';
+import { scoreGame, SLOTS } from '../src/game/scoring';
+import type { Character } from '../src/game/types';
+
+/** Sala sem ninguém conectado é apagada depois desse tempo. */
+const IDLE_CLEANUP_MS = 30 * 60 * 1000;
+
+interface StoredPlayer {
+  /** Id secreto, gerado no navegador e guardado só na aba do jogador. Permite reconectar na mesma vaga. */
+  pid: string;
+  /** Id público, o único que vai para os outros jogadores. */
+  id: string;
+  name: string;
+  connected: boolean;
+  progress: number;
+  finished: boolean;
+  score?: number;
+  placements?: string[];
+  finishedAt?: number;
+}
+
+interface StoredRoom {
+  code: string;
+  mode: Mode;
+  phase: PartyPhase;
+  round: number;
+  hostPid: string;
+  characterIds: string[];
+  players: StoredPlayer[];
+  createdAt: number;
+}
+
+const isPid = (value: unknown): value is string => typeof value === 'string' && /^[\w-]{8,64}$/.test(value);
+
+/**
+ * Uma sala da Party. Cada código de sala vira um Durable Object (idFromName(code)), com os jogadores
+ * conectados por WebSocket (API de hibernação: a sala não fica cobrando tempo enquanto ninguém fala).
+ * Cada mudança de estado é salva no storage e transmitida a todos.
+ */
+export class PartyRoom extends DurableObject<Env> {
+  /** Cache do estado; `undefined` = ainda não carregado desde que o objeto acordou. */
+  private room: StoredRoom | null | undefined;
+
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    if (request.method === 'POST' && url.pathname === '/init') return this.init(request);
+    if (request.headers.get('Upgrade') === 'websocket') return this.openSocket(url);
+    return json({ error: 'Not found' }, { status: 404 });
+  }
+
+  /** Chamado pelo Worker ao criar a sala. 409 se o código já estiver em uso (o Worker sorteia outro). */
+  private async init(request: Request): Promise<Response> {
+    const { code, mode, hostPid } = (await request.json()) as { code: string; mode: Mode; hostPid: string };
+    if (await this.load()) return json({ error: 'Código em uso' }, { status: 409 });
+
+    this.room = { code, mode, phase: 'lobby', round: 0, hostPid, characterIds: [], players: [], createdAt: Date.now() };
+    await this.save();
+    // Se o dono nunca conectar, a sala some sozinha.
+    await this.ctx.storage.setAlarm(Date.now() + IDLE_CLEANUP_MS);
+    return json({ ok: true });
+  }
+
+  private async openSocket(url: URL): Promise<Response> {
+    const { 0: client, 1: server } = new WebSocketPair();
+    this.ctx.acceptWebSocket(server);
+
+    const pid = url.searchParams.get('pid');
+    const error = await this.join(server, pid, url.searchParams.get('name'));
+    if (error) {
+      this.send(server, { type: 'error', message: error });
+      server.close(4000, error);
+    }
+    return new Response(null, { status: 101, webSocket: client });
+  }
+
+  /** Entra (ou reconecta) na sala. Devolve a mensagem de erro, se não puder. */
+  private async join(ws: WebSocket, pid: string | null, rawName: string | null): Promise<string | null> {
+    const room = await this.load();
+    if (!room) return 'Sala não encontrada';
+    if (!isPid(pid)) return 'Identificação inválida';
+
+    const existing = room.players.find((p) => p.pid === pid);
+    if (existing) {
+      // Reconexão: a conexão antiga (se ainda aberta) é substituída.
+      for (const other of this.socketsOf(pid)) if (other !== ws) other.close(4001, 'Conectado em outra aba');
+      existing.connected = true;
+    } else {
+      if (room.phase !== 'lobby') return 'A partida já começou';
+      if (room.players.length >= PARTY_MAX_PLAYERS) return `Sala cheia (máximo ${PARTY_MAX_PLAYERS})`;
+      const name = sanitizeName(rawName);
+      if (!name) return 'Nick inválido';
+      if (room.players.some((p) => nameKey(p.name) === nameKey(name))) return 'Esse nick já está na sala';
+      room.players.push({ pid, id: crypto.randomUUID().slice(0, 8), name, connected: true, progress: 0, finished: false });
+    }
+
+    ws.serializeAttachment({ pid });
+    this.fixHost(room);
+    await this.ctx.storage.deleteAlarm();
+    await this.commit();
+    return null;
+  }
+
+  async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
+    const room = await this.load();
+    const pid = this.pidOf(ws);
+    const player = room?.players.find((p) => p.pid === pid);
+    if (!room || !player) return;
+
+    let message: ClientMessage;
+    try {
+      message = JSON.parse(typeof raw === 'string' ? raw : new TextDecoder().decode(raw));
+    } catch {
+      return;
+    }
+
+    const isHost = room.hostPid === player.pid;
+    const fail = (text: string) => this.send(ws, { type: 'error', message: text });
+
+    switch (message.type) {
+      case 'start': {
+        if (!isHost) return fail('Só o dono da sala pode iniciar');
+        if (room.phase === 'playing') return;
+        const pool = poolFor(room.mode, CHARACTERS);
+        if (pool.length < SLOTS) return fail('Categoria sem personagens suficientes');
+        room.characterIds = drawCharacters(pool, SLOTS).map((c) => c.id);
+        room.round++;
+        room.phase = 'playing';
+        // Quem saiu da sala não entra na nova partida.
+        room.players = room.players
+          .filter((p) => p.connected)
+          .map(({ pid, id, name, connected }) => ({ pid, id, name, connected, progress: 0, finished: false }));
+        break;
+      }
+      case 'progress': {
+        if (room.phase !== 'playing' || player.finished) return;
+        if (!Number.isInteger(message.placed) || message.placed < 0 || message.placed > SLOTS) return;
+        player.progress = message.placed;
+        // Progresso é passageiro: só transmite, sem gravar (gravar atrasaria cada clique). Se a sala
+        // hibernar, o próximo clique do jogador atualiza de novo.
+        this.broadcast();
+        return;
+      }
+      case 'finish': {
+        if (room.phase !== 'playing' || player.finished) return;
+        const placements = message.placements;
+        const valid =
+          Array.isArray(placements) &&
+          placements.length === room.characterIds.length &&
+          new Set(placements).size === placements.length &&
+          placements.every((id) => room.characterIds.includes(id));
+        if (!valid) return fail('Posições inválidas');
+
+        // Pontuação sempre calculada aqui, nunca vem do cliente.
+        const slots = placements.map((id) => CHARACTERS_BY_ID.get(id)) as Character[];
+        Object.assign(player, {
+          finished: true,
+          progress: SLOTS,
+          placements,
+          score: scoreGame(slots).total,
+          finishedAt: Date.now(),
+        });
+        this.ctx.waitUntil(this.recordScore(room.mode, player));
+        this.maybeFinishRound(room);
+        break;
+      }
+      case 'end': {
+        if (!isHost) return fail('Só o dono da sala pode encerrar');
+        if (room.phase !== 'playing') return;
+        room.phase = 'podium';
+        break;
+      }
+      default:
+        return;
+    }
+    await this.commit();
+  }
+
+  async webSocketClose(ws: WebSocket): Promise<void> {
+    await this.leave(ws);
+  }
+
+  async webSocketError(ws: WebSocket): Promise<void> {
+    await this.leave(ws);
+  }
+
+  private async leave(ws: WebSocket): Promise<void> {
+    const room = await this.load();
+    const pid = this.pidOf(ws);
+    if (!room || !pid) return;
+    // Se o jogador já reconectou por outra conexão, nada muda.
+    if (this.socketsOf(pid).some((other) => other !== ws)) return;
+
+    const player = room.players.find((p) => p.pid === pid);
+    if (!player) return;
+    player.connected = false;
+    if (room.phase === 'lobby') room.players = room.players.filter((p) => p !== player);
+    this.fixHost(room);
+    if (room.phase === 'playing') this.maybeFinishRound(room);
+
+    if (!room.players.some((p) => p.connected)) {
+      await this.ctx.storage.setAlarm(Date.now() + IDLE_CLEANUP_MS);
+    }
+    await this.commit(ws);
+  }
+
+  /** Limpeza da sala abandonada. */
+  async alarm(): Promise<void> {
+    if (this.ctx.getWebSockets().length > 0) return;
+    await this.ctx.storage.deleteAll();
+    this.room = null;
+  }
+
+  /** O pódio aparece quando todos os jogadores conectados terminaram (e pelo menos um terminou). */
+  private maybeFinishRound(room: StoredRoom) {
+    const someoneFinished = room.players.some((p) => p.finished);
+    const stillPlaying = room.players.some((p) => p.connected && !p.finished);
+    if (room.phase === 'playing' && someoneFinished && !stillPlaying) room.phase = 'podium';
+  }
+
+  /** Se o dono saiu, o jogador conectado mais antigo assume. */
+  private fixHost(room: StoredRoom) {
+    const host = room.players.find((p) => p.pid === room.hostPid);
+    if (host?.connected) return;
+    const next = room.players.find((p) => p.connected);
+    if (next) room.hostPid = next.pid;
+  }
+
+  /** O resultado de cada jogador também vale para o ranking da categoria, como no solo. */
+  private async recordScore(mode: Mode, player: StoredPlayer) {
+    const gameId = crypto.randomUUID();
+    const now = Date.now();
+    try {
+      await this.env.DB.batch([
+        this.env.DB.prepare(
+          'INSERT INTO games (id, character_ids, name, mode, created_at, submitted) VALUES (?, ?, ?, ?, ?, 1)',
+        ).bind(gameId, JSON.stringify(player.placements), player.name, mode, now),
+        this.env.DB.prepare(
+          'INSERT INTO scores (game_id, name, name_key, mode, score, placements, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        ).bind(gameId, player.name, nameKey(player.name), mode, player.score, JSON.stringify(player.placements), now),
+      ]);
+    } catch (err) {
+      console.error('party: falha ao gravar pontuação', err);
+    }
+  }
+
+  private async load(): Promise<StoredRoom | null> {
+    if (this.room === undefined) this.room = (await this.ctx.storage.get<StoredRoom>('room')) ?? null;
+    return this.room;
+  }
+
+  private async save() {
+    if (this.room) await this.ctx.storage.put('room', this.room);
+  }
+
+  /** Salva e envia o estado a todos os conectados (menos `except`, que está fechando). */
+  private async commit(except?: WebSocket) {
+    await this.save();
+    this.broadcast(except);
+  }
+
+  private broadcast(except?: WebSocket) {
+    const room = this.room;
+    if (!room) return;
+    for (const ws of this.ctx.getWebSockets()) {
+      if (ws === except) continue;
+      const player = room.players.find((p) => p.pid === this.pidOf(ws));
+      if (player) this.send(ws, { type: 'state', state: this.publicState(room), you: player.id });
+    }
+  }
+
+  private publicState(room: StoredRoom): PartyState {
+    const reveal = room.phase === 'podium';
+    return {
+      code: room.code,
+      mode: room.mode,
+      phase: room.phase,
+      round: room.round,
+      hostId: room.players.find((p) => p.pid === room.hostPid)?.id ?? '',
+      characterIds: room.characterIds,
+      // Pontuações e posições só aparecem no pódio.
+      players: room.players.map(({ id, name, connected, progress, finished, score, placements, finishedAt }) => ({
+        id,
+        name,
+        connected,
+        progress,
+        finished,
+        ...(reveal ? { score, placements, finishedAt } : {}),
+      })),
+    };
+  }
+
+  private send(ws: WebSocket, message: ServerMessage) {
+    try {
+      ws.send(JSON.stringify(message));
+    } catch {
+      // Conexão já fechada.
+    }
+  }
+
+  private pidOf(ws: WebSocket): string | undefined {
+    return (ws.deserializeAttachment() as { pid?: string } | null)?.pid;
+  }
+
+  private socketsOf(pid: string): WebSocket[] {
+    return this.ctx.getWebSockets().filter((ws) => this.pidOf(ws) === pid);
+  }
+}
+
+function randomCode(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(PARTY_CODE_LENGTH));
+  return [...bytes].map((b) => PARTY_CODE_ALPHABET[b % PARTY_CODE_ALPHABET.length]).join('');
+}
+
+/** POST /api/party: { mode, pid } → cria a sala e devolve { code }. O dono entra em seguida pelo WebSocket. */
+export async function createParty(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => null)) as { mode?: unknown; pid?: unknown } | null;
+  if (!isMode(body?.mode)) return badRequest('Categoria inválida');
+  if (!isPid(body?.pid)) return badRequest('Identificação inválida');
+  if (poolFor(body.mode, CHARACTERS).length < SLOTS) return badRequest('Categoria sem personagens suficientes');
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = randomCode();
+    const room = env.PARTY.get(env.PARTY.idFromName(code));
+    const res = await room.fetch('https://party/init', {
+      method: 'POST',
+      body: JSON.stringify({ code, mode: body.mode, hostPid: body.pid }),
+    });
+    if (res.ok) return json({ code });
+    if (res.status !== 409) return json({ error: 'Não foi possível criar a sala' }, { status: 500 });
+  }
+  return json({ error: 'Não foi possível criar a sala' }, { status: 503 });
+}
+
+/** GET /api/party/:code/ws (upgrade para WebSocket): encaminha para a sala. */
+export function connectParty(request: Request, env: Env, code: string): Response | Promise<Response> {
+  if (!isPartyCode(code)) return badRequest('Código inválido');
+  if (request.headers.get('Upgrade') !== 'websocket') return badRequest('Esperado WebSocket');
+  return env.PARTY.get(env.PARTY.idFromName(code)).fetch(request);
+}

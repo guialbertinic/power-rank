@@ -1,8 +1,10 @@
 import characters from '../data/characters.json';
 import type { Character } from '../src/game/types';
+import type { PartyRoom } from './party';
 
 export interface Env {
   DB: D1Database;
+  PARTY: DurableObjectNamespace<PartyRoom>;
 }
 
 export const CHARACTERS = characters as Character[];

@@ -1,14 +1,16 @@
 import { lazy, Suspense, useReducer, useState } from 'react';
 import characters from '../data/characters.json';
-import { createGame } from './api';
+import { createGame, createParty } from './api';
 import { drawCharacters } from './game/draw';
 import { MODES, poolFor, type Mode } from './game/modes';
 import { SLOTS } from './game/scoring';
 import type { Character } from './game/types';
 import { loadMode, loadNick, saveMode, saveNick } from './nick';
+import { clearCodeFromUrl, codeFromUrl, newPid, partyPid, rememberPartyPid } from './party/session';
 import { preloadImages } from './ui/fallback';
 import IntroScreen from './components/IntroScreen';
 import ModePicker from './components/ModePicker';
+import PartyScreen from './components/party/PartyScreen';
 import PlayingScreen from './components/PlayingScreen';
 import ResultScreen from './components/ResultScreen';
 
@@ -18,10 +20,14 @@ const POOL_BY_ID = new Map(POOL.map((c) => [c.id, c]));
 // Tela de revisão da base (http://localhost:5173/?review). Só existe em dev: sai do build de produção.
 const ReviewScreen = import.meta.env.DEV ? lazy(() => import('./components/ReviewScreen')) : null;
 const showReview = import.meta.env.DEV && new URLSearchParams(window.location.search).has('review');
+// Link de convite da party (?sala=ABCDEF): lido uma vez ao abrir o jogo.
+const INVITE_CODE = codeFromUrl();
 
 /** `gameId` é null quando a partida foi sorteada localmente (sem API): aí ela não vai pro ranking. */
 type State =
   | { phase: 'intro' }
+  /** Na party, o estado do jogo vem da sala (PartyScreen); aqui só fica como entrar nela. */
+  | { phase: 'party'; code: string; pid: string }
   | {
       phase: 'playing';
       mode: Mode;
@@ -34,6 +40,7 @@ type State =
 
 type Action =
   | { type: 'start'; mode: Mode; gameId: string | null; drawn: Character[] }
+  | { type: 'party'; code: string; pid: string }
   | { type: 'place'; slot: number }
   | { type: 'home' };
 
@@ -58,6 +65,8 @@ function reducer(state: State, action: Action): State {
       }
       return { ...state, index, slots };
     }
+    case 'party':
+      return { phase: 'party', code: action.code, pid: action.pid };
     case 'home':
       return { phase: 'intro' };
   }
@@ -88,6 +97,7 @@ export default function App() {
     return isModeAvailable(saved) ? saved : 'anime';
   });
   const [starting, setStarting] = useState(false);
+  const [partyError, setPartyError] = useState<string | null>(null);
 
   const changeMode = (next: Mode) => {
     setMode(next);
@@ -106,6 +116,38 @@ export default function App() {
     }
   };
 
+  const createRoom = async () => {
+    const trimmed = nick.trim();
+    if (!trimmed) return;
+    saveNick(trimmed);
+    setPartyError(null);
+    setStarting(true);
+    try {
+      const pid = newPid();
+      const code = await createParty(mode, pid);
+      rememberPartyPid(code, pid);
+      dispatch({ type: 'party', code, pid });
+    } catch (err) {
+      setPartyError(err instanceof Error ? err.message : 'Não foi possível criar a sala');
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  const joinRoom = (code: string) => {
+    const trimmed = nick.trim();
+    if (!trimmed) return;
+    saveNick(trimmed);
+    setPartyError(null);
+    clearCodeFromUrl();
+    dispatch({ type: 'party', code, pid: partyPid(code) });
+  };
+
+  const eyebrow =
+    state.phase === 'party'
+      ? 'Party'
+      : MODES.find((m) => m.id === (state.phase === 'intro' ? mode : state.mode))?.label;
+
   return (
     <main className="app">
       <header className={`app-header${state.phase === 'intro' ? ' hero' : ''}`}>
@@ -113,9 +155,7 @@ export default function App() {
         {state.phase === 'intro' && !showReview ? (
           <ModePicker mode={mode} onChange={changeMode} isAvailable={isModeAvailable} disabled={starting} />
         ) : (
-          <span className="title-eyebrow">
-            {MODES.find((m) => m.id === (state.phase === 'intro' ? mode : state.mode))?.label}
-          </span>
+          <span className="title-eyebrow">{eyebrow}</span>
         )}
         <h1>
           <span className="title-main">
@@ -134,8 +174,22 @@ export default function App() {
           onNickChange={setNick}
           mode={mode}
           canStart={isModeAvailable(mode)}
-          starting={starting}
-          onStart={start}
+          busy={starting}
+          onSolo={start}
+          onCreateParty={createRoom}
+          onJoinParty={joinRoom}
+          partyError={partyError}
+          inviteCode={INVITE_CODE}
+        />
+      )}
+      {state.phase === 'party' && (
+        <PartyScreen
+          key={state.code}
+          code={state.code}
+          pid={state.pid}
+          nick={nick.trim()}
+          charactersById={POOL_BY_ID}
+          onExit={() => dispatch({ type: 'home' })}
         />
       )}
       {state.phase === 'playing' && (

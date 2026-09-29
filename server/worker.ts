@@ -1,6 +1,12 @@
 import { createGame } from './games';
 import { json, type Env } from './lib';
+import { connectParty, createParty } from './party';
 import { getLeaderboard, submitScore } from './scores';
+
+// O Durable Object das salas da Party precisa ser exportado pelo módulo principal do Worker.
+export { PartyRoom } from './party';
+
+const PARTY_SOCKET = /^\/api\/party\/([A-Za-z]+)\/ws$/;
 
 /**
  * Worker da API. Só recebe /api/* (ver `run_worker_first` no wrangler.jsonc);
@@ -12,6 +18,9 @@ export default {
     const route = `${request.method} ${pathname}`;
 
     try {
+      const partySocket = request.method === 'GET' ? PARTY_SOCKET.exec(pathname) : null;
+      if (partySocket) return await connectParty(request, env, partySocket[1].toUpperCase());
+
       switch (route) {
         case 'POST /api/games':
           return await createGame(request, env, ctx);
@@ -19,6 +28,8 @@ export default {
           return await getLeaderboard(request, env);
         case 'POST /api/scores':
           return await submitScore(request, env);
+        case 'POST /api/party':
+          return await createParty(request, env);
         default:
           return json({ error: 'Not found' }, { status: 404 });
       }
