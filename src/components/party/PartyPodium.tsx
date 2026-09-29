@@ -5,6 +5,7 @@ import Coins from '../Coins';
 import PlayerTag from '../PlayerTag';
 import RankBadge from '../RankBadge';
 import RankingComparison from '../RankingComparison';
+import { usePendingClick } from '../../ui/usePendingClick';
 
 interface Props {
   state: PartyState;
@@ -23,6 +24,7 @@ const STEPS = [
 
 /** Resultado da rodada: pódio, classificação completa e a comparação do próprio ranking. */
 export default function PartyPodium({ state, you, charactersById, onRestart, onLeave }: Props) {
+  const [restarting, restart] = usePendingClick();
   const ranking = podiumOrder(state.players);
   const unfinished = state.players.filter((p) => !p.finished);
   const me = state.players.find((p) => p.id === you);
@@ -97,7 +99,12 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
 
       <div className="party-actions">
         {isHost ? (
-          <button className="btn btn-primary btn-lg" onClick={onRestart}>
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={() => restart(onRestart)}
+            disabled={restarting}
+            aria-busy={restarting}
+          >
             Nova partida
           </button>
         ) : (

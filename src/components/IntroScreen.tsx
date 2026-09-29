@@ -32,8 +32,13 @@ export default function IntroScreen(props: Props) {
   return (
     <div className="intro">
       <div className="play-buttons">
-        <button className="btn btn-primary btn-lg" onClick={onSolo} disabled={busy || !canStart}>
-          {busy && !partyOpen ? 'Sorteando...' : 'Solo'}
+        <button
+          className="btn btn-primary btn-lg"
+          onClick={onSolo}
+          disabled={busy || !canStart}
+          aria-busy={busy && !partyOpen}
+        >
+          Solo
         </button>
         <button
           className={`btn btn-lg btn-party${partyOpen ? ' active' : ''}`}
@@ -47,8 +52,8 @@ export default function IntroScreen(props: Props) {
 
       {partyOpen && (
         <div className="panel party-entry">
-          <button className="btn btn-secondary" onClick={onCreateParty} disabled={busy || !canStart}>
-            {busy ? 'Criando...' : 'Criar sala'}
+          <button className="btn btn-secondary" onClick={onCreateParty} disabled={busy || !canStart} aria-busy={busy}>
+            Criar sala
           </button>
           <span className="party-entry-or">ou entre com o código</span>
           <form className="party-join" onSubmit={onJoin}>

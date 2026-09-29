@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MODES } from '../../game/modes';
 import { PARTY_MAX_PLAYERS, type PartyState } from '../../game/party';
 import { inviteLink } from '../../party/session';
+import { usePendingClick } from '../../ui/usePendingClick';
 import PlayerList from './PlayerList';
 
 interface Props {
@@ -23,6 +24,7 @@ async function copy(text: string): Promise<boolean> {
 /** Sala antes da partida: código para convidar, quem já entrou e o botão de iniciar (só o dono). */
 export default function PartyLobby({ state, you, onStart, onLeave }: Props) {
   const [copied, setCopied] = useState<'code' | 'link' | null>(null);
+  const [starting, start] = usePendingClick();
   const isHost = state.hostId === you;
   const mode = MODES.find((m) => m.id === state.mode)?.label;
 
@@ -59,7 +61,7 @@ export default function PartyLobby({ state, you, onStart, onLeave }: Props) {
 
       <div className="party-actions">
         {isHost ? (
-          <button className="btn btn-primary btn-lg" onClick={onStart}>
+          <button className="btn btn-primary btn-lg" onClick={() => start(onStart)} disabled={starting} aria-busy={starting}>
             Iniciar partida
           </button>
         ) : (

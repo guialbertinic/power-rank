@@ -120,8 +120,8 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
             autoComplete="new-password"
             disabled={saving}
           />
-          <button className="btn btn-primary btn-sm" disabled={saving || !password || !confirm}>
-            {saving ? 'Salvando...' : isGuest ? 'Criar conta' : 'Criar senha'}
+          <button className="btn btn-primary btn-sm" disabled={saving || !password || !confirm} aria-busy={saving}>
+            {isGuest ? 'Criar conta' : 'Criar senha'}
           </button>
           {error && <p className="error">{error}</p>}
         </form>
@@ -134,8 +134,13 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
 
       {!isGuest && (
         <div className="sync-force">
-          <button className="btn btn-secondary btn-sm" onClick={forceSync} disabled={sync === 'syncing'}>
-            {sync === 'syncing' ? 'Sincronizando...' : 'Forçar sincronização'}
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={forceSync}
+            disabled={sync === 'syncing'}
+            aria-busy={sync === 'syncing'}
+          >
+            Forçar sincronização
           </button>
           <p className="muted sync-note">
             {sync === 'done'

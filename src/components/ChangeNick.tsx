@@ -68,8 +68,8 @@ export default function ChangeNick({ identity, onChanged }: Props) {
         disabled={busy}
       />
       <div className="change-nick-actions">
-        <button className="btn btn-primary btn-sm" disabled={busy || !nick.trim()}>
-          {busy ? 'Salvando...' : 'Salvar'}
+        <button className="btn btn-primary btn-sm" disabled={busy || !nick.trim()} aria-busy={busy}>
+          Salvar
         </button>
         <button type="button" className="link-button" onClick={() => setOpen(false)} disabled={busy}>
           Cancelar

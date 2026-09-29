@@ -34,8 +34,8 @@ export default function ResultScreen({ mode, gameId, nick, slots, starting, onRe
           <p className="ranking-status">Partida offline: não conta pro ranking.</p>
         )}
         <div className="score-actions">
-          <button className="btn btn-primary" onClick={onRestart} disabled={starting}>
-            {starting ? 'Sorteando...' : 'Jogar de novo'}
+          <button className="btn btn-primary" onClick={onRestart} disabled={starting} aria-busy={starting}>
+            Jogar de novo
           </button>
         </div>
       </div>

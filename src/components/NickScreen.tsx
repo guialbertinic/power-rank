@@ -31,14 +31,16 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(reason);
-  const [busy, setBusy] = useState(false);
+  /** Botão que está esperando o servidor (mostra o loading nele). */
+  const [pending, setPending] = useState<'login' | 'guest' | 'password' | null>(null);
+  const busy = pending !== null;
 
-  const run = (action: () => Promise<void>) => {
-    setBusy(true);
+  const run = (button: 'login' | 'guest' | 'password', action: () => Promise<void>) => {
+    setPending(button);
     setError(null);
     action()
       .catch(() => setError('Sem conexão com o servidor. Tente de novo.'))
-      .finally(() => setBusy(false));
+      .finally(() => setPending(null));
   };
 
   const goTo = (next: Step) => {
@@ -61,7 +63,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
     e.preventDefault();
     const name = nick.trim();
     if (!name) return;
-    run(async () => {
+    run('login', async () => {
       const status = await nickStatus(name);
       if (!status.exists) return goTo({ kind: 'create', name });
       if (await tryStoredToken(name)) return;
@@ -72,7 +74,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
   const onGuest = () => {
     const name = nick.trim();
     if (!name) return;
-    run(async () => {
+    run('guest', async () => {
       const status = await nickStatus(name);
       if (!status.exists) return onDone({ name, token: null });
       if (await tryStoredToken(name)) return;
@@ -88,7 +90,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
       if (problem) return setError(problem);
     }
     const { name } = step;
-    run(async () => {
+    run('password', async () => {
       const result = await claimNick(name, null, password);
       if (result.ok) return onDone({ name: result.name, token: result.token });
       setError(result.taken ? 'Esse nick acabou de virar conta de outra pessoa. Escolha outro.' : result.error);
@@ -144,8 +146,12 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
           <input type="text" value={step.name} autoComplete="username" readOnly hidden />
           {passwordInput(password, setPassword, 'Senha', creating ? 'new-password' : 'current-password')}
           {creating && passwordInput(confirm, setConfirm, 'Confirmar senha', 'new-password')}
-          <button className="btn btn-primary btn-lg" disabled={busy || !password || (creating && !confirm)}>
-            {busy ? 'Verificando...' : creating ? 'Criar conta' : 'Entrar'}
+          <button
+            className="btn btn-primary btn-lg"
+            disabled={busy || !password || (creating && !confirm)}
+            aria-busy={pending === 'password'}
+          >
+            {creating ? 'Criar conta' : 'Entrar'}
           </button>
         </form>
         {error && <p className="error">{error}</p>}
@@ -185,11 +191,21 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
           disabled={busy}
         />
         <div className="nick-actions">
-          <button className="btn btn-primary nick-login" disabled={busy || !nick.trim()}>
+          <button
+            className="btn btn-primary nick-login"
+            disabled={busy || !nick.trim()}
+            aria-busy={pending === 'login'}
+          >
             Login
             <small>(criar conta)</small>
           </button>
-          <button type="button" className="btn btn-secondary nick-guest" onClick={onGuest} disabled={busy || !nick.trim()}>
+          <button
+            type="button"
+            className="btn btn-secondary nick-guest"
+            onClick={onGuest}
+            disabled={busy || !nick.trim()}
+            aria-busy={pending === 'guest'}
+          >
             Convidado
           </button>
         </div>
