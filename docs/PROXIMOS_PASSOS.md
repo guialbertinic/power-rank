@@ -2,14 +2,17 @@
 
 Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de cada seção é a prioridade sugerida.
 
-## Pendências de publicação
+## Já feito (resumo)
 
-- [x] Importar as imagens dos 10 games sem imagem.
-- [ ] Produção: `npm run db:migrate:remote` (0003 categorias, 0004 donos de nick) **antes** do push.
-- [ ] Produção: `npm run rescore -- --remote` (pontuação por pares), se ainda não rodou.
-- [ ] Push da `main` e conferir o deploy no painel do Worker.
-- [ ] Multiplayer (Party): primeiro deploy com Durable Objects. Conferir no painel se o Worker subiu com a classe
-      `PartyRoom` e testar uma sala entre dois navegadores/dispositivos.
+- Jogo solo com pontuação por ordem entre pares; 438 personagens (368 anime + 70 games) com imagem.
+- Categorias Animes / Games / Free for All, cada uma com ranking (melhor resultado por nick).
+- Design system "Dark Battle Interface"; resultado sem valores de poder.
+- Party (multiplayer) com Durable Objects: sala por código/convite, espera ao vivo, pódio, revanche, reconexão.
+- Nick com dono, sincronização entre dispositivos por código, primeira tela de nick, convite entra direto.
+- Moedas (a partir de 500 pontos, bônus de pódio), loja de cosméticos, `PlayerTag` e barra de perfil na home.
+- Testes e2e no repositório (`npm run e2e:api`, `npm run e2e:ui`), skills do projeto (`.claude/skills/`) e
+  documentação dividida entre `CLAUDE.md` (regras) e `docs/ARQUITETURA.md` (referência).
+- Produção: migrações 0001–0005 aplicadas; deploy automático pela `main`.
 
 ## Party (multiplayer)
 
@@ -46,9 +49,9 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 
 ## Técnico
 
-- [ ] Nick: expirar tokens antigos e/ou listar aparelhos conectados.
 - [ ] Esconder os valores de `power` também do JavaScript do site: hoje `characters.json` vai inteiro no bundle, e
       quem abrir o código consegue ler. Seria o servidor devolver a ordem correta ao fim da partida.
+- [ ] Nick: expirar tokens antigos e/ou listar aparelhos conectados.
 - [ ] Rate limit por IP em `POST /api/games` e `/api/scores`.
-- [ ] Teste de ponta a ponta automatizado (hoje o fluxo é conferido com screenshots via Edge headless).
+- [ ] Rodar `npm test` + `e2e:api` num CI (GitHub Actions) antes do deploy.
 - [ ] Endpoint de saúde e alerta simples de erro (observability já está ligado no `wrangler.jsonc`).

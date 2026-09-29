@@ -15,7 +15,10 @@
     "db:migrate:remote": "wrangler d1 migrations apply power-rank --remote",
     "deploy": "npm run build && wrangler deploy",
     "rescore": "node scripts/rescore.mjs",
-    "import:image": "node scripts/import-image.mjs"
+    "import:image": "node scripts/import-image.mjs",
+    "e2e:api": "node e2e/api.mjs",
+    "e2e:ui": "node e2e/ui.mjs",
+    "contact-sheet": "node scripts/contact-sheet.mjs"
   },
   "dependencies": {
     "@fontsource/chakra-petch": "^5.3.0",
@@ -32,6 +35,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "puppeteer-core": "^25.12.0",
     "sharp": "^0.35.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",

@@ -1,0 +1,22 @@
+---
+name: publicar
+description: Checklist para publicar mudanças do Power Rank — migrações de banco, commit e push para a main (que faz deploy automático na Cloudflare). Use quando o usuário pedir para commitar, publicar, subir ou fazer push, ou ao terminar uma mudança que altera o schema do D1.
+---
+
+# Publicar
+
+1. **Conferir:** `npm run build` e os testes da mudança (skill `testar`). Não commitar com falha.
+2. **Schema mudou?** (arquivo novo em `migrations/`)
+   - Já aplicado localmente com `npm run db:migrate:local`.
+   - Avise o usuário para rodar `npm.cmd run db:migrate:remote` **antes do push**. Nunca rode comandos `--remote`:
+     produção é do usuário. Se ele disser que rodou, pode conferir só lendo:
+     `npx wrangler d1 migrations list power-rank --remote` ("No migrations to apply").
+   - Erro 7403 do Wrangler logo após renovar o token é momentâneo: rodar de novo.
+3. **Commit:** `git add` com os arquivos da mudança (não inclua `data/characters.json`/`public/chars/` se o usuário
+   estiver mexendo neles em paralelo). Mensagem em inglês, resumo + tópicos, terminando com a linha
+   `Co-Authored-By` do harness. Nunca commitar `.env`/`.dev.vars`.
+4. **Push só quando o usuário pedir.** O push em `main` dispara o deploy automático; **não acompanhe o deploy**
+   (o usuário confere no painel). Informe o intervalo de commits enviado.
+5. **Depois do push**, se a mudança alterou pontuação ou poderes: lembrar o `npm.cmd run rescore -- --remote`.
+6. Atualize `docs/PROXIMOS_PASSOS.md` (marcar feito / acrescentar pendências) e, se a arquitetura mudou,
+   a seção certa de `docs/ARQUITETURA.md`.

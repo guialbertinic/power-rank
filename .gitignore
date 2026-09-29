@@ -5,3 +5,6 @@ dist
 # Credenciais locais (IGDB etc.)
 .env
 .dev.vars
+
+# Screenshots dos testes e2e
+e2e/screenshots/
