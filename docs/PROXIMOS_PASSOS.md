@@ -29,7 +29,8 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 
 - [ ] **Gambling** (slot/roleta/pachinko) contra a máquina: sorteio só no servidor, débito e crédito numa operação
       atômica, animação só "encena" o resultado. Moedas nunca compráveis com dinheiro real (senão vira regulação).
-- [ ] Fase 2: ícones/emblemas em SVG ao lado do nick, efeitos animados mais elaborados, itens raros.
+- [x] Loja ampliada: 16 cores, 13 molduras (algumas animadas), 27 títulos (embaixo do nick), filtro obtidos.
+- [ ] Fase 2: ícones/emblemas em SVG ao lado do nick, itens raros.
 - [ ] Fase 3: conquistas ("10/10", "venceu 5 parties") que desbloqueiam itens exclusivos.
 - [ ] Balancear preços e ganhos depois de ver os dados reais (`SELECT SUM(coins) FROM scores`, itens mais comprados).
 
@@ -57,4 +58,6 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 - [ ] Nick: expirar tokens antigos e/ou listar aparelhos conectados (e "sair de todos" ao trocar a senha).
 - [ ] Rate limit por IP em `POST /api/games` e `/api/scores`.
 - [ ] Rodar `npm test` + `e2e:api` num CI (GitHub Actions) antes do deploy.
+- [ ] Testes da party no `e2e:api` esperam com `sleep` fixo e falham de vez em quando: trocar por "esperar até o
+      estado X" (ex: helper `waitFor(() => h.state?.…)`).
 - [ ] Endpoint de saúde e alerta simples de erro (observability já está ligado no `wrangler.jsonc`).

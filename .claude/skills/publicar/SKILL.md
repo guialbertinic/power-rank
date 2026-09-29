@@ -12,11 +12,15 @@ description: Checklist para publicar mudanças do Power Rank — migrações de 
      produção é do usuário. Se ele disser que rodou, pode conferir só lendo:
      `npx wrangler d1 migrations list power-rank --remote` ("No migrations to apply").
    - Erro 7403 do Wrangler logo após renovar o token é momentâneo: rodar de novo.
+   - Diga se a migração é **compatível** com o código em produção: só `ADD COLUMN`/tabela nova = pode rodar a
+     qualquer hora; recria/renomeia tabela ou coluna (ex: 0007) = o site fica quebrado entre a migração e o deploy,
+     então rodar logo antes do push. Teste a migração com dados antes (skill `banco-local`).
 3. **Commit:** `git add` com os arquivos da mudança (não inclua `data/characters.json`/`public/chars/` se o usuário
    estiver mexendo neles em paralelo). Mensagem em inglês, resumo + tópicos, terminando com a linha
    `Co-Authored-By` do harness. Nunca commitar `.env`/`.dev.vars`.
 4. **Push só quando o usuário pedir.** O push em `main` dispara o deploy automático; **não acompanhe o deploy**
-   (o usuário confere no painel). Informe o intervalo de commits enviado.
+   (o usuário confere no painel). Informe o intervalo de commits enviado. Às vezes o usuário roda a migração e dá
+   o push ele mesmo: nesse caso deixe tudo commitado e diga quantos commits estão pendentes e qual migração rodar.
 5. **Depois do push**, se a mudança alterou pontuação ou poderes: lembrar o `npm.cmd run rescore -- --remote`.
 6. Atualize `docs/PROXIMOS_PASSOS.md` (marcar feito / acrescentar pendências) e, se a arquitetura mudou,
    a seção certa de `docs/ARQUITETURA.md`.

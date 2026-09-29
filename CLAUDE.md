@@ -13,6 +13,8 @@ Leia só a seção necessária.** Roadmap: `docs/PROXIMOS_PASSOS.md`.
 - `testar` — rodar e interpretar os testes (unitários, e2e de API e de interface).
 - `personagens` — adicionar personagens, poderes e imagens.
 - `publicar` — migrações, commit e push.
+- `loja` — itens da loja (cores, molduras, títulos), preços, espaço novo, qualquer débito/crédito de moedas.
+- `banco-local` — consultar/alterar o D1 local (dar moedas, listar, zerar, testar migração).
 
 ## Stack e comandos
 
