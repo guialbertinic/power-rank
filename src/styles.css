@@ -2015,7 +2015,8 @@ input:focus {
   color: var(--bg);
 }
 
-.shop-action:disabled {
+/* O botão em loading também fica disabled, mas não apaga: é ele que mostra o spinner. */
+.shop-action:disabled:not([aria-busy='true']) {
   opacity: 0.45;
   cursor: default;
 }
