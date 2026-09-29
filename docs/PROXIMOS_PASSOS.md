@@ -4,8 +4,7 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 
 ## Pendências de publicação
 
-- [ ] Importar as imagens dos 10 games sem imagem (Asura, Marika, Elden Beast, Radiance, Gwyn, Tarnished,
-      Artorias, Chosen Undead, Leon, Aloy) com `npm run import:image -- <id> <arquivo>`.
+- [x] Importar as imagens dos 10 games sem imagem.
 - [ ] Produção: `npm run db:migrate:remote` (0003 categorias, 0004 donos de nick) **antes** do push.
 - [ ] Produção: `npm run rescore -- --remote` (pontuação por pares), se ainda não rodou.
 - [ ] Push da `main` e conferir o deploy no painel do Worker.
@@ -39,7 +38,6 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 
 ## Técnico
 
-- [ ] Nick: permitir gerar um novo código de recuperação (hoje ele só aparece uma vez, ao escolher o nick).
 - [ ] Nick: expirar tokens antigos e/ou listar aparelhos conectados.
 - [ ] Esconder os valores de `power` também do JavaScript do site: hoje `characters.json` vai inteiro no bundle, e
       quem abrir o código consegue ler. Seria o servidor devolver a ordem correta ao fim da partida.

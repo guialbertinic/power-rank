@@ -209,7 +209,7 @@ export default function App() {
       )}
       {!showReview && state.phase === 'intro' && identity && (
         <IntroScreen
-          nick={identity.name}
+          identity={identity}
           onChangeNick={() => dispatch({ type: 'nick' })}
           mode={mode}
           canStart={isModeAvailable(mode)}

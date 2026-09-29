@@ -269,6 +269,26 @@ input:focus {
   color: var(--text);
 }
 
+.playing-as-block {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.sync-panel {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.nick-screen-hint {
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
 /* Tela do nick (primeira tela) */
 .nick-screen {
   display: grid;

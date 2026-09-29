@@ -10,22 +10,19 @@ interface Props {
   onDone: (identity: Identity) => void;
 }
 
-type Step =
-  | { kind: 'choose' }
-  | { kind: 'taken'; name: string }
-  | { kind: 'code'; identity: Identity; recoveryCode: string };
+type Step = { kind: 'choose' } | { kind: 'taken'; name: string };
 
 /**
- * Primeira tela do jogo: escolher o nick. O primeiro navegador que usa um nick fica com ele; em outro
- * aparelho, o dono usa o código de recuperação mostrado aqui na primeira vez.
+ * Primeira tela do jogo: escolher o nick. O primeiro navegador que usa um nick fica com ele.
+ * Para usar o mesmo nick em outro aparelho, o dono gera um código em "Sincronizar dispositivo" (na home)
+ * e digita aqui, no passo de nick que já tem dono.
  */
 export default function NickScreen({ inviteCode, reason, onDone }: Props) {
   const [step, setStep] = useState<Step>({ kind: 'choose' });
   const [nick, setNick] = useState(suggestedNick);
-  const [recoveryCode, setRecoveryCode] = useState('');
+  const [syncCode, setSyncCode] = useState('');
   const [error, setError] = useState<string | null>(reason);
   const [busy, setBusy] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -45,76 +42,45 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
     if (!name) return;
     void run(async () => {
       const result = await claimNick(name, tokenFor(name));
-      if (!result.ok) {
-        if (result.taken) setStep({ kind: 'taken', name });
-        else setError(result.error);
-        return;
-      }
-      const identity = { name: result.name, token: result.token };
-      if (result.recoveryCode) setStep({ kind: 'code', identity, recoveryCode: result.recoveryCode });
-      else onDone(identity);
+      if (result.ok) onDone({ name: result.name, token: result.token });
+      else if (result.taken) setStep({ kind: 'taken', name });
+      else setError(result.error);
     });
   };
 
-  const onRecover = (e: FormEvent) => {
+  const onSync = (e: FormEvent) => {
     e.preventDefault();
-    if (step.kind !== 'taken' || !recoveryCode.trim()) return;
+    if (step.kind !== 'taken' || !syncCode.trim()) return;
     void run(async () => {
       try {
-        onDone(await recoverNick(step.name, recoveryCode));
+        onDone(await recoverNick(step.name, syncCode));
       } catch (err) {
         if (err instanceof TypeError) throw err;
-        setError('Código de recuperação inválido');
+        setError('Código de sincronização inválido');
       }
     });
   };
-
-  const copyCode = async (code: string) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-    } catch {
-      // Sem permissão de clipboard: o código continua visível para copiar à mão.
-    }
-  };
-
-  if (step.kind === 'code') {
-    return (
-      <section className="panel nick-screen">
-        <p className="score-label">O nick {step.identity.name} agora é seu</p>
-        <p className="nick-screen-text">
-          Guarde este código. Ele é o único jeito de usar o seu nick em outro navegador ou aparelho.
-        </p>
-        <p className="recovery-code">{step.recoveryCode}</p>
-        <button className="link-button" onClick={() => copyCode(step.recoveryCode)}>
-          {copied ? 'Copiado!' : 'Copiar código'}
-        </button>
-        <button className="btn btn-primary btn-lg" onClick={() => onDone(step.identity)}>
-          {inviteCode ? 'Entrar na sala' : 'Continuar'}
-        </button>
-      </section>
-    );
-  }
 
   if (step.kind === 'taken') {
     return (
       <section className="panel nick-screen">
         <p className="score-label">Esse nick já tem dono</p>
         <p className="nick-screen-text">
-          Se <strong>{step.name}</strong> é seu, digite o código de recuperação que apareceu quando você escolheu o nick.
+          Se <strong>{step.name}</strong> é seu, abra o jogo no dispositivo onde você já usa esse nick, toque em{' '}
+          <strong>Sincronizar dispositivo</strong> e digite o código aqui.
         </p>
-        <form className="nick-screen-form" onSubmit={onRecover}>
+        <form className="nick-screen-form" onSubmit={onSync}>
           <input
-            value={recoveryCode}
-            onChange={(e) => setRecoveryCode(e.target.value.toUpperCase())}
+            value={syncCode}
+            onChange={(e) => setSyncCode(e.target.value.toUpperCase())}
             placeholder="XXXX-XXXX-XXXX"
-            aria-label="Código de recuperação"
+            aria-label="Código de sincronização"
             autoComplete="off"
             spellCheck={false}
             disabled={busy}
           />
-          <button className="btn btn-primary" disabled={busy || !recoveryCode.trim()}>
-            {busy ? 'Verificando...' : 'Recuperar'}
+          <button className="btn btn-primary" disabled={busy || !syncCode.trim()}>
+            {busy ? 'Verificando...' : 'Sincronizar'}
           </button>
         </form>
         {error && <p className="error">{error}</p>}
@@ -157,6 +123,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
         </button>
       </form>
       {error && <p className="error">{error}</p>}
+      <p className="nick-screen-hint">Já joga em outro dispositivo? Digite o mesmo nick para sincronizar.</p>
     </section>
   );
 }

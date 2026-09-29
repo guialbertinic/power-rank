@@ -68,8 +68,9 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 
 | Rota | O que faz |
 |---|---|
-| `POST /api/players` `{ name, token? }` | Escolhe o nick. Livre: fica seu, devolve `{ token, recoveryCode }`. Seu (token válido): confirma. De outra pessoa: 409. |
-| `POST /api/players/recover` `{ name, recoveryCode }` | Código certo: devolve um token novo para este aparelho. |
+| `POST /api/players` `{ name, token? }` | Escolhe o nick. Livre: fica seu, devolve `{ token }`. Seu (token válido): confirma. De outra pessoa: 409. |
+| `POST /api/players/sync-code` `{ name, token }` | Gera um novo código de sincronização (o anterior deixa de valer). |
+| `POST /api/players/recover` `{ name, recoveryCode }` | Código de sincronização certo: devolve um token novo para este aparelho. |
 | `POST /api/games` `{ name, token, mode }` | Exige token do dono do nick (401 se não). Sorteia no servidor e grava a partida. |
 | `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Valida as posições, **recalcula a pontuação no servidor**, grava. Uma vez por partida, TTL de 1h. |
 | `GET /api/scores?mode=` | Top 20 do modo, **só o melhor resultado de cada nick** (sem diferenciar maiúsculas). |
@@ -79,8 +80,8 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 
 `scores` guarda todas as partidas (histórico); o ranking é uma consulta com `ROW_NUMBER() OVER (PARTITION BY name_key)`.
 **Nick com dono (sem login):** o primeiro navegador que usa um nick fica com ele (`players`). Cada aparelho do dono
-tem um token (`player_tokens`), e o código de recuperação (XXXX-XXXX-XXXX, mostrado uma única vez) gera um token
-em outro aparelho. Tokens e código ficam no banco só como hash SHA-256. Criar partida solo e entrar em sala da party
+tem um token (`player_tokens`). Para levar o nick a outro aparelho, o dono toca em "Sincronizar dispositivo" na home,
+que gera um código XXXX-XXXX-XXXX (cada novo código invalida o anterior); no outro aparelho, digita o nick e o código. Tokens e código ficam no banco só como hash SHA-256. Criar partida solo e entrar em sala da party
 exigem o token.
 
 ## Party (multiplayer)
@@ -106,8 +107,9 @@ exigem o token.
 
 - `App.tsx` tem uma máquina de estados via reducer: `nick` → `intro` (home) → `playing` → `result`,
   ou `intro` → `party`. Na party, o estado do jogo vem da sala, e o App só guarda `code` e `pid`.
-- **A primeira tela é o nick** (`NickScreen`), para quem ainda não tem identidade. Link de convite sem nick:
-  escolhe o nick e entra direto na sala. Com nick: entra direto. A home mostra "Jogando como X · Trocar".
+- **A primeira tela é o nick** (`NickScreen`), para quem ainda não tem identidade; escolhido o nick, segue direto
+  para o jogo. Link de convite sem nick: escolhe o nick e entra direto na sala. Com nick: entra direto.
+  A home mostra "Jogando como X · Trocar" e "Sincronizar dispositivo" (`SyncDevice`).
 - Todas as telas fora da home têm o botão **Início** no cabeçalho (na party, sair da sala).
 - Identidade (`{ name, token }`) e os tokens de nicks já usados ficam no `localStorage` (`src/nick.ts`).
 - A última categoria também fica no `localStorage`. Todo acesso a storage usa try/catch.

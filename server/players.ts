@@ -8,7 +8,7 @@ function randomToken(): string {
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-/** Código de recuperação no formato XXXX-XXXX-XXXX. */
+/** Código de sincronização no formato XXXX-XXXX-XXXX. */
 function randomRecoveryCode(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(12));
   const chars = [...bytes].map((b) => RECOVERY_ALPHABET[b % RECOVERY_ALPHABET.length]).join('');
@@ -41,7 +41,8 @@ export async function verifyPlayer(env: Env, name: string, token: unknown): Prom
 
 /**
  * POST /api/players: { name, token? } — escolhe um nick.
- * - Nick livre: vira seu. Devolve { name, token, recoveryCode } (o código só aparece esta vez).
+ * - Nick livre: vira seu. Devolve { name, token }. O código de sincronização é gerado depois, sob demanda
+ *   (POST /api/players/sync-code), porque só fica guardado como hash.
  * - Nick seu (token válido): devolve { name, token }.
  * - Nick de outra pessoa: 409 { error, taken: true }.
  */
@@ -57,6 +58,7 @@ export async function claimPlayer(request: Request, env: Env): Promise<Response>
     return json({ error: 'Esse nick já tem dono', taken: true }, { status: 409 });
   }
 
+  // Código inicial aleatório que ninguém vê: o dono gera um visível quando quiser sincronizar outro aparelho.
   const recoveryCode = randomRecoveryCode();
   // INSERT OR IGNORE: se duas pessoas pedirem o mesmo nick ao mesmo tempo, só uma fica com ele.
   const created = await env.DB.prepare(
@@ -66,10 +68,27 @@ export async function claimPlayer(request: Request, env: Env): Promise<Response>
     .run();
   if (!created.meta.changes) return json({ error: 'Esse nick já tem dono', taken: true }, { status: 409 });
 
-  return json({ name, token: await issueToken(env, key), recoveryCode });
+  return json({ name, token: await issueToken(env, key) });
 }
 
-/** POST /api/players/recover: { name, recoveryCode } → { name, token } para usar o nick neste aparelho. */
+/**
+ * POST /api/players/sync-code: { name, token } → { code }. Gera um novo código de sincronização para o dono
+ * usar em outro aparelho; o código anterior deixa de valer.
+ */
+export async function createSyncCode(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => null)) as { name?: unknown; token?: unknown } | null;
+  const name = sanitizeName(body?.name);
+  if (!name || !(await verifyPlayer(env, name, body?.token))) {
+    return json({ error: 'Nick não verificado' }, { status: 401 });
+  }
+  const code = randomRecoveryCode();
+  await env.DB.prepare('UPDATE players SET recovery_hash = ? WHERE name_key = ?')
+    .bind(await sha256(normalizeRecoveryCode(code)), nameKey(name))
+    .run();
+  return json({ code });
+}
+
+/** POST /api/players/recover: { name, recoveryCode } → { name, token }: usa o código de sincronização neste aparelho. */
 export async function recoverPlayer(request: Request, env: Env): Promise<Response> {
   const body = (await request.json().catch(() => null)) as { name?: unknown; recoveryCode?: unknown } | null;
   const name = sanitizeName(body?.name);
@@ -80,7 +99,7 @@ export async function recoverPlayer(request: Request, env: Env): Promise<Respons
     .bind(key)
     .first<{ name: string; recovery_hash: string }>();
   const valid = owner && owner.recovery_hash === (await sha256(normalizeRecoveryCode(body.recoveryCode)));
-  if (!valid) return json({ error: 'Código de recuperação inválido' }, { status: 403 });
+  if (!valid) return json({ error: 'Código de sincronização inválido' }, { status: 403 });
 
   return json({ name: owner.name, token: await issueToken(env, key) });
 }

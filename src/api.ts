@@ -37,13 +37,13 @@ export class ApiError extends Error {
 }
 
 export type ClaimResult =
-  | { ok: true; name: string; token: string; recoveryCode?: string }
+  | { ok: true; name: string; token: string }
   | { ok: false; taken: boolean; error: string };
 
 /** Escolhe um nick: fica com ele se estiver livre, ou confirma se o token for do dono. */
 export async function claimNick(name: string, token: string | null): Promise<ClaimResult> {
   try {
-    const data = await request<{ name: string; token: string; recoveryCode?: string }>('/api/players', {
+    const data = await request<{ name: string; token: string }>('/api/players', {
       method: 'POST',
       body: JSON.stringify({ name, token }),
     });
@@ -54,7 +54,16 @@ export async function claimNick(name: string, token: string | null): Promise<Cla
   }
 }
 
-/** Usa o código de recuperação para ter o nick neste aparelho. */
+/** Usa o código de sincronização (gerado no outro aparelho) para ter o nick neste. */
+/** Gera um novo código de sincronização para levar o nick a outro aparelho (o anterior deixa de valer). */
+export async function createSyncCode(name: string, token: string): Promise<string> {
+  const { code } = await request<{ code: string }>('/api/players/sync-code', {
+    method: 'POST',
+    body: JSON.stringify({ name, token }),
+  });
+  return code;
+}
+
 export async function recoverNick(name: string, recoveryCode: string): Promise<{ name: string; token: string }> {
   return request('/api/players/recover', { method: 'POST', body: JSON.stringify({ name, recoveryCode }) });
 }

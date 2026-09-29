@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import type { Mode } from '../game/modes';
 import { isPartyCode, normalizePartyCode, PARTY_CODE_LENGTH } from '../game/party';
+import type { Identity } from '../nick';
 import Leaderboard from './Leaderboard';
+import SyncDevice from './SyncDevice';
 
 interface Props {
-  nick: string;
+  identity: Identity;
   onChangeNick: () => void;
   /** Categoria escolhida no seletor do título; o ranking abaixo acompanha. */
   mode: Mode;
@@ -20,7 +22,7 @@ interface Props {
 
 /** Home: quem está jogando, SOLO / PARTY e o ranking da categoria escolhida no título. */
 export default function IntroScreen(props: Props) {
-  const { nick, onChangeNick, mode, canStart, busy, onSolo, onCreateParty, onJoinParty, partyError } = props;
+  const { identity, onChangeNick, mode, canStart, busy, onSolo, onCreateParty, onJoinParty, partyError } = props;
   const [partyOpen, setPartyOpen] = useState(false);
   const [code, setCode] = useState('');
 
@@ -31,12 +33,15 @@ export default function IntroScreen(props: Props) {
 
   return (
     <div className="intro">
-      <p className="playing-as">
-        Jogando como <strong>{nick}</strong>
-        <button className="link-button" onClick={onChangeNick} disabled={busy}>
-          Trocar
-        </button>
-      </p>
+      <div className="playing-as-block">
+        <p className="playing-as">
+          Jogando como <strong>{identity.name}</strong>
+          <button className="link-button" onClick={onChangeNick} disabled={busy}>
+            Trocar
+          </button>
+        </p>
+        <SyncDevice identity={identity} />
+      </div>
 
       <div className="play-buttons">
         <button className="btn btn-primary btn-lg" onClick={onSolo} disabled={busy || !canStart}>
@@ -78,7 +83,7 @@ export default function IntroScreen(props: Props) {
         </div>
       )}
 
-      <Leaderboard mode={mode} highlight={nick} />
+      <Leaderboard mode={mode} highlight={identity.name} />
     </div>
   );
 }
