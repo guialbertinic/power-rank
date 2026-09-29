@@ -33,7 +33,7 @@ React 19 + TypeScript + Vite · Cloudflare Workers (API + assets) · D1 (SQLite)
 WebSocket). Tudo no plano grátis da Cloudflare.
 
 Detalhes de estrutura, API, regras, party, economia, design system e imagens: [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
-Roadmap: [docs/PROXIMOS_PASSOS.md](docs/PROXIMOS_PASSOS.md).
+Ideias e roadmap: [docs/IDEIAS.md](docs/IDEIAS.md).
 
 ## Personagens e imagens
 

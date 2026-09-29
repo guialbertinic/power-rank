@@ -6,7 +6,7 @@ conta (nick + senha) ou convidado, moedas e loja de cosméticos.
 No ar em Cloudflare Workers; repo `github.com/guialbertinic/power-rank`, deploy automático a cada push na `main`.
 
 **Referência completa (estrutura, API, regras, party, economia, design system, imagens): `docs/ARQUITETURA.md`.
-Leia só a seção necessária.** Roadmap: `docs/PROXIMOS_PASSOS.md`.
+Leia só a seção necessária.** Ideias e roadmap: `docs/IDEIAS.md` (modos de jogo planejados, cassino, legal).
 
 ## Skills do projeto (`.claude/skills/`)
 
