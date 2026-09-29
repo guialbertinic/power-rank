@@ -1,12 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import type { Mode } from '../game/modes';
 import { isPartyCode, normalizePartyCode, PARTY_CODE_LENGTH } from '../game/party';
-import { NICK_MAX_LENGTH } from '../nick';
 import Leaderboard from './Leaderboard';
 
 interface Props {
   nick: string;
-  onNickChange: (nick: string) => void;
+  onChangeNick: () => void;
   /** Categoria escolhida no seletor do título; o ranking abaixo acompanha. */
   mode: Mode;
   canStart: boolean;
@@ -17,68 +16,48 @@ interface Props {
   onJoinParty: (code: string) => void;
   /** Erro ao criar/entrar em sala, vindo do App. */
   partyError: string | null;
-  /** Código de um link de convite (?sala=...): abre o painel da party já preenchido. */
-  inviteCode: string;
 }
 
+/** Home: quem está jogando, SOLO / PARTY e o ranking da categoria escolhida no título. */
 export default function IntroScreen(props: Props) {
-  const { nick, onNickChange, mode, canStart, busy, onSolo, onCreateParty, onJoinParty, partyError, inviteCode } = props;
-  const [partyOpen, setPartyOpen] = useState(Boolean(inviteCode));
-  const [code, setCode] = useState(inviteCode);
-  const hasNick = Boolean(nick.trim());
-
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (hasNick && canStart) onSolo();
-  };
+  const { nick, onChangeNick, mode, canStart, busy, onSolo, onCreateParty, onJoinParty, partyError } = props;
+  const [partyOpen, setPartyOpen] = useState(false);
+  const [code, setCode] = useState('');
 
   const onJoin = (e: FormEvent) => {
     e.preventDefault();
-    if (hasNick && isPartyCode(code)) onJoinParty(code);
+    if (isPartyCode(code)) onJoinParty(code);
   };
 
   return (
     <div className="intro">
-      <form className="nick-form" onSubmit={onSubmit}>
-        <label className="nick-label" htmlFor="nick">
-          Seu nick
-        </label>
-        <input
-          id="nick"
-          value={nick}
-          onChange={(e) => onNickChange(e.target.value)}
-          maxLength={NICK_MAX_LENGTH}
-          autoComplete="nickname"
-          spellCheck={false}
+      <p className="playing-as">
+        Jogando como <strong>{nick}</strong>
+        <button className="link-button" onClick={onChangeNick} disabled={busy}>
+          Trocar
+        </button>
+      </p>
+
+      <div className="play-buttons">
+        <button className="btn btn-primary btn-lg" onClick={onSolo} disabled={busy || !canStart}>
+          {busy && !partyOpen ? 'Sorteando...' : 'Solo'}
+        </button>
+        <button
+          className={`btn btn-lg btn-party${partyOpen ? ' active' : ''}`}
+          onClick={() => setPartyOpen((open) => !open)}
+          aria-expanded={partyOpen}
           disabled={busy}
-        />
-        <div className="play-buttons">
-          <button className="btn btn-primary btn-lg" disabled={busy || !hasNick || !canStart}>
-            {busy && !partyOpen ? 'Sorteando...' : 'Solo'}
-          </button>
-          <button
-            type="button"
-            className={`btn btn-lg btn-party${partyOpen ? ' active' : ''}`}
-            onClick={() => setPartyOpen((open) => !open)}
-            aria-expanded={partyOpen}
-            disabled={busy}
-          >
-            Party
-          </button>
-        </div>
-      </form>
+        >
+          Party
+        </button>
+      </div>
 
       {partyOpen && (
         <div className="panel party-entry">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={onCreateParty}
-            disabled={busy || !hasNick || !canStart}
-          >
+          <button className="btn btn-secondary" onClick={onCreateParty} disabled={busy || !canStart}>
             {busy ? 'Criando...' : 'Criar sala'}
           </button>
-          <span className="party-entry-or">ou</span>
+          <span className="party-entry-or">ou entre com o código</span>
           <form className="party-join" onSubmit={onJoin}>
             <input
               value={code}
@@ -91,11 +70,10 @@ export default function IntroScreen(props: Props) {
               spellCheck={false}
               disabled={busy}
             />
-            <button className="btn btn-secondary" disabled={busy || !hasNick || !isPartyCode(code)}>
+            <button className="btn btn-secondary" disabled={busy || !isPartyCode(code)}>
               Entrar
             </button>
           </form>
-          {!hasNick && <p className="muted party-entry-hint">Escolha um nick para jogar em party.</p>}
           {partyError && <p className="error">{partyError}</p>}
         </div>
       )}

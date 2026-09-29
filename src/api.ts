@@ -21,18 +21,58 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { 'Content-Type': 'application/json', ...init?.headers },
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error ?? `HTTP ${res.status}`);
+  if (!res.ok) throw new ApiError(data?.error ?? `HTTP ${res.status}`, res.status, data);
   return data as T;
 }
 
-/** Sorteia uma partida no servidor. Retorna null se a API não estiver disponível. */
+/** Erro de resposta da API (com o status HTTP); falhas de rede continuam sendo `TypeError`. */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly data: unknown,
+  ) {
+    super(message);
+  }
+}
+
+export type ClaimResult =
+  | { ok: true; name: string; token: string; recoveryCode?: string }
+  | { ok: false; taken: boolean; error: string };
+
+/** Escolhe um nick: fica com ele se estiver livre, ou confirma se o token for do dono. */
+export async function claimNick(name: string, token: string | null): Promise<ClaimResult> {
+  try {
+    const data = await request<{ name: string; token: string; recoveryCode?: string }>('/api/players', {
+      method: 'POST',
+      body: JSON.stringify({ name, token }),
+    });
+    return { ok: true, ...data };
+  } catch (err) {
+    if (err instanceof ApiError) return { ok: false, taken: err.status === 409, error: err.message };
+    throw err;
+  }
+}
+
+/** Usa o código de recuperação para ter o nick neste aparelho. */
+export async function recoverNick(name: string, recoveryCode: string): Promise<{ name: string; token: string }> {
+  return request('/api/players/recover', { method: 'POST', body: JSON.stringify({ name, recoveryCode }) });
+}
+
+/**
+ * Sorteia uma partida no servidor. `'unauthorized'` se o nick não for mais deste navegador;
+ * null se a API não estiver disponível (o jogo sorteia localmente).
+ */
 export async function createGame(
   name: string,
+  token: string | null,
   mode: Mode,
-): Promise<{ gameId: string; characterIds: string[] } | null> {
+): Promise<{ gameId: string; characterIds: string[] } | 'unauthorized' | null> {
+  if (!token) return null;
   try {
-    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, mode }) });
-  } catch {
+    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode }) });
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) return 'unauthorized';
     return null;
   }
 }

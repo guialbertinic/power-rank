@@ -1,6 +1,7 @@
 import { createGame } from './games';
 import { json, type Env } from './lib';
 import { connectParty, createParty } from './party';
+import { claimPlayer, recoverPlayer } from './players';
 import { getLeaderboard, submitScore } from './scores';
 
 // O Durable Object das salas da Party precisa ser exportado pelo módulo principal do Worker.
@@ -30,6 +31,10 @@ export default {
           return await submitScore(request, env);
         case 'POST /api/party':
           return await createParty(request, env);
+        case 'POST /api/players':
+          return await claimPlayer(request, env);
+        case 'POST /api/players/recover':
+          return await recoverPlayer(request, env);
         default:
           return json({ error: 'Not found' }, { status: 404 });
       }

@@ -13,10 +13,9 @@ interface Props {
   slots: Character[];
   starting: boolean;
   onRestart: () => void;
-  onChangeNick: () => void;
 }
 
-export default function ResultScreen({ mode, gameId, nick, slots, starting, onRestart, onChangeNick }: Props) {
+export default function ResultScreen({ mode, gameId, nick, slots, starting, onRestart }: Props) {
   const { total } = scoreGame(slots);
   const [submitted, setSubmitted] = useState(false);
 
@@ -37,9 +36,6 @@ export default function ResultScreen({ mode, gameId, nick, slots, starting, onRe
         <div className="score-actions">
           <button className="btn btn-primary" onClick={onRestart} disabled={starting}>
             {starting ? 'Sorteando...' : 'Jogar de novo'}
-          </button>
-          <button className="link-button" onClick={onChangeNick} disabled={starting}>
-            Trocar nick <span>({nick})</span>
           </button>
         </div>
       </div>

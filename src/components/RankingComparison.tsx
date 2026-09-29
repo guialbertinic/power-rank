@@ -1,8 +1,6 @@
 import { scoreGame } from '../game/scoring';
 import type { Character } from '../game/types';
-import { tierClass, tierForPower } from '../ui/tiers';
 import Avatar from './Avatar';
-import PowerMeter from './PowerMeter';
 import RankBadge from './RankBadge';
 
 /** Cor da linha pela quantidade de pares errados envolvendo o personagem (0 = todos certos). */
@@ -14,7 +12,10 @@ function hitLevel(pairsWrong: number): number {
   return 4;
 }
 
-/** "Seu ranking" ao lado do "Ranking correto" (com a revelação do poder). Usado no solo e na party. */
+/**
+ * "Seu ranking" ao lado do "Ranking correto". Usado no solo e na party.
+ * O valor de poder nunca aparece: só a ordem (senão os jogadores decorariam os números).
+ */
 export default function RankingComparison({ slots }: { slots: Character[] }) {
   const { results, correctOrder } = scoreGame(slots);
 
@@ -44,8 +45,6 @@ export default function RankingComparison({ slots }: { slots: Character[] }) {
                 {c.name}
                 {c.version && <small>{c.version}</small>}
               </span>
-              <PowerMeter power={c.power} delay={i * 90} />
-              <span className={`row-power ${tierClass(tierForPower(c.power))}`}>{c.power}</span>
             </li>
           ))}
         </ol>

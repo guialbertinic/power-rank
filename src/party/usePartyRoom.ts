@@ -21,7 +21,7 @@ interface PartyRoom {
 }
 
 /** Conecta na sala por WebSocket e reconecta sozinho se a conexão cair (ex: celular trocou de rede). */
-export function usePartyRoom(code: string, pid: string, name: string): PartyRoom {
+export function usePartyRoom(code: string, pid: string, name: string, token: string | null): PartyRoom {
   const [state, setState] = useState<PartyState | null>(null);
   const [you, setYou] = useState<string | null>(null);
   const [status, setStatus] = useState<ConnectionStatus>('connecting');
@@ -38,7 +38,7 @@ export function usePartyRoom(code: string, pid: string, name: string): PartyRoom
 
     const open = () => {
       const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-      const params = new URLSearchParams({ pid, name });
+      const params = new URLSearchParams({ pid, name, token: token ?? '' });
       const ws = new WebSocket(`${protocol}://${window.location.host}/api/party/${code}/ws?${params}`);
       socketRef.current = ws;
 
@@ -80,7 +80,7 @@ export function usePartyRoom(code: string, pid: string, name: string): PartyRoom
       socketRef.current?.close(1000);
       socketRef.current = null;
     };
-  }, [code, pid, name]);
+  }, [code, pid, name, token]);
 
   // Avisos somem sozinhos.
   useEffect(() => {

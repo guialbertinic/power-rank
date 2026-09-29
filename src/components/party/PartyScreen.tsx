@@ -10,13 +10,14 @@ interface Props {
   code: string;
   pid: string;
   nick: string;
+  token: string | null;
   charactersById: Map<string, Character>;
   onExit: () => void;
 }
 
 /** Party (multiplayer): conecta na sala e mostra lobby → partida → espera → pódio conforme o estado da sala. */
-export default function PartyScreen({ code, pid, nick, charactersById, onExit }: Props) {
-  const { state, you, status, fatalError, notice, send, leave } = usePartyRoom(code, pid, nick);
+export default function PartyScreen({ code, pid, nick, token, charactersById, onExit }: Props) {
+  const { state, you, status, fatalError, notice, send, leave } = usePartyRoom(code, pid, nick, token);
   // Ao completar o ranking, já mostra a espera sem aguardar a confirmação da sala.
   const [finishedRound, setFinishedRound] = useState(0);
 

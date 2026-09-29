@@ -52,9 +52,15 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
         <h3 className="section-title">Classificação · rodada {state.round}</h3>
         <ol className="row-list">
           {ranking.map((p, i) => (
-            <li key={p.id} className={`row row-leader${p.id === you ? ' highlight' : ''}`}>
+            <li
+              key={p.id}
+              className={`row row-leader${p.id === you ? ' highlight' : ''}${p.connected ? '' : ' party-player offline'}`}
+            >
               <RankBadge position={i + 1} small />
-              <span className="row-name">{p.name}</span>
+              <span className="row-name">
+                {p.name}
+                {!p.connected && <span className="party-tag party-tag-left">saiu</span>}
+              </span>
               <span className="row-score">{p.score}</span>
             </li>
           ))}

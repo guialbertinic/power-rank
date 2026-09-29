@@ -1,5 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import { badRequest, CHARACTERS, CHARACTERS_BY_ID, json, nameKey, sanitizeName, type Env } from './lib';
+import { verifyPlayer } from './players';
 import { drawCharacters } from '../src/game/draw';
 import { isMode, poolFor, type Mode } from '../src/game/modes';
 import {
@@ -78,7 +79,7 @@ export class PartyRoom extends DurableObject<Env> {
     this.ctx.acceptWebSocket(server);
 
     const pid = url.searchParams.get('pid');
-    const error = await this.join(server, pid, url.searchParams.get('name'));
+    const error = await this.join(server, pid, url.searchParams.get('name'), url.searchParams.get('token'));
     if (error) {
       this.send(server, { type: 'error', message: error });
       server.close(4000, error);
@@ -87,22 +88,35 @@ export class PartyRoom extends DurableObject<Env> {
   }
 
   /** Entra (ou reconecta) na sala. Devolve a mensagem de erro, se não puder. */
-  private async join(ws: WebSocket, pid: string | null, rawName: string | null): Promise<string | null> {
-    const room = await this.load();
-    if (!room) return 'Sala não encontrada';
+  private async join(
+    ws: WebSocket,
+    pid: string | null,
+    rawName: string | null,
+    token: string | null,
+  ): Promise<string | null> {
+    if (!(await this.load())) return 'Sala não encontrada';
     if (!isPid(pid)) return 'Identificação inválida';
+    const name = sanitizeName(rawName);
 
+    // Quem ainda não está na sala precisa provar que é dono do nick. A consulta ao D1 é feita ANTES das
+    // checagens: durante uma espera de I/O externo o Durable Object processa outras mensagens, e duas
+    // conexões do mesmo jogador (ex: React StrictMode, clique duplo) entrariam as duas.
+    const isMember = this.room!.players.some((p) => p.pid === pid);
+    const verified = isMember || (name !== null && (await verifyPlayer(this.env, name, token)));
+
+    // Daqui até o push não há nenhum await: checagem e inclusão acontecem juntas.
+    const room = this.room!;
     const existing = room.players.find((p) => p.pid === pid);
     if (existing) {
-      // Reconexão: a conexão antiga (se ainda aberta) é substituída.
+      // Reconexão: a conexão antiga (se ainda aberta) é substituída. O pid secreto já identifica a vaga.
       for (const other of this.socketsOf(pid)) if (other !== ws) other.close(4001, 'Conectado em outra aba');
       existing.connected = true;
     } else {
       if (room.phase !== 'lobby') return 'A partida já começou';
       if (room.players.length >= PARTY_MAX_PLAYERS) return `Sala cheia (máximo ${PARTY_MAX_PLAYERS})`;
-      const name = sanitizeName(rawName);
       if (!name) return 'Nick inválido';
       if (room.players.some((p) => nameKey(p.name) === nameKey(name))) return 'Esse nick já está na sala';
+      if (!verified) return 'Nick não verificado. Escolha seu nick de novo.';
       room.players.push({ pid, id: crypto.randomUUID().slice(0, 8), name, connected: true, progress: 0, finished: false });
     }
 

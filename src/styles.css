@@ -145,6 +145,7 @@ p {
   letter-spacing: var(--tracking-display);
   text-transform: uppercase;
   clip-path: var(--clip-slant);
+  white-space: nowrap;
   cursor: pointer;
   transition:
     filter 0.15s,
@@ -242,20 +243,77 @@ input:focus {
 .intro {
   display: grid;
   justify-items: center;
-  gap: 48px;
+  gap: 28px;
   max-width: 520px;
   margin: 0 auto;
 }
 
 .intro .leaderboard {
   width: 100%;
+  margin-top: 20px;
 }
 
-.nick-form {
+.playing-as {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.playing-as strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+/* Tela do nick (primeira tela) */
+.nick-screen {
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 14px;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.nick-screen-form {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.nick-screen-form input {
   width: min(100%, 320px);
+  padding: 12px 16px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+.nick-screen-text {
+  max-width: 34ch;
+  color: var(--text-2);
+}
+
+.nick-screen-text strong,
+.nick-screen-invite strong {
+  color: var(--text);
+}
+
+.nick-screen-invite {
+  font-weight: 600;
+  color: var(--tier-a);
+}
+
+.nick-screen-invite strong {
+  font-family: var(--font-display);
+  letter-spacing: 0.15em;
 }
 
 .nick-label {
@@ -267,14 +325,40 @@ input:focus {
   color: var(--text-2);
 }
 
-.nick-form input {
-  width: 100%;
-  margin-bottom: 14px;
-  padding: 12px 16px;
+.recovery-code {
+  padding: 10px 18px;
+  border: 1px dashed var(--tier-a);
+  background: var(--bg);
   font-family: var(--font-display);
-  font-size: 1.25rem;
-  text-align: center;
-  letter-spacing: 0.04em;
+  font-size: clamp(1.3rem, 6vw, 1.7rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--tier-a);
+  user-select: all;
+}
+
+/* Botão "Início" no cabeçalho das telas fora da home */
+.home-button {
+  margin-left: auto;
+  align-self: center;
+  padding: 6px 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  clip-path: var(--clip-slant);
+  cursor: pointer;
+}
+
+.home-button:hover,
+.home-button:focus-visible {
+  outline: none;
+  color: var(--text);
+  background: var(--surface-2);
 }
 
 /* ---------- Partida ---------- */
@@ -1060,6 +1144,11 @@ input:focus {
   clip-path: var(--clip-slant);
 }
 
+.party-tag-left {
+  background: var(--tier-d);
+  color: var(--bg);
+}
+
 .party-tag-you {
   background: var(--tier-a);
   color: var(--bg);
@@ -1244,5 +1333,16 @@ input:focus {
 
   .party-progress .seg {
     width: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-lg {
+    padding: 15px 36px;
+    font-size: 1.2rem;
+  }
+
+  .nick-screen {
+    padding: 22px 16px;
   }
 }

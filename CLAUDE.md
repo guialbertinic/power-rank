@@ -35,9 +35,9 @@ npm run rescore -- --local   # recalcula pontuações gravadas com a regra/poder
 data/characters.json      base de personagens (fonte da verdade, ordenada por power desc)
 public/chars/<id>.webp    imagens 240px (≈18 KB cada)
 public/_headers           cache: /chars 7 dias, /assets imutável
-migrations/               schema do D1 (0001 scores, 0002 melhor por jogador, 0003 categorias)
+migrations/               schema do D1 (0001 scores, 0002 melhor por jogador, 0003 categorias, 0004 donos de nick)
 scripts/                  fetch-images, import-image, validate-data, rescore (+ lib/images.mjs)
-server/                   Worker: worker.ts (roteador), games.ts, scores.ts, party.ts (Durable Object), lib.ts
+server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick), party.ts (Durable Object), lib.ts
 src/game/                 lógica pura e compartilhada com o server: types, draw, scoring, modes, party (protocolo)
 src/party/                cliente da party: usePartyRoom (WebSocket + reconexão), session (pid, link de convite)
 src/components/party/     telas da party: PartyScreen, Lobby, Play, Waiting, Podium, PlayerList
@@ -68,7 +68,9 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 
 | Rota | O que faz |
 |---|---|
-| `POST /api/games` `{ name, mode }` | Sorteia no servidor e grava a partida. Devolve `{ gameId, characterIds }`. |
+| `POST /api/players` `{ name, token? }` | Escolhe o nick. Livre: fica seu, devolve `{ token, recoveryCode }`. Seu (token válido): confirma. De outra pessoa: 409. |
+| `POST /api/players/recover` `{ name, recoveryCode }` | Código certo: devolve um token novo para este aparelho. |
+| `POST /api/games` `{ name, token, mode }` | Exige token do dono do nick (401 se não). Sorteia no servidor e grava a partida. |
 | `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Valida as posições, **recalcula a pontuação no servidor**, grava. Uma vez por partida, TTL de 1h. |
 | `GET /api/scores?mode=` | Top 20 do modo, **só o melhor resultado de cada nick** (sem diferenciar maiúsculas). |
 
@@ -76,7 +78,10 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `GET /api/party/:code/ws?pid=&name=` | WebSocket da sala (encaminhado ao Durable Object). |
 
 `scores` guarda todas as partidas (histórico); o ranking é uma consulta com `ROW_NUMBER() OVER (PARTITION BY name_key)`.
-Não há login: o nick não é protegido (limitação conhecida e aceita).
+**Nick com dono (sem login):** o primeiro navegador que usa um nick fica com ele (`players`). Cada aparelho do dono
+tem um token (`player_tokens`), e o código de recuperação (XXXX-XXXX-XXXX, mostrado uma única vez) gera um token
+em outro aparelho. Tokens e código ficam no banco só como hash SHA-256. Criar partida solo e entrar em sala da party
+exigem o token.
 
 ## Party (multiplayer)
 
@@ -99,9 +104,13 @@ Não há login: o nick não é protegido (limitação conhecida e aceita).
 
 ## Front
 
-- `App.tsx` tem uma máquina de estados (`intro` → `playing` → `result`, ou `intro` → `party`) via reducer.
-  Na party, o estado do jogo vem da sala, e o App só guarda `code` e `pid`.
-- Nick e última categoria ficam no `localStorage` (`src/nick.ts`), sempre com try/catch.
+- `App.tsx` tem uma máquina de estados via reducer: `nick` → `intro` (home) → `playing` → `result`,
+  ou `intro` → `party`. Na party, o estado do jogo vem da sala, e o App só guarda `code` e `pid`.
+- **A primeira tela é o nick** (`NickScreen`), para quem ainda não tem identidade. Link de convite sem nick:
+  escolhe o nick e entra direto na sala. Com nick: entra direto. A home mostra "Jogando como X · Trocar".
+- Todas as telas fora da home têm o botão **Início** no cabeçalho (na party, sair da sala).
+- Identidade (`{ name, token }`) e os tokens de nicks já usados ficam no `localStorage` (`src/nick.ts`).
+- A última categoria também fica no `localStorage`. Todo acesso a storage usa try/catch.
 - Se a API falhar, o jogo sorteia localmente (`gameId: null`) e a partida não conta para o ranking.
 - As imagens da partida são pré-carregadas no sorteio (`preloadImages`). A URL leva `?v=<id da fonte>` para
   invalidar o cache quando a imagem muda.
@@ -115,7 +124,8 @@ Não há login: o nick não é protegido (limitação conhecida e aceita).
 - Formas angulares (`--clip-slant`, `--clip-chamfer`) e `--radius: 2px`. Nada de cantos muito arredondados.
 - `clip-path` corta `box-shadow`: brilho vai num wrapper com `filter: drop-shadow`, e o foco de botões é uma barra inset.
 - Fontes: Chakra Petch (display, caixa alta, itálico) e Rajdhani (corpo), via `@fontsource`, só o subset latin.
-- **O poder nunca aparece durante a partida** (entregaria a resposta); só no resultado.
+- **O valor de poder nunca aparece para o jogador**, nem na partida (entregaria a resposta) nem no resultado
+  (daria para decorar). O resultado mostra só a ordem correta. O poder só aparece na tela `?review` (dev).
 - Sempre conferir no celular (390px): grids com `minmax(0, 1fr)`, sem scroll horizontal.
 - Respeitar `prefers-reduced-motion`.
 
@@ -150,4 +160,8 @@ Não há login: o nick não é protegido (limitação conhecida e aceita).
 - Regras CSS de celular precisam vir **depois** das regras base (ordem da cascata).
 - Mudanças no `wrangler.jsonc` (bindings, Durable Objects) exigem reiniciar o `npm run dev`.
 - Não chame um método de `connect` numa classe `DurableObject`: colide com a classe base.
+- **Durable Object + I/O externo:** durante um `await` de `fetch` ou D1, o objeto processa outras mensagens.
+  Faça as consultas antes e as checagens + mudanças de estado juntas, sem `await` no meio (senão duas conexões
+  do mesmo jogador entram as duas — já aconteceu com o React StrictMode).
+- Os testes de interface criam nicks com dono (Ana, Bruno...). Apague do D1 local antes de rodar de novo e no fim.
 - `npm audit` acusa o `undici` dentro do miniflare (só em dev); não vale o downgrade sugerido.
