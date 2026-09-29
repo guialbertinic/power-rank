@@ -6,32 +6,32 @@
  * os 5% de cada aposta que vão para o pote voltam aos jogadores nos jackpots → ~95% no longo prazo.
  */
 
-export type SymbolId = 'dragonball' | 'sharingan' | 'deathnote' | 'bandana' | 'hat' | 'shuriken' | 'pokeball';
+/** Símbolos da máquina do Game Corner de Pokémon (public/cassino/<id>.webp), do melhor para o pior. */
+export type SymbolId = 'seven' | 'galactic' | 'replay' | 'cherry' | 'pikachu' | 'moonstone';
 
 export interface CasinoSymbol {
   id: SymbolId;
   label: string;
   /** Peso no sorteio (igual nos 3 rolos): quanto maior, mais comum. */
   weight: number;
-  /** 3 iguais: multiplicador da aposta (Esfera do Dragão = jackpot, com este valor como prêmio mínimo). */
+  /** 3 iguais: multiplicador da aposta (o 7 = jackpot, com este valor como prêmio mínimo). */
   three: number;
-  /** 2 iguais (em qualquer posição): multiplicador da aposta. */
+  /** 2 iguais (em qualquer posição): multiplicador da aposta (0 = par não paga). */
   pair: number;
 }
 
 /** Do mais raro ao mais comum. */
 export const SYMBOLS: CasinoSymbol[] = [
-  { id: 'dragonball', label: 'Esfera do Dragão', weight: 6, three: 100, pair: 5 },
-  { id: 'sharingan', label: 'Sharingan', weight: 8, three: 60, pair: 3 },
-  { id: 'deathnote', label: 'Death Note', weight: 10, three: 30, pair: 2 },
-  { id: 'bandana', label: 'Bandana da Folha', weight: 13, three: 20, pair: 2 },
-  { id: 'hat', label: 'Chapéu de palha', weight: 16, three: 12, pair: 1 },
-  { id: 'shuriken', label: 'Shuriken', weight: 20, three: 8, pair: 1 },
-  { id: 'pokeball', label: 'Pokébola', weight: 27, three: 5, pair: 1 },
+  { id: 'seven', label: '7', weight: 6, three: 100, pair: 5 },
+  { id: 'galactic', label: 'Galáctico', weight: 9, three: 60, pair: 3 },
+  { id: 'replay', label: 'Replay', weight: 12, three: 30, pair: 2 },
+  { id: 'cherry', label: 'Cerejas', weight: 16, three: 18, pair: 1 },
+  { id: 'pikachu', label: 'Pikachu', weight: 24, three: 10, pair: 1 },
+  { id: 'moonstone', label: 'Pedra da Lua', weight: 33, three: 5, pair: 0 },
 ];
 
 export const SYMBOLS_BY_ID = new Map(SYMBOLS.map((s) => [s.id, s]));
-export const JACKPOT_SYMBOL: SymbolId = 'dragonball';
+export const JACKPOT_SYMBOL: SymbolId = 'seven';
 
 export const BET_MIN = 10;
 export const BET_MAX = 100;
@@ -69,7 +69,8 @@ export function evaluate(reels: SymbolId[]): Outcome {
     return { kind: 'three', symbol: a, multiplier: SYMBOLS_BY_ID.get(a)!.three };
   }
   const paired = a === b || a === c ? a : b === c ? b : null;
-  if (paired) return { kind: 'pair', symbol: paired, multiplier: SYMBOLS_BY_ID.get(paired)!.pair };
+  const pairPays = paired ? SYMBOLS_BY_ID.get(paired)!.pair : 0;
+  if (paired && pairPays > 0) return { kind: 'pair', symbol: paired, multiplier: pairPays };
   return { kind: 'none' };
 }
 

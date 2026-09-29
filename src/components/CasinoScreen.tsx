@@ -4,6 +4,7 @@ import {
   BET_MAX,
   BET_MIN,
   BET_STEP,
+  JACKPOT_SYMBOL,
   jackpotPrize,
   POT_CONTRIBUTION,
   POT_PAYOUT_SHARE,
@@ -47,7 +48,7 @@ function resultText(r: SpinResult): string {
 export default function CasinoScreen({ identity, profile, onProfileChange }: Props) {
   const [casino, setCasino] = useState<CasinoState | null>(null);
   const [bet, setBet] = useState(BET_MIN);
-  const [reels, setReels] = useState<SymbolId[]>(['dragonball', 'sharingan', 'pokeball']);
+  const [reels, setReels] = useState<SymbolId[]>(['seven', 'galactic', 'pikachu']);
   /** Quantos rolos já pararam (3 = parado). */
   const [stopped, setStopped] = useState(3);
   const [result, setResult] = useState<SpinResult | null>(null);
@@ -143,8 +144,8 @@ export default function CasinoScreen({ identity, profile, onProfileChange }: Pro
                   <td>
                     <CasinoIcon id={s.id} size={28} /> {s.label}
                   </td>
-                  <td>{s.id === 'dragonball' ? 'Jackpot' : `${s.three}×`}</td>
-                  <td>{s.pair}×</td>
+                  <td>{s.id === JACKPOT_SYMBOL ? 'Jackpot' : `${s.three}×`}</td>
+                  <td>{s.pair ? `${s.pair}×` : '—'}</td>
                 </tr>
               ))}
             </tbody>
@@ -154,9 +155,9 @@ export default function CasinoScreen({ identity, profile, onProfileChange }: Pro
             {pct(POT_CONTRIBUTION)} de cada aposta vai para o <strong>pote acumulado</strong>.
           </p>
           <p>
-            <strong>Jackpot (3 Esferas do Dragão):</strong> quem aposta {BET_MAX} leva {pct(POT_PAYOUT_SHARE)} do pote;
+            <strong>Jackpot (três 7):</strong> quem aposta {BET_MAX} leva {pct(POT_PAYOUT_SHARE)} do pote;
             apostas menores levam uma parte proporcional (aposta {BET_MIN} = {pct(BET_MIN / BET_MAX)} disso). O jackpot
-            nunca paga menos que {SYMBOLS_BY_ID.get('dragonball')!.three}× a aposta. O resto do pote continua acumulando.
+            nunca paga menos que {SYMBOLS_BY_ID.get(JACKPOT_SYMBOL)!.three}× a aposta. O resto do pote continua acumulando.
           </p>
           <p className="muted">Em média, volta cerca de 95% do que é apostado. Moedas não valem dinheiro real.</p>
         </div>

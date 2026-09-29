@@ -2396,11 +2396,12 @@ input:focus {
   clip-path: var(--clip-chamfer-sm);
 }
 
-/* Imagens dos símbolos: sempre inteiras dentro do quadrado (as originais não são todas quadradas). */
+/* Símbolos em pixel art (Game Corner): inteiros dentro do quadrado e com pixels nítidos, sem borrar. */
 .casino-icon {
   display: block;
   object-fit: contain;
   box-sizing: border-box;
+  image-rendering: pixelated;
   user-select: none;
 }
 

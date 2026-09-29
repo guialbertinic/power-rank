@@ -247,7 +247,7 @@ try {
   const balanceAfter = Number((await text(ana, '.casino-balance .coins'))?.replace(/\D/g, ''));
   check('saldo atualiza depois do giro', balanceAfter !== balanceBefore || /volta/.test(spinText ?? ''), `${balanceBefore} → ${balanceAfter}`);
   await ana.click('.casino-header .leaderboard-help-toggle');
-  check('"?" mostra a tabela de prêmios', (await ana.$$('.casino-table tbody tr')).length === 7);
+  check('"?" mostra a tabela de prêmios', (await ana.$$('.casino-table tbody tr')).length === 6);
 
   // ---------- Trocar nick e sair ----------
   section('Trocar nick e sair');

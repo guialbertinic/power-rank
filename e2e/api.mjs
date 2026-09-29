@@ -173,8 +173,8 @@ section('Cassino');
 
   d1(`UPDATE players SET coins = 2000 WHERE name_key = '${me.name.toLowerCase()}'`);
   const { pot: potBefore } = await get('/casino');
-  const PAIR = { dragonball: 5, sharingan: 3, deathnote: 2, bandana: 2, hat: 1, shuriken: 1, pokeball: 1 };
-  const THREE = { sharingan: 60, deathnote: 30, bandana: 20, hat: 12, shuriken: 8, pokeball: 5 };
+  const PAIR = { seven: 5, galactic: 3, replay: 2, cherry: 1, pikachu: 1, moonstone: 0 };
+  const THREE = { galactic: 60, replay: 30, cherry: 18, pikachu: 10, moonstone: 5 };
   let expectedCoins = 2000;
   let prizesOk = true;
   let jackpots = 0;
@@ -187,7 +187,7 @@ section('Cassino');
     }
     const [a, b, c] = data.reels;
     const pair = a === b || a === c ? a : b === c ? b : null;
-    const expected = a === b && b === c ? (a === 'dragonball' ? null : THREE[a] * bet) : pair ? PAIR[pair] * bet : 0;
+    const expected = a === b && b === c ? (a === 'seven' ? null : THREE[a] * bet) : pair ? PAIR[pair] * bet : 0;
     if (expected === null) jackpots++;
     else if (data.prize !== expected) prizesOk = false;
     expectedCoins += data.prize - bet;

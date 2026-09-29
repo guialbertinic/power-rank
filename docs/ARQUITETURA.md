@@ -107,11 +107,11 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 
 ## Cassino (caça-níquel)
 
-- Regras em `src/game/casino.ts` (compartilhado; `casino.test.ts` calcula o retorno exato das 7³ combinações).
+- Regras em `src/game/casino.ts` (compartilhado; `casino.test.ts` calcula o retorno exato das 6³ combinações).
   Servidor em `server/casino.ts`, tela `CasinoScreen` (botão "Cassino" na `ProfileBar`, só contas), ícones em
-  `public/cassino/<id>.webp` (160px, fundo transparente, via `CasinoIcon`).
-- 3 rolos, 7 símbolos com pesos. 3 iguais e pares pagam multiplicadores da aposta (10–100, de 10 em 10); a chance
-  não depende da aposta. Tabela fixa ≈ 90% de retorno + pote ≈ 95% no longo prazo. Jackpot (3 Esferas do Dragão)
+  `public/cassino/<id>.webp` (pixel art do Game Corner ampliada 4×, via `CasinoIcon`).
+- 3 rolos, 6 símbolos com pesos (ícones do Game Corner de Pokémon). 3 iguais e pares pagam multiplicadores da aposta (10–100, de 10 em 10); a chance
+  não depende da aposta. Tabela fixa ≈ 90% de retorno + pote ≈ 95% no longo prazo. Jackpot (três 7)
   ≈ 1 a cada 4.600 giros.
 - **Pote** (`casino_pot`, uma linha): recebe 5% de cada aposta. Jackpot = maior entre 100× a aposta e
   `pote × 50% × aposta/100`; só essa parte sai do pote (o mínimo excedente vem "da casa"). O `UPDATE` do pote
