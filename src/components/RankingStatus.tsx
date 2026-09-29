@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { submitScoreOnce, type SubmitResult } from '../api';
+import { formatDuration } from '../ui/format';
 import Coins from './Coins';
 
 type Status = { kind: 'sending' } | { kind: 'done'; result: SubmitResult } | { kind: 'error'; message: string };
@@ -36,9 +37,10 @@ export default function RankingStatus({ gameId, placements, onSubmitted }: Props
     return <p className="ranking-status error">Não foi possível enviar ao ranking: {status.message}</p>;
   }
 
-  const { isNewBest, rank, coinsEarned, coins } = status.result;
+  const { isNewBest, rank, coinsEarned, coins, durationMs } = status.result;
   return (
     <>
+      <p className="muted ranking-time">Tempo: {formatDuration(durationMs)}</p>
       <p className="coins-earned">
         {coins === null
           ? 'Crie uma conta para entrar no ranking e ganhar moedas'
@@ -48,7 +50,7 @@ export default function RankingStatus({ gameId, placements, onSubmitted }: Props
       </p>
       {isNewBest && (
         <p className="ranking-status new-best">
-          Novo recorde! Você está em <strong>#{rank}</strong> no ranking global.
+          Seu melhor de hoje! Você está em <strong>#{rank}</strong> no ranking de hoje.
         </p>
       )}
     </>

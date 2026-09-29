@@ -830,6 +830,40 @@ input:focus {
 }
 
 /* Ranking: 3 primeiros no pódio, do 4º em diante linhas maiores para ler nome e avatar. */
+/* Título do ranking à esquerda, abas Hoje/Acumulado à direita (quebra embaixo no celular). */
+.leaderboard-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.leaderboard-header .section-title {
+  margin-bottom: 0;
+}
+
+.leaderboard-periods {
+  display: flex;
+  gap: 6px;
+}
+
+/* Tempo (Hoje) ou dias (Acumulado), embaixo da pontuação. */
+.podium-detail,
+.row-detail {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-style: normal;
+  color: var(--text-2);
+}
+
+.row-detail {
+  display: block;
+  line-height: 1;
+}
+
 .leaderboard-podium {
   margin-bottom: 16px;
 }

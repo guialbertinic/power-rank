@@ -198,6 +198,11 @@ try {
   const podium = await ana.$$eval('.leaderboard-podium .podium-step:not(.empty)', (els) => els.length);
   const firstRow = await text(ana, '.leaderboard-rows .row .rank-badge');
   check('3 primeiros no pódio, lista começa no 4º', podium >= 1 && podium <= 3 && (firstRow === null || firstRow === '4'), `${podium} / ${firstRow}`);
+  check('Hoje mostra o tempo no pódio', /^\d+s$|^\d+:\d\d$/.test((await text(ana, '.leaderboard-podium .podium-detail')) ?? ''));
+  await ana.click('.leaderboard-periods button:nth-child(2)');
+  await ana.waitForSelector('.leaderboard-podium .podium-detail ::-p-text(dia)');
+  check('aba Acumulado mostra os dias', true);
+  await ana.click('.leaderboard-periods button:nth-child(1)');
 
   // ---------- Trocar nick e sair ----------
   section('Trocar nick e sair');

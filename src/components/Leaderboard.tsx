@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { fetchLeaderboard, type LeaderboardEntry } from '../api';
+import { fetchLeaderboard, type LeaderboardEntry, type Period } from '../api';
 import { cosmeticById } from '../game/cosmetics';
 import { MODES, type Mode } from '../game/modes';
 import { sameNick } from '../nick';
+import { formatDuration } from '../ui/format';
 import PlayerTag from './PlayerTag';
 import RankBadge from './RankBadge';
 
@@ -20,15 +21,31 @@ const STEPS = [
   { place: 3, className: 'third tier-a' },
 ];
 
-/** Top do ranking de um modo (cada categoria tem o seu): os 3 primeiros num pódio, o resto em lista. */
+const PERIODS: { id: Period; label: string }[] = [
+  { id: 'today', label: 'Hoje' },
+  { id: 'total', label: 'Acumulado' },
+];
+
+/** Embaixo da pontuação: o tempo da partida (Hoje, desempata) ou quantos dias somaram (Acumulado). */
+function detail(s: LeaderboardEntry): string | null {
+  if (s.durationMs !== undefined) return formatDuration(s.durationMs);
+  if (s.days !== undefined) return `${s.days} ${s.days === 1 ? 'dia' : 'dias'}`;
+  return null;
+}
+
+/**
+ * Ranking de um modo (cada categoria tem o seu), em duas abas: Hoje (melhor partida do dia; empate = menor
+ * tempo) e Acumulado (soma do melhor de cada dia). Os 3 primeiros num pódio, o resto em lista.
+ */
 export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) {
+  const [period, setPeriod] = useState<Period>('today');
   const [scores, setScores] = useState<LeaderboardEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setScores(null);
-    fetchLeaderboard(mode)
+    fetchLeaderboard(mode, period)
       .then((s) => {
         if (!cancelled) setScores(s);
       })
@@ -38,7 +55,7 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
     return () => {
       cancelled = true;
     };
-  }, [mode, refreshKey]);
+  }, [mode, period, refreshKey]);
 
   if (failed) return null;
 
@@ -54,6 +71,7 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
         <span className={`podium-name${s.look.nameColor ? ` cosmetic-${s.look.nameColor}` : ''}`}>{s.name}</span>
         {title && <span className="podium-title">{title}</span>}
         <span className="podium-score">{s.score}</span>
+        {detail(s) && <span className="podium-detail">{detail(s)}</span>}
         <div className="podium-block">
           <span className="podium-place">{place}º</span>
         </div>
@@ -63,9 +81,26 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
 
   return (
     <div className="panel leaderboard">
-      <h3 className="section-title">Ranking · {MODES.find((m) => m.id === mode)?.label}</h3>
+      <div className="leaderboard-header">
+        <h3 className="section-title">Ranking · {MODES.find((m) => m.id === mode)?.label}</h3>
+        <div className="leaderboard-periods" role="tablist">
+          {PERIODS.map((p) => (
+            <button
+              key={p.id}
+              role="tab"
+              aria-selected={period === p.id}
+              className={`shop-filter-option${period === p.id ? ' selected' : ''}`}
+              onClick={() => setPeriod(p.id)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
       {scores === null && <p className="muted">Carregando...</p>}
-      {scores?.length === 0 && <p className="muted">Ninguém jogou ainda. Seja o primeiro.</p>}
+      {scores?.length === 0 && (
+        <p className="muted">{period === 'today' ? 'Ninguém jogou hoje ainda.' : 'Ninguém jogou ainda.'} Seja o primeiro.</p>
+      )}
       {scores && scores.length > 0 && (
         <>
           <div className="podium leaderboard-podium" role="list" aria-label="Pódio">
@@ -79,7 +114,10 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
                   <span className="row-name">
                     <PlayerTag name={s.name} look={s.look} size={36} />
                   </span>
-                  <span className="row-score">{s.score}</span>
+                  <span className="row-score">
+                    {s.score}
+                    {detail(s) && <small className="row-detail">{detail(s)}</small>}
+                  </span>
                 </li>
               ))}
             </ol>

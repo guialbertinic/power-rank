@@ -11,10 +11,11 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 - Conta (nick + senha, reserva o nick, moedas, qualquer dispositivo) ou convidado (qualquer nick livre, sem
   ranking nem moedas); criar conta e forçar sincronização no menu do perfil; convite entra direto.
 - Jogador identificado por id (migração 0007): trocar nick renomeia a conta; sair da conta.
+- Ranking Hoje (desempate por tempo) e Acumulado (soma do melhor de cada dia), 3 primeiros em pódio.
 - Moedas (a partir de 500 pontos, bônus de pódio), loja de cosméticos, `PlayerTag` e barra de perfil na home.
 - Testes e2e no repositório (`npm run e2e:api`, `npm run e2e:ui`), skills do projeto (`.claude/skills/`) e
   documentação dividida entre `CLAUDE.md` (regras) e `docs/ARQUITETURA.md` (referência).
-- Produção: migrações 0001–0008 aplicadas; deploy automático pela `main`.
+- Produção: migrações 0001–0009 aplicadas; deploy automático pela `main`.
 
 ## Party (multiplayer)
 

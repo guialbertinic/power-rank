@@ -52,6 +52,8 @@ interface StoredRoom {
   characterIds: string[];
   players: StoredPlayer[];
   createdAt: number;
+  /** Início da rodada atual (mede o tempo de cada jogador para o desempate do ranking). */
+  startedAt?: number;
 }
 
 const isPid = (value: unknown): value is string => typeof value === 'string' && /^[\w-]{8,64}$/.test(value);
@@ -176,6 +178,7 @@ export class PartyRoom extends DurableObject<Env> {
         room.characterIds = drawCharacters(pool, SLOTS).map((c) => c.id);
         room.round++;
         room.phase = 'playing';
+        room.startedAt = Date.now();
         // Quem saiu da sala não entra na nova partida.
         room.players = room.players
           .filter((p) => p.connected)
@@ -221,7 +224,7 @@ export class PartyRoom extends DurableObject<Env> {
           coinsEarned: player.playerId === null ? 0 : coinsForScore(score),
           finishedAt: Date.now(),
         });
-        this.ctx.waitUntil(this.recordScore(room.mode, player));
+        this.ctx.waitUntil(this.recordScore(room.mode, player, room.startedAt));
         this.maybeFinishRound(room);
         break;
       }
@@ -301,19 +304,32 @@ export class PartyRoom extends DurableObject<Env> {
   }
 
   /** O resultado de cada jogador também vale para o ranking da categoria e rende moedas, como no solo. */
-  private async recordScore(mode: Mode, player: StoredPlayer) {
+  private async recordScore(mode: Mode, player: StoredPlayer, startedAt: number | undefined) {
     const gameId = crypto.randomUUID();
     const { playerId } = player;
     const coins = playerId === null ? 0 : coinsForScore(player.score ?? 0);
     const now = Date.now();
+    const durationMs = startedAt ? (player.finishedAt ?? now) - startedAt : null;
     try {
       await this.env.DB.batch([
         this.env.DB.prepare(
           'INSERT INTO games (id, character_ids, name, player_id, mode, created_at, submitted) VALUES (?, ?, ?, ?, ?, ?, 1)',
         ).bind(gameId, JSON.stringify(player.placements), player.name, playerId, mode, now),
         this.env.DB.prepare(
-          'INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        ).bind(gameId, player.name, nameKey(player.name), playerId, mode, player.score, JSON.stringify(player.placements), coins, now),
+          `INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, duration_ms, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ).bind(
+          gameId,
+          player.name,
+          nameKey(player.name),
+          playerId,
+          mode,
+          player.score,
+          JSON.stringify(player.placements),
+          coins,
+          durationMs,
+          now,
+        ),
         // Convidado: nenhuma linha em players tem id NULL, então não credita nada.
         this.env.DB.prepare('UPDATE players SET coins = coins + ? WHERE id = ?').bind(coins, playerId),
       ]);

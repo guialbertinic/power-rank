@@ -1,19 +1,28 @@
 import type { CosmeticSlot, Look, Profile } from './game/cosmetics';
 import type { Mode } from './game/modes';
 
+/** "Hoje": melhor partida do dia (zera à meia-noite de Brasília). "Acumulado": soma do melhor de cada dia. */
+export type Period = 'today' | 'total';
+
 export interface LeaderboardEntry {
   name: string;
   score: number;
-  createdAt: number;
+  /** Tempo da partida (só em "Hoje"; desempata pontuações iguais). */
+  durationMs?: number;
+  /** Quantos dias somaram (só em "Acumulado"). */
+  days?: number;
   look: Look;
 }
 
 export interface SubmitResult {
   score: number;
-  /** Melhor pontuação do jogador, contando esta partida. */
+  /** Tempo da partida medido no servidor. */
+  durationMs: number;
+  /** Melhor pontuação do jogador hoje, contando esta partida. */
   best: number;
+  /** Bateu o próprio melhor de hoje. */
   isNewBest: boolean;
-  /** Posição do melhor resultado do jogador no ranking global (null para convidado, que não entra no ranking). */
+  /** Posição do jogador no ranking de hoje (null para convidado, que não entra no ranking). */
   rank: number | null;
   /** Moedas que esta partida rendeu e o saldo depois dela (null para convidado). */
   coinsEarned: number;
@@ -143,7 +152,7 @@ export function equipItem(auth: Auth, slot: CosmeticSlot, itemId: string | null)
   return request('/api/profile/equip', { method: 'POST', body: JSON.stringify({ ...auth, slot, itemId }) });
 }
 
-export async function fetchLeaderboard(mode: Mode): Promise<LeaderboardEntry[]> {
-  const { scores } = await request<{ scores: LeaderboardEntry[] }>(`/api/scores?mode=${mode}`);
+export async function fetchLeaderboard(mode: Mode, period: Period): Promise<LeaderboardEntry[]> {
+  const { scores } = await request<{ scores: LeaderboardEntry[] }>(`/api/scores?mode=${mode}&period=${period}`);
   return scores;
 }

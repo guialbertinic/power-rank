@@ -10,7 +10,8 @@ public/chars/<id>.webp    imagens 240px (≈18 KB cada)
 public/_headers           cache: /chars 7 dias, /assets imutável
 migrations/               schema do D1 (0001 scores · 0002 melhor por jogador · 0003 categorias ·
                           0004 donos de nick · 0005 moedas e cosméticos ·
-                          0006 senha do nick · 0007 jogador por id · 0008 títulos)
+                          0006 senha do nick · 0007 jogador por id · 0008 títulos ·
+                          0009 tempo da partida)
 scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet (+ lib/images.mjs)
 e2e/                      testes e2e: api.mjs (sem navegador), ui.mjs (Edge headless), lib.mjs (utilitários)
 server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick),
@@ -50,16 +51,21 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/players/password` `{ token, password }` | Cria a senha de uma conta que ainda não tem (409 se já tem). 6 a 72 caracteres (`src/game/account.ts`). |
 | `POST /api/players/rename` `{ token, name }` | Troca o nick da conta, se não for de outra conta (409). Tudo segue a conta (id). |
 | `POST /api/games` `{ name, token?, mode }` | Com token: a conta dele (token inválido, 401). Sem token: convidado, se o nick não for de uma conta (401). Sorteia no servidor e grava a partida (com `player_id` da conta). |
-| `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Recalcula a pontuação no servidor, credita moedas. Uma vez por partida, TTL 1h. |
-| `GET /api/scores?mode=` | Top 20 do modo: melhor resultado de cada conta (com o nick atual), com o visual equipado. Convidados não entram. |
+| `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Recalcula a pontuação, mede o tempo (sorteio → envio), credita moedas. Devolve `durationMs` e `best`/`isNewBest`/`rank` do ranking de hoje. Uma vez por partida, TTL 1h. |
+| `GET /api/scores?mode=&period=today\|total` | Top 20 do modo, só contas (nick atual + visual). `today` (padrão): melhor do dia, com `durationMs`; `total`: soma do melhor de cada dia, com `days`. |
 | `POST /api/party` `{ mode, pid }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
 | `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |
 | `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado e `hasPassword`. |
 | `POST /api/shop/buy` `{ token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
 | `POST /api/profile/equip` `{ token, slot, itemId \| null }` | Equipa (ou tira) um item que o jogador tem. |
 
-`scores` guarda todas as partidas (inclusive de convidados, com `player_id` NULL); o ranking usa
-`ROW_NUMBER() OVER (PARTITION BY player_id)` só sobre contas: uma linha por conta, mesmo depois de trocar o nick.
+`scores` guarda todas as partidas (inclusive de convidados, com `player_id` NULL, que não entram no ranking).
+**Rankings** (`server/scores.ts`), uma linha por conta mesmo depois de trocar o nick:
+- **Hoje**: melhor partida desde a meia-noite de Brasília (UTC−3, `startOfToday`). Empate: menor `duration_ms`
+  (solo: do sorteio ao envio; party: do início da rodada ao fim do jogador), depois quem fez primeiro. Partidas
+  antigas sem tempo ficam atrás no empate.
+- **Acumulado**: soma do melhor resultado de cada dia (máx. 1000/dia: premia constância, não volume). Empate:
+  menos dias.
 
 **Identidade:** o jogador é `players.id`. `player_tokens`, `player_items`, `games.player_id` e `scores.player_id`
 apontam para ele (NULL em games/scores = convidado). `players.name` é o nick como foi escrito e `players.name_key`

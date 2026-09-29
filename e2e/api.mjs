@@ -1,6 +1,7 @@
 // Testes e2e da API (sem navegador): nick, economia/loja e party por WebSocket.
 // Uso: com `npm run dev` rodando, `npm run e2e:api`.
 import {
+  BASE,
   check,
   cleanTestData,
   d1,
@@ -127,6 +128,39 @@ section('Economia e loja');
     'ranking traz o visual (com título)',
     row?.look.avatar === 'goku' && row.look.nameColor === 'name-cyan' && row.look.title === 'title-iniciante-prospero',
   );
+}
+
+// ---------- Ranking: Hoje e Acumulado ----------
+section('Ranking');
+{
+  const slow = await player('Lento');
+  const fast = await player('Rapido');
+  const first = await playSolo(slow, 'perfect');
+  check('envio traz o tempo da partida', typeof first.durationMs === 'number' && first.durationMs >= 0);
+  await playSolo(fast, 'perfect');
+  // Tempos controlados: os dois fizeram 1000, o "Rapido" em menos tempo.
+  d1(`UPDATE scores SET duration_ms = 90000 WHERE player_id = (SELECT id FROM players WHERE name_key = '${slow.name.toLowerCase()}')`);
+  d1(`UPDATE scores SET duration_ms = 30000 WHERE player_id = (SELECT id FROM players WHERE name_key = '${fast.name.toLowerCase()}')`);
+  const { scores: today } = await get('/scores?mode=anime&period=today');
+  const pos = (list, p) => list.findIndex((s) => s.name === p.name);
+  check('empate em 1000: menor tempo na frente', pos(today, fast) >= 0 && pos(today, fast) < pos(today, slow));
+  check('Hoje mostra o tempo', today[pos(today, fast)]?.durationMs === 30000);
+
+  // Mais uma partida hoje e uma de ontem para o "Lento".
+  await playSolo(slow, 'perfect');
+  const yesterday = Date.now() - 26 * 60 * 60 * 1000;
+  const slowId = `(SELECT id FROM players WHERE name_key = '${slow.name.toLowerCase()}')`;
+  d1(
+    `INSERT INTO games (id, character_ids, created_at, submitted, name, player_id, mode) VALUES ('e2e-ontem', '[]', ${yesterday}, 1, '${slow.name}', ${slowId}, 'anime');` +
+      `INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, created_at) VALUES ('e2e-ontem', '${slow.name}', '${slow.name.toLowerCase()}', ${slowId}, 'anime', 700, '[]', 0, ${yesterday});`,
+  );
+  const { scores: total } = await get('/scores?mode=anime&period=total');
+  const slowTotal = total.find((s) => s.name === slow.name);
+  check('Acumulado soma o melhor de cada dia (1000 hoje + 700 ontem)', slowTotal?.score === 1700 && slowTotal.days === 2, JSON.stringify(slowTotal));
+  check('Acumulado não soma 2 partidas do mesmo dia', total.find((s) => s.name === fast.name)?.score === 1000);
+  const { scores: todayAgain } = await get('/scores?mode=anime&period=today');
+  check('Hoje ignora partidas de ontem', todayAgain.find((s) => s.name === slow.name)?.score === 1000);
+  check('período inválido é recusado', (await fetch(`${BASE}/api/scores?mode=anime&period=ano`)).status === 400);
 }
 
 // ---------- Party ----------
