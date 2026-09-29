@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import { badRequest, CHARACTERS, CHARACTERS_BY_ID, json, nameKey, sanitizeName, type Env } from './lib';
-import { verifyPlayer } from './players';
+import { playerAccess } from './players';
 import { creditCoins, lookOf } from './profile';
 import { EMPTY_LOOK, type Look } from '../src/game/cosmetics';
 import { coinsForScore, podiumBonus } from '../src/game/economy';
@@ -37,6 +37,8 @@ interface StoredPlayer {
   finishedAt?: number;
   /** Visual equipado (lido do perfil ao entrar na sala). */
   look: Look;
+  /** Conta do jogador; null = convidado (nick sem conta, não ganha moedas). */
+  playerId: number | null;
   /** Moedas ganhas na rodada (pontuação + bônus de pódio). */
   coinsEarned?: number;
 }
@@ -106,12 +108,15 @@ export class PartyRoom extends DurableObject<Env> {
     if (!isPid(pid)) return 'Identificação inválida';
     const name = sanitizeName(rawName);
 
-    // Quem ainda não está na sala precisa provar que é dono do nick. A consulta ao D1 é feita ANTES das
-    // checagens: durante uma espera de I/O externo o Durable Object processa outras mensagens, e duas
+    // Quem ainda não está na sala precisa provar que é dono da conta (token) ou usar um nick sem conta, como
+    // convidado. A consulta ao D1 é feita ANTES das checagens: durante uma espera de I/O externo o Durable Object processa outras mensagens, e duas
     // conexões do mesmo jogador (ex: React StrictMode, clique duplo) entrariam as duas.
     const isMember = this.room!.players.some((p) => p.pid === pid);
-    const verified = isMember || (name !== null && (await verifyPlayer(this.env, name, token)));
-    const look = !isMember && verified && name ? await lookOf(this.env, name) : EMPTY_LOOK;
+    const access = isMember || name === null ? null : await playerAccess(this.env, name, token);
+    const verified = isMember || access !== null;
+    const look = access?.kind === 'account' ? await lookOf(this.env, access.id) : EMPTY_LOOK;
+    // Conta: vale o nick atual dela (pode ter sido trocado em outro dispositivo).
+    const displayName = access?.name ?? name;
 
     // Daqui até o push não há nenhum await: checagem e inclusão acontecem juntas.
     const room = this.room!;
@@ -123,10 +128,20 @@ export class PartyRoom extends DurableObject<Env> {
     } else {
       if (room.phase !== 'lobby') return 'A partida já começou';
       if (room.players.length >= PARTY_MAX_PLAYERS) return `Sala cheia (máximo ${PARTY_MAX_PLAYERS})`;
-      if (!name) return 'Nick inválido';
-      if (room.players.some((p) => nameKey(p.name) === nameKey(name))) return 'Esse nick já está na sala';
-      if (!verified) return 'Nick não verificado. Escolha seu nick de novo.';
-      room.players.push({ pid, id: crypto.randomUUID().slice(0, 8), name, connected: true, progress: 0, finished: false, look });
+      if (!displayName) return 'Nick inválido';
+      if (!verified || !access) return 'Nick não verificado. Escolha seu nick de novo.';
+      if (room.players.some((p) => nameKey(p.name) === nameKey(displayName))) return 'Esse nick já está na sala';
+      if (access.kind === 'account' && room.players.some((p) => p.playerId === access.id)) return 'Você já está na sala';
+      room.players.push({
+        pid,
+        id: crypto.randomUUID().slice(0, 8),
+        name: displayName,
+        connected: true,
+        progress: 0,
+        finished: false,
+        look,
+        playerId: access.kind === 'account' ? access.id : null,
+      });
     }
 
     ws.serializeAttachment({ pid });
@@ -164,7 +179,16 @@ export class PartyRoom extends DurableObject<Env> {
         // Quem saiu da sala não entra na nova partida.
         room.players = room.players
           .filter((p) => p.connected)
-          .map(({ pid, id, name, connected, look }) => ({ pid, id, name, connected, look, progress: 0, finished: false }));
+          .map(({ pid, id, name, connected, look, playerId }) => ({
+            pid,
+            id,
+            name,
+            connected,
+            look,
+            playerId: playerId ?? null,
+            progress: 0,
+            finished: false,
+          }));
         break;
       }
       case 'progress': {
@@ -194,7 +218,7 @@ export class PartyRoom extends DurableObject<Env> {
           progress: SLOTS,
           placements,
           score,
-          coinsEarned: coinsForScore(score),
+          coinsEarned: player.playerId === null ? 0 : coinsForScore(score),
           finishedAt: Date.now(),
         });
         this.ctx.waitUntil(this.recordScore(room.mode, player));
@@ -262,9 +286,9 @@ export class PartyRoom extends DurableObject<Env> {
     ranking.slice(0, 3).forEach((ranked, i) => {
       const bonus = podiumBonus(i + 1, ranking.length, ranked.score ?? 0);
       const player = room.players.find((p) => p.id === ranked.id);
-      if (!player || !bonus) return;
+      if (!player || !bonus || player.playerId === null) return;
       player.coinsEarned = (player.coinsEarned ?? 0) + bonus;
-      this.ctx.waitUntil(creditCoins(this.env, player.name, bonus));
+      this.ctx.waitUntil(creditCoins(this.env, player.playerId, bonus));
     });
   }
 
@@ -279,17 +303,19 @@ export class PartyRoom extends DurableObject<Env> {
   /** O resultado de cada jogador também vale para o ranking da categoria e rende moedas, como no solo. */
   private async recordScore(mode: Mode, player: StoredPlayer) {
     const gameId = crypto.randomUUID();
-    const coins = coinsForScore(player.score ?? 0);
+    const { playerId } = player;
+    const coins = playerId === null ? 0 : coinsForScore(player.score ?? 0);
     const now = Date.now();
     try {
       await this.env.DB.batch([
         this.env.DB.prepare(
-          'INSERT INTO games (id, character_ids, name, mode, created_at, submitted) VALUES (?, ?, ?, ?, ?, 1)',
-        ).bind(gameId, JSON.stringify(player.placements), player.name, mode, now),
+          'INSERT INTO games (id, character_ids, name, player_id, mode, created_at, submitted) VALUES (?, ?, ?, ?, ?, ?, 1)',
+        ).bind(gameId, JSON.stringify(player.placements), player.name, playerId, mode, now),
         this.env.DB.prepare(
-          'INSERT INTO scores (game_id, name, name_key, mode, score, placements, coins, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        ).bind(gameId, player.name, nameKey(player.name), mode, player.score, JSON.stringify(player.placements), coins, now),
-        this.env.DB.prepare('UPDATE players SET coins = coins + ? WHERE name_key = ?').bind(coins, nameKey(player.name)),
+          'INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        ).bind(gameId, player.name, nameKey(player.name), playerId, mode, player.score, JSON.stringify(player.placements), coins, now),
+        // Convidado: nenhuma linha em players tem id NULL, então não credita nada.
+        this.env.DB.prepare('UPDATE players SET coins = coins + ? WHERE id = ?').bind(coins, playerId),
       ]);
     } catch (err) {
       console.error('party: falha ao gravar pontuação', err);
@@ -332,10 +358,11 @@ export class PartyRoom extends DurableObject<Env> {
       characterIds: room.characterIds,
       // Pontuações, posições e moedas só aparecem no pódio.
       players: room.players.map(
-        ({ id, name, connected, progress, finished, look, score, placements, finishedAt, coinsEarned }) => ({
+        ({ id, name, connected, progress, finished, look, playerId, score, placements, finishedAt, coinsEarned }) => ({
           id,
           name,
           connected,
+          guest: playerId === null,
           progress,
           finished,
           look: look ?? EMPTY_LOOK,

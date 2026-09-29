@@ -5,11 +5,16 @@ import { DEFAULT_MODE, isMode } from '../src/game/modes';
 import { scoreGame } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
-/** Melhor partida de cada jogador num modo (empate: quem chegou primeiro). Recebe o modo como parâmetro. */
+/**
+ * Melhor partida de cada jogador num modo (empate: quem chegou primeiro). Recebe o modo como parâmetro.
+ * Jogador = a conta (player_id), mesmo que tenha trocado de nick; convidados (player_id NULL) são agrupados pelo nick.
+ */
 const BEST_PER_PLAYER = `
-  SELECT name_key, name, score, created_at FROM (
-    SELECT name_key, name, score, created_at,
-           ROW_NUMBER() OVER (PARTITION BY name_key ORDER BY score DESC, created_at ASC) AS rn
+  SELECT player_id, name, score, created_at FROM (
+    SELECT player_id, name, score, created_at,
+           ROW_NUMBER() OVER (
+             PARTITION BY COALESCE('p' || player_id, 'g' || name_key) ORDER BY score DESC, created_at ASC
+           ) AS rn
     FROM scores WHERE mode = ?
   ) WHERE rn = 1`;
 
@@ -19,8 +24,9 @@ export async function getLeaderboard(request: Request, env: Env): Promise<Respon
   if (!isMode(mode)) return badRequest('Categoria inválida');
 
   const { results } = await env.DB.prepare(
-    `SELECT b.name, b.score, b.created_at AS createdAt, p.avatar, p.name_color, p.frame
-     FROM (${BEST_PER_PLAYER}) b LEFT JOIN players p ON p.name_key = b.name_key
+    // Conta: mostra o nick atual dela; convidado: o nick usado na partida.
+    `SELECT COALESCE(p.name, b.name) AS name, b.score, b.created_at AS createdAt, p.avatar, p.name_color, p.frame
+     FROM (${BEST_PER_PLAYER}) b LEFT JOIN players p ON p.id = b.player_id
      ORDER BY b.score DESC, b.created_at ASC LIMIT ?`,
   )
     .bind(mode, LEADERBOARD_SIZE)
@@ -48,10 +54,10 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   const game = await env.DB.prepare(
     `UPDATE games SET submitted = 1
      WHERE id = ? AND submitted = 0 AND created_at > ? AND name IS NOT NULL
-     RETURNING character_ids, name, mode`,
+     RETURNING character_ids, name, player_id, mode`,
   )
     .bind(body.gameId, Date.now() - GAME_TTL_MS)
-    .first<{ character_ids: string; name: string; mode: string }>();
+    .first<{ character_ids: string; name: string; player_id: number | null; mode: string }>();
   if (!game) return badRequest('Partida inexistente, expirada ou já enviada');
 
   const drawn: string[] = JSON.parse(game.character_ids);
@@ -67,18 +73,25 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
 
   const { total } = scoreGame(slots as Character[]);
   const key = nameKey(game.name);
+  const playerId = game.player_id;
 
-  const previous = await env.DB.prepare('SELECT MAX(score) AS best FROM scores WHERE mode = ? AND name_key = ?')
-    .bind(game.mode, key)
-    .first<{ best: number | null }>();
+  const previous = await (
+    playerId !== null
+      ? env.DB.prepare('SELECT MAX(score) AS best FROM scores WHERE mode = ? AND player_id = ?').bind(game.mode, playerId)
+      : env.DB.prepare('SELECT MAX(score) AS best FROM scores WHERE mode = ? AND player_id IS NULL AND name_key = ?').bind(
+          game.mode,
+          key,
+        )
+  ).first<{ best: number | null }>();
 
-  const coinsEarned = coinsForScore(total);
+  // Convidado (partida sem conta) entra no ranking, mas não ganha moedas.
+  const coinsEarned = playerId !== null ? coinsForScore(total) : 0;
   await env.DB.prepare(
-    'INSERT INTO scores (game_id, name, name_key, mode, score, placements, coins, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
   )
-    .bind(body.gameId, game.name, key, game.mode, total, JSON.stringify(placements), coinsEarned, Date.now())
+    .bind(body.gameId, game.name, key, playerId, game.mode, total, JSON.stringify(placements), coinsEarned, Date.now())
     .run();
-  const coins = await creditCoins(env, game.name, coinsEarned);
+  const coins = playerId !== null ? await creditCoins(env, playerId, coinsEarned) : null;
 
   const best = Math.max(total, previous?.best ?? 0);
   const better = await env.DB.prepare(`SELECT COUNT(*) AS n FROM (${BEST_PER_PLAYER}) WHERE score > ?`)

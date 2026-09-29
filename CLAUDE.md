@@ -2,7 +2,7 @@
 
 Jogo de browser de "blind ranking" de poder: 10 personagens sorteados aparecem um de cada vez e o jogador coloca
 cada um numa posição de 1 a 10, sem poder mudar. Solo e Party (multiplayer), categorias Animes / Games / Free for All,
-nick com dono, moedas e loja de cosméticos.
+conta (nick + senha) ou convidado, moedas e loja de cosméticos.
 No ar em Cloudflare Workers; repo `github.com/guialbertinic/power-rank`, deploy automático a cada push na `main`.
 
 **Referência completa (estrutura, API, regras, party, economia, design system, imagens): `docs/ARQUITETURA.md`.
@@ -24,7 +24,7 @@ npm run dev            # front + API + D1 local em http://localhost:5173 (revis�
 npm run build          # typecheck (front + server) + build
 npm test               # unitários (src/game)
 npm run e2e:api        # e2e sem navegador (precisa do dev rodando)
-npm run e2e:ui         # e2e com Edge headless; screenshots em e2e/screenshots/
+npm run e2e:ui         # e2e com Edge headless (sem screenshots)
 npm run validate       # valida data/characters.json
 npm run contact-sheet -- <ids> | --category games | --series "X" | --recent N   # mosaico de imagens
 npm run db:migrate:local
@@ -43,7 +43,7 @@ npm run db:migrate:local
 - Durable Object: durante um `await` de I/O externo (D1, fetch) outras mensagens rodam. Consultas antes;
   checagens + mudança de estado juntas, sem `await` no meio.
 - UI: só tokens de `tokens.css`; conferir no celular (390px) sem scroll horizontal. Validar mudança visual com
-  `npm run e2e:ui` e olhar **só** os screenshots relevantes.
+  `npm run e2e:ui` (checagens por seletor/posição). **Não tirar nem abrir screenshots** (custa tokens).
 - Nicks de teste começam com `E2e` (os e2e limpam por prefixo). Não deixar dados de teste no D1 local.
 - `.env`/`.dev.vars` nunca no git nem impressos.
 

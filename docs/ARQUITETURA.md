@@ -10,7 +10,7 @@ public/chars/<id>.webp    imagens 240px (≈18 KB cada)
 public/_headers           cache: /chars 7 dias, /assets imutável
 migrations/               schema do D1 (0001 scores · 0002 melhor por jogador · 0003 categorias ·
                           0004 donos de nick · 0005 moedas e cosméticos ·
-                          0006 senha do nick)
+                          0006 senha do nick · 0007 jogador por id)
 scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet (+ lib/images.mjs)
 e2e/                      testes e2e: api.mjs (sem navegador), ui.mjs (Edge headless), lib.mjs (utilitários)
 server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick),
@@ -45,27 +45,42 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 
 | Rota | O que faz |
 |---|---|
-| `POST /api/players` `{ name, token?, password? }` | Escolhe o nick. Livre: fica seu, com a senha se veio uma (`{ token }`). Seu (token): confirma. De outra pessoa: senha certa dá token novo; errada 403; 5 erradas seguidas bloqueiam 5 min (429); sem senha: 409 `{ taken, hasPassword }`. |
-| `POST /api/players/password` `{ name, token, password }` | Cria a senha de um nick que ainda não tem (409 se já tem). 6 a 72 caracteres (`src/game/account.ts`). |
-| `POST /api/games` `{ name, token, mode }` | Exige ser dono do nick (401). Sorteia no servidor e grava a partida. |
+| `GET /api/players/status?name=` | `{ exists, hasPassword }`, sem reservar nada (a tela do nick decide o passo seguinte). |
+| `POST /api/players` `{ name, token?, password? }` | Conta. Nick livre + senha: cria (`{ token }`); sem senha, 400. Seu (token): confirma. De outra pessoa: senha certa dá token novo; errada 403; 5 erradas seguidas bloqueiam 5 min (429); sem senha: 409 `{ taken, hasPassword }`. |
+| `POST /api/players/password` `{ token, password }` | Cria a senha de uma conta que ainda não tem (409 se já tem). 6 a 72 caracteres (`src/game/account.ts`). |
+| `POST /api/players/rename` `{ token, name }` | Troca o nick da conta, se não for de outra conta (409). Tudo segue a conta (id). |
+| `POST /api/games` `{ name, token?, mode }` | Com token: a conta dele (token inválido, 401). Sem token: convidado, se o nick não for de uma conta (401). Sorteia no servidor e grava a partida (com `player_id` da conta). |
 | `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Recalcula a pontuação no servidor, credita moedas. Uma vez por partida, TTL 1h. |
-| `GET /api/scores?mode=` | Top 20 do modo: melhor resultado de cada nick, com o visual equipado. |
+| `GET /api/scores?mode=` | Top 20 do modo: melhor resultado de cada conta (com o nick atual) ou convidado, com o visual equipado. |
 | `POST /api/party` `{ mode, pid }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
 | `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |
-| `POST /api/profile` `{ name, token }` | Saldo, itens comprados, visual equipado e `hasPassword`. |
-| `POST /api/shop/buy` `{ name, token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
-| `POST /api/profile/equip` `{ name, token, slot, itemId \| null }` | Equipa (ou tira) um item que o jogador tem. |
+| `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado e `hasPassword`. |
+| `POST /api/shop/buy` `{ token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
+| `POST /api/profile/equip` `{ token, slot, itemId \| null }` | Equipa (ou tira) um item que o jogador tem. |
 
-`scores` guarda todas as partidas; o ranking usa `ROW_NUMBER() OVER (PARTITION BY name_key)`.
+`scores` guarda todas as partidas; o ranking usa `ROW_NUMBER() OVER (PARTITION BY COALESCE('p' || player_id,
+'g' || name_key))`: uma linha por conta (mesmo depois de trocar o nick) e por nick de convidado.
 
-## Nick com dono (convidado ou com senha)
+**Identidade:** o jogador é `players.id`. `player_tokens`, `player_items`, `games.player_id` e `scores.player_id`
+apontam para ele (NULL em games/scores = convidado). `players.name` é o nick como foi escrito e `players.name_key`
+o nick normalizado (`nameKey`: minúsculas, NFC), `UNIQUE`, usado só para achar um nick e impedir duplicata
+("Albertini" = "albertini"; `COLLATE NOCASE` do SQLite só cobre A–Z, não acentos). `scores.name`/`name_key`
+guardam o nick usado na partida (é o que identifica o convidado; para contas o ranking mostra `players.name`).
 
-O nick é único. O primeiro navegador que usa um nick fica com ele (`players`); cada aparelho do dono tem um
-token (`player_tokens`, hash SHA-256). Na tela do nick dá para entrar **com senha** (nick novo já nasce com ela;
-nick existente com senha = login neste aparelho) ou **como convidado** (o nick fica só neste navegador).
-"Sincronizar dispositivo" (menu da `ProfileBar`, componente `SyncDevice`) cria a senha de um nick de convidado e
-tem **Forçar sincronização**, que recarrega o perfil do servidor (tudo já mora no D1; serve para ver na hora o
-que mudou em outro aparelho). Senha: PBKDF2-SHA256 com sal, iterações gravadas no próprio hash (`password_hash`);
+## Conta e convidado
+
+Só a **conta** (nick + senha, linha em `players`) reserva o nick; cada aparelho da conta tem um token
+(`player_tokens`, hash SHA-256). O **convidado** (`token: null`) joga com qualquer nick que não seja de uma conta,
+sem reservar nada: entra no ranking, mas não ganha moedas nem usa a loja (`playerAccess` em `server/players.ts`
+decide conta/convidado em `/api/games` e na party; `PartyPlayer.guest`).
+Tela do nick (`NickScreen`): **Login** consulta `/api/players/status` — conta: pede a senha (ou entra direto se o
+token do nick está neste navegador); nick livre: senha + confirmar cria a conta. **Convidado**: entra se o nick não
+for de uma conta. "Sincronizar dispositivo" (menu da `ProfileBar`, `SyncDevice`): o convidado cria a conta ali;
+contas antigas sem senha (criadas antes da 0006) criam a senha; contas têm **Forçar sincronização**, que recarrega
+o perfil do servidor (e adota o nick, se a conta foi renomeada em outro aparelho). **Trocar nick** (`ChangeNick`)
+nunca troca de conta: a conta é renomeada (se o nick não for de outra conta); o convidado só passa a usar outro
+nick livre. **Sair da conta** esquece o token neste navegador; o convidado tem **Entrar em uma conta**.
+Senha: PBKDF2-SHA256 com sal, iterações gravadas no próprio hash (`password_hash`);
 tentativas erradas em `failed_logins`/`locked_until`. Ainda não há troca nem recuperação de senha.
 No navegador, a identidade `{ name, token }` e os tokens de nicks já usados ficam no `localStorage` (`src/nick.ts`).
 

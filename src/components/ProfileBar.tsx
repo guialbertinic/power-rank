@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Profile } from '../game/cosmetics';
 import { EMPTY_LOOK } from '../game/cosmetics';
 import type { Identity } from '../nick';
+import ChangeNick from './ChangeNick';
 import Coins from './Coins';
 import PlayerTag from './PlayerTag';
 import SyncDevice from './SyncDevice';
@@ -11,17 +12,20 @@ interface Props {
   /** Saldo e visual (null enquanto carrega ou sem conexão). */
   profile: Profile | null;
   onOpenShop: () => void;
-  onChangeNick: () => void;
+  /** Trocou o nick ou o convidado criou a conta pelo menu. */
+  onIdentityChange: (identity: Identity) => void;
+  /** Conta: sair dela neste navegador. Convidado: ir para a tela do nick entrar numa conta. */
+  onLeave: () => void;
   /** Forçar sincronização: recarrega o perfil do servidor. */
   onRefresh: () => Promise<void>;
   disabled?: boolean;
 }
 
 /**
- * Canto superior direito da home: quem está jogando, saldo e loja. "Trocar nick" e "Sincronizar dispositivo"
- * ficam num menu que abre ao tocar no nick (são usados raramente).
+ * Canto superior direito da home: quem está jogando, saldo e loja. "Trocar nick", "Sincronizar dispositivo" e
+ * sair/entrar numa conta ficam num menu que abre ao tocar no nick (são usados raramente).
  */
-export default function ProfileBar({ identity, profile, onOpenShop, onChangeNick, onRefresh, disabled }: Props) {
+export default function ProfileBar({ identity, profile, onOpenShop, onIdentityChange, onLeave, onRefresh, disabled }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -53,6 +57,8 @@ export default function ProfileBar({ identity, profile, onOpenShop, onChangeNick
         <span className="profile-bar-caret" aria-hidden="true" />
       </button>
 
+      {!identity.token && <span className="profile-guest">Convidado</span>}
+
       {profile && (
         <>
           <Coins amount={profile.coins} />
@@ -64,20 +70,21 @@ export default function ProfileBar({ identity, profile, onOpenShop, onChangeNick
 
       {menuOpen && (
         <div className="panel profile-menu" role="menu">
-          <button
-            className="link-button"
-            role="menuitem"
-            onClick={() => {
-              setMenuOpen(false);
-              onChangeNick();
-            }}
-          >
-            Trocar nick
-          </button>
-          <SyncDevice identity={identity} profile={profile} onRefresh={onRefresh} />
+          <ChangeNick identity={identity} onChanged={onIdentityChange} />
+          <SyncDevice identity={identity} profile={profile} onRefresh={onRefresh} onAccountCreated={onIdentityChange} />
           {profile && !profile.hasPassword && profile.coins > 0 && (
             <p className="muted sync-warning">Crie uma senha para não perder suas moedas.</p>
           )}
+          <button
+            className="link-button profile-leave"
+            role="menuitem"
+            onClick={() => {
+              setMenuOpen(false);
+              onLeave();
+            }}
+          >
+            {identity.token ? 'Sair da conta' : 'Entrar em uma conta'}
+          </button>
         </div>
       )}
     </div>

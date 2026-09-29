@@ -43,24 +43,49 @@ async function checkPassword(password: string, stored: string): Promise<boolean>
   return diff === 0;
 }
 
-async function issueToken(env: Env, key: string): Promise<string> {
+async function issueToken(env: Env, playerId: number): Promise<string> {
   const token = randomToken();
-  await env.DB.prepare('INSERT INTO player_tokens (token_hash, name_key, created_at) VALUES (?, ?, ?)')
-    .bind(await sha256(token), key, Date.now())
+  await env.DB.prepare('INSERT INTO player_tokens (token_hash, player_id, created_at) VALUES (?, ?, ?)')
+    .bind(await sha256(token), playerId, Date.now())
     .run();
   return token;
 }
 
-/** O token pertence ao dono deste nick? */
-export async function verifyPlayer(env: Env, name: string, token: unknown): Promise<boolean> {
-  if (typeof token !== 'string' || !token) return false;
-  const row = await env.DB.prepare('SELECT 1 FROM player_tokens WHERE token_hash = ? AND name_key = ?')
-    .bind(await sha256(token), nameKey(name))
-    .first();
-  return Boolean(row);
+export interface Account {
+  id: number;
+  /** Nick atual da conta (pode ter mudado em outro dispositivo). */
+  name: string;
 }
 
+/** Conta dona do token. O token identifica o jogador; o nick é só um atributo dele. */
+export async function accountByToken(env: Env, token: unknown): Promise<Account | null> {
+  if (typeof token !== 'string' || !token) return null;
+  return env.DB.prepare(
+    'SELECT p.id, p.name FROM player_tokens t JOIN players p ON p.id = t.player_id WHERE t.token_hash = ?',
+  )
+    .bind(await sha256(token))
+    .first<Account>();
+}
+
+export type Access = ({ kind: 'account' } & Account) | { kind: 'guest'; name: string };
+
+/**
+ * Quem está jogando: com token, a conta dele (token inválido = null); sem token, um convidado com esse nick,
+ * desde que o nick não seja de nenhuma conta. Convidados não reservam o nick nem ganham moedas.
+ */
+export async function playerAccess(env: Env, name: string, token: unknown): Promise<Access | null> {
+  if (typeof token === 'string' && token) {
+    const account = await accountByToken(env, token);
+    return account && { kind: 'account', ...account };
+  }
+  const taken = await env.DB.prepare('SELECT 1 FROM players WHERE name_key = ?').bind(nameKey(name)).first();
+  return taken ? null : { kind: 'guest', name };
+}
+
+const unauthorized = () => json({ error: 'Nick não verificado' }, { status: 401 });
+
 interface OwnerRow {
+  id: number;
   name: string;
   password_hash: string | null;
   failed_logins: number;
@@ -68,12 +93,27 @@ interface OwnerRow {
 }
 
 /**
- * POST /api/players: { name, token?, password? } — escolhe um nick. O nick é único, com ou sem senha.
- * - Nick livre: vira seu (com a senha, se veio uma). Devolve { name, token }.
+ * GET /api/players/status?name= → { exists, hasPassword }: consulta um nick sem ficar com ele
+ * (a tela do nick decide se pede a senha ou se oferece criar uma conta).
+ */
+export async function playerStatus(request: Request, env: Env): Promise<Response> {
+  const name = sanitizeName(new URL(request.url).searchParams.get('name'));
+  if (!name) return badRequest('Nick inválido');
+  const row = await env.DB.prepare('SELECT password_hash IS NOT NULL AS has_password FROM players WHERE name_key = ?')
+    .bind(nameKey(name))
+    .first<{ has_password: number }>();
+  return json({ exists: Boolean(row), hasPassword: Boolean(row?.has_password) });
+}
+
+/**
+ * POST /api/players: { name, token?, password? } — cria a conta ou entra nela. Só a conta reserva o nick;
+ * convidado não passa por aqui (joga com qualquer nick livre, ver playerAccess).
+ * - Nick livre + senha: cria a conta. Devolve { name, token }. Sem senha: 400.
  * - Nick seu (token válido): devolve { name, token }.
  * - Nick de outra pessoa com senha: a senha certa dá um token novo para este aparelho; errada, 403.
  *   Muitas erradas seguidas bloqueiam o nick por alguns minutos (429).
- * - Nick de outra pessoa sem senha (ou sem senha enviada): 409 { error, taken: true, hasPassword }.
+ * - Nick de outra pessoa sem senha (contas antigas, criadas antes da senha) ou sem senha enviada:
+ *   409 { error, taken: true, hasPassword }.
  */
 export async function claimPlayer(request: Request, env: Env): Promise<Response> {
   const body = (await request.json().catch(() => null)) as
@@ -81,79 +121,93 @@ export async function claimPlayer(request: Request, env: Env): Promise<Response>
     | null;
   const name = sanitizeName(body?.name);
   if (!name) return badRequest('Nick inválido');
-  const key = nameKey(name);
   const password = typeof body?.password === 'string' && body.password !== '' ? body.password : null;
 
   const owner = await env.DB.prepare(
-    'SELECT name, password_hash, failed_logins, locked_until FROM players WHERE name_key = ?',
+    'SELECT id, name, password_hash, failed_logins, locked_until FROM players WHERE name_key = ?',
   )
-    .bind(key)
+    .bind(nameKey(name))
     .first<OwnerRow>();
 
   if (owner) {
-    if (await verifyPlayer(env, name, body?.token)) return json({ name: owner.name, token: body?.token });
+    if ((await accountByToken(env, body?.token))?.id === owner.id) return json({ name: owner.name, token: body?.token });
     const hasPassword = owner.password_hash !== null;
     if (!password || !owner.password_hash) {
       return json({ error: 'Esse nick já tem dono', taken: true, hasPassword }, { status: 409 });
     }
-    return login(env, key, owner, password);
+    return login(env, owner, password);
   }
 
-  if (password) {
-    const problem = passwordProblem(password);
-    if (problem) return badRequest(problem);
-  }
-  // INSERT OR IGNORE: se duas pessoas pedirem o mesmo nick ao mesmo tempo, só uma fica com ele.
+  const problem = passwordProblem(password);
+  if (problem) return badRequest(problem);
+  // INSERT OR IGNORE: se duas pessoas pedirem o mesmo nick ao mesmo tempo, só uma fica com ele (name_key é UNIQUE).
   const created = await env.DB.prepare(
-    'INSERT OR IGNORE INTO players (name_key, name, password_hash, created_at) VALUES (?, ?, ?, ?)',
+    'INSERT OR IGNORE INTO players (name, name_key, password_hash, created_at) VALUES (?, ?, ?, ?) RETURNING id',
   )
-    .bind(key, name, password ? await hashPassword(password) : null, Date.now())
-    .run();
-  if (!created.meta.changes) return json({ error: 'Esse nick já tem dono', taken: true }, { status: 409 });
+    .bind(name, nameKey(name), await hashPassword(password!), Date.now())
+    .first<{ id: number }>();
+  if (!created) return json({ error: 'Esse nick já tem dono', taken: true }, { status: 409 });
 
-  return json({ name, token: await issueToken(env, key) });
+  return json({ name, token: await issueToken(env, created.id) });
 }
 
-async function login(env: Env, key: string, owner: OwnerRow, password: string): Promise<Response> {
+async function login(env: Env, owner: OwnerRow, password: string): Promise<Response> {
   if (owner.locked_until > Date.now()) {
     return json({ error: 'Muitas tentativas. Espere alguns minutos e tente de novo.' }, { status: 429 });
   }
   if (await checkPassword(password, owner.password_hash!)) {
-    await env.DB.prepare('UPDATE players SET failed_logins = 0 WHERE name_key = ?').bind(key).run();
-    return json({ name: owner.name, token: await issueToken(env, key) });
+    await env.DB.prepare('UPDATE players SET failed_logins = 0 WHERE id = ?').bind(owner.id).run();
+    return json({ name: owner.name, token: await issueToken(env, owner.id) });
   }
   // Os dois SET usam o valor antigo de failed_logins; ao bloquear, a contagem recomeça.
   await env.DB.prepare(
     `UPDATE players SET
        locked_until = CASE WHEN failed_logins + 1 >= ?1 THEN ?2 ELSE locked_until END,
        failed_logins = CASE WHEN failed_logins + 1 >= ?1 THEN 0 ELSE failed_logins + 1 END
-     WHERE name_key = ?3`,
+     WHERE id = ?3`,
   )
-    .bind(MAX_FAILED_LOGINS, Date.now() + LOCK_MS, key)
+    .bind(MAX_FAILED_LOGINS, Date.now() + LOCK_MS, owner.id)
     .run();
   return json({ error: 'Senha incorreta' }, { status: 403 });
 }
 
 /**
- * POST /api/players/password: { name, token, password } — cria a senha de um nick que ainda não tem.
- * Depois disso o dono entra com nick + senha em qualquer dispositivo.
+ * POST /api/players/password: { token, password } — cria a senha de uma conta que ainda não tem
+ * (contas criadas antes da senha existir). Depois disso o dono entra com nick + senha em qualquer dispositivo.
  */
 export async function setPassword(request: Request, env: Env): Promise<Response> {
-  const body = (await request.json().catch(() => null)) as
-    | { name?: unknown; token?: unknown; password?: unknown }
-    | null;
-  const name = sanitizeName(body?.name);
-  if (!name || !(await verifyPlayer(env, name, body?.token))) {
-    return json({ error: 'Nick não verificado' }, { status: 401 });
-  }
+  const body = (await request.json().catch(() => null)) as { token?: unknown; password?: unknown } | null;
+  const account = await accountByToken(env, body?.token);
+  if (!account) return unauthorized();
   const problem = passwordProblem(body?.password);
   if (problem) return badRequest(problem);
 
-  const updated = await env.DB.prepare(
-    'UPDATE players SET password_hash = ? WHERE name_key = ? AND password_hash IS NULL',
-  )
-    .bind(await hashPassword(body!.password as string), nameKey(name))
+  const updated = await env.DB.prepare('UPDATE players SET password_hash = ? WHERE id = ? AND password_hash IS NULL')
+    .bind(await hashPassword(body!.password as string), account.id)
     .run();
   if (!updated.meta.changes) return json({ error: 'Esse nick já tem senha' }, { status: 409 });
   return json({ ok: true });
+}
+
+/**
+ * POST /api/players/rename: { token, name } → { name }. Troca o nick da conta, se o novo não for de outra conta.
+ * Partidas, moedas e itens seguem a conta (tudo aponta para o id). Mudar só maiúsculas/minúsculas vale.
+ */
+export async function renamePlayer(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => null)) as { token?: unknown; name?: unknown } | null;
+  const account = await accountByToken(env, body?.token);
+  if (!account) return unauthorized();
+  const name = sanitizeName(body?.name);
+  if (!name) return badRequest('Nick inválido');
+
+  try {
+    // name_key é UNIQUE: se outra conta já usa o nick (ou pegou agora), o UPDATE falha.
+    await env.DB.prepare('UPDATE players SET name = ?, name_key = ? WHERE id = ?')
+      .bind(name, nameKey(name), account.id)
+      .run();
+  } catch (err) {
+    if (String(err).includes('UNIQUE')) return json({ error: 'Esse nick já é de outra conta' }, { status: 409 });
+    throw err;
+  }
+  return json({ name });
 }

@@ -1,6 +1,7 @@
-// Testes e2e de interface com navegador headless (Edge/Chrome). Screenshots em e2e/screenshots/.
-// Uso: com `npm run dev` rodando, `npm run e2e:ui`. Veja só os screenshots que interessam para a mudança.
+// Testes e2e de interface com navegador headless (Edge/Chrome). Sem screenshots: tudo é checado por seletor/texto.
+// Uso: com `npm run dev` rodando, `npm run e2e:ui`.
 import {
+  chooseGuest,
   chooseNick,
   check,
   cleanTestData,
@@ -10,10 +11,10 @@ import {
   launchBrowser,
   nick,
   overflowX,
+  PASSWORD,
   PHONE,
   placeAll,
   section,
-  shot,
   sleep,
   text,
 } from './lib.mjs';
@@ -28,7 +29,7 @@ try {
   const ana = await b.page();
   await ana.goto('http://localhost:5173/', { waitUntil: 'networkidle0' });
   check('primeira visita abre a tela do nick', Boolean(await ana.$('.nick-screen')));
-  await shot(ana, 'nick');
+  check('botão de login avisa que também cria conta', (await text(ana, '.nick-login small')) === '(criar conta)');
   await chooseNick(ana, nick('Ana'));
   const bar = await ana.$eval('.profile-bar', (el) => {
     const r = el.getBoundingClientRect();
@@ -42,7 +43,6 @@ try {
     }),
   );
   check('SOLO/PARTY e ranking centralizados', centers.every((c) => Math.abs(c) <= 2), centers.join(', '));
-  await shot(ana, 'home');
 
   // ---------- Party ----------
   section('Party');
@@ -54,16 +54,19 @@ try {
   const bruno = await b.page(PHONE);
   await bruno.goto(`http://localhost:5173/?sala=${room}`, { waitUntil: 'networkidle0' });
   check('convite sem nick mostra a sala', (await text(bruno, '.nick-screen-invite'))?.includes(room));
-  await shot(bruno, 'nick-celular');
-  await chooseNick(bruno, nick('Bruno'), '.party-lobby');
-  check('depois do nick entra direto na sala', (await text(bruno, '.party-code')) === room);
+  check('tela do nick sem scroll horizontal no celular', (await overflowX(bruno)) <= 0);
+  await chooseGuest(bruno, nick('Bruno'), '.party-lobby');
+  check('convidado entra direto na sala', (await text(bruno, '.party-code')) === room);
   check('URL do convite é limpa', !bruno.url().includes('sala='));
-  await shot(bruno, 'party-lobby-celular');
 
   const carla = await b.page();
   await carla.goto('http://localhost:5173/', { waitUntil: 'networkidle0' });
-  await chooseNick(carla, nick('ana'), '.nick-screen .score-label');
-  check('nick de convidado em outro dispositivo é recusado', (await text(carla, '.nick-screen .score-label')) === 'Esse nick já tem dono');
+  await carla.type('#nick', nick('ana'));
+  await carla.click('.nick-guest');
+  await carla.waitForSelector('.nick-screen .error');
+  const carlaError = await text(carla, '.nick-screen .error');
+  check('convidado não usa nick de conta', carlaError === 'Esse nick já está em uso.', carlaError ?? '');
+  await carla.close();
 
   await ana.click('.party-actions .btn-primary');
   await ana.waitForSelector('.power-card');
@@ -71,12 +74,10 @@ try {
   check('mesmo primeiro personagem para os dois', (await text(ana, '.power-card-name')) === (await text(bruno, '.power-card-name')));
   await placeAll(ana);
   await ana.waitForSelector('.party-waiting');
-  await shot(ana, 'party-espera');
   await placeAll(bruno);
   await ana.waitForSelector('.podium');
   await sleep(1200);
   check('resultado sem valores de poder', !(await ana.$('.row-power')) && !(await ana.$('.result-columns .power-meter')));
-  await shot(ana, 'party-podio', true);
   await bruno.click('.home-button');
   await bruno.waitForSelector('.play-buttons');
   await sleep(500);
@@ -115,34 +116,47 @@ try {
   check('compra e equipa avatar', (await buyAndEquip((await ana.$$('.shop-avatars .shop-avatar'))[0])) === 'Equipado');
   const balance = await text(ana, '.shop-balance .coins');
   check('saldo descontado (2000 − 250 − 600 − 50)', balance === '1100', balance ?? '');
-  await shot(ana, 'loja');
 
   await ana.click('.home-button');
   await ana.waitForSelector('.profile-bar .player-tag img');
   const tag = await ana.$eval('.profile-bar .player-tag', (el) => el.innerHTML);
   check('barra de perfil mostra o visual', tag.includes('cosmetic-name-fire') && tag.includes('cosmetic-frame-legend') && tag.includes('goku'));
 
-  // ---------- Senha e sincronização ----------
-  section('Senha e sincronização');
+  // ---------- Conta e sincronização ----------
+  section('Conta e sincronização');
+  // Bruno (convidado, celular) cria a conta pelo menu.
+  await bruno.click('.profile-bar-me');
+  await (await bruno.waitForSelector('.profile-menu ::-p-text(Sincronizar dispositivo)')).click();
+  await bruno.waitForSelector('.sync-password-form');
+  await bruno.type('input[aria-label="Nova senha"]', PASSWORD);
+  await bruno.type('input[aria-label="Repita a senha"]', PASSWORD);
+  await bruno.click('.sync-password-form .btn-primary');
+  await bruno.waitForSelector('.sync-panel ::-p-text(Conta pronta)');
+  check('convidado cria a conta pelo menu', Boolean(await bruno.$('.profile-bar .coins')) && !(await bruno.$('.profile-guest')));
+  await bruno.keyboard.press('Escape');
+
+  // Ana força a sincronização depois de uma mudança feita "em outro dispositivo".
+  d1(`UPDATE players SET coins = 777 WHERE name_key = '${nick('ana').toLowerCase()}'`);
   await ana.click('.profile-bar-me');
   await (await ana.waitForSelector('.profile-menu ::-p-text(Sincronizar dispositivo)')).click();
-  await ana.type('input[aria-label="Nova senha"]', 'segredo1');
-  await ana.type('input[aria-label="Repita a senha"]', 'segredo1');
-  await ana.click('.sync-password-form .btn-primary');
-  await ana.waitForSelector('.sync-panel ::-p-text(Senha criada)');
-  check('cria a senha pelo menu', true);
-  await shot(ana, 'sincronizar');
-
-  d1(`UPDATE players SET coins = 777 WHERE name_key = '${nick('ana').toLowerCase()}'`);
   await ana.click('.sync-force .btn');
   await ana.waitForSelector('.sync-force ::-p-text(Pronto)');
   check('forçar sincronização traz o saldo do servidor', (await text(ana, '.profile-bar .coins')) === '777');
   await ana.keyboard.press('Escape');
 
+  // Ana entra no celular com Login + senha.
   const celular = await b.page(PHONE);
   await celular.goto('http://localhost:5173/', { waitUntil: 'networkidle0' });
   await celular.type('#nick', nick('ana'));
-  await celular.type('.nick-password', 'segredo1');
+  await celular.click('.nick-login');
+  await celular.waitForSelector('input[aria-label="Senha"]');
+  check('Login em nick com conta pede só a senha', !(await celular.$('input[aria-label="Confirmar senha"]')));
+  await celular.type('input[aria-label="Senha"]', 'errada00');
+  await celular.click('.nick-screen .btn-primary');
+  await celular.waitForSelector('.nick-screen .error');
+  check('senha errada mostra erro', (await text(celular, '.nick-screen .error')) === 'Senha incorreta');
+  await celular.$eval('input[aria-label="Senha"]', (el) => (el.value = ''));
+  await celular.type('input[aria-label="Senha"]', PASSWORD);
   await celular.click('.nick-screen .btn-primary');
   await celular.waitForSelector('.profile-bar .coins');
   check('entra com nick + senha em outro dispositivo', (await text(celular, '.profile-bar .coins')) === '777');
@@ -157,14 +171,41 @@ try {
   check('resultado mostra moedas (ou o aviso de 500+)', /^\+\d+$|500\+/.test((await text(ana, '.coins-earned')) ?? ''));
   check('resultado solo sem valores de poder', !(await ana.$('.row-power')));
   check('ranking mostra o visual do jogador', Boolean(await ana.$('.leaderboard .row.highlight .cosmetic-frame-legend')));
-  await shot(ana, 'solo-resultado', true);
+
+  // ---------- Trocar nick e sair ----------
+  section('Trocar nick e sair');
+  await ana.click('.home-button');
+  await ana.waitForSelector('.profile-bar .coins');
+  await sleep(800);
+  const coinsBefore = await text(ana, '.profile-bar .coins');
+  await ana.click('.profile-bar-me');
+  await (await ana.waitForSelector('.profile-menu ::-p-text(Trocar nick)')).click();
+  await ana.$eval('input[aria-label="Novo nick"]', (el) => (el.value = ''));
+  await ana.type('input[aria-label="Novo nick"]', nick('Bruno'));
+  await ana.click('.change-nick .btn-primary');
+  await ana.waitForSelector('.change-nick .error');
+  check('não troca para nick de outra conta', (await text(ana, '.change-nick .error')) === 'Esse nick já é de outra conta');
+  await ana.$eval('input[aria-label="Novo nick"]', (el) => (el.value = ''));
+  await ana.type('input[aria-label="Novo nick"]', nick('AnaNova'));
+  await ana.click('.change-nick .btn-primary');
+  await ana.waitForSelector(`.profile-bar-me ::-p-text(${nick('AnaNova')})`);
+  await sleep(800);
+  const coinsAfter = await text(ana, '.profile-bar .coins');
+  check('troca o nick da conta e mantém as moedas', coinsAfter === coinsBefore, `${coinsBefore} → ${coinsAfter}`);
+
+  await ana.click('.profile-leave');
+  await ana.waitForSelector('#nick');
+  check('sair da conta volta para a tela do nick', Boolean(await ana.$('.nick-login')));
+  await ana.type('#nick', nick('AnaNova'));
+  await ana.click('.nick-login');
+  await ana.waitForSelector('input[aria-label="Senha"]');
+  check('depois de sair, entrar pede a senha', !(await ana.$('input[aria-label="Confirmar senha"]')));
 
   // ---------- Celular ----------
   section('Celular');
   await bruno.reload({ waitUntil: 'networkidle0' });
   await bruno.waitForSelector('.profile-bar');
   check('home sem scroll horizontal', (await overflowX(bruno)) <= 0);
-  await shot(bruno, 'home-celular');
 
   check('sem erros no console', b.errors.length === 0, b.errors.join(' | '));
 } catch (err) {

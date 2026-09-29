@@ -300,8 +300,19 @@ input:focus {
   letter-spacing: normal;
 }
 
-.nick-guest {
+.nick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
   width: min(100%, 320px);
+}
+
+/* "(criar conta)" embaixo do Login, dentro do botão. */
+.nick-login small {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
 }
 
 .nick-screen-text {
@@ -1415,6 +1426,24 @@ input:focus {
   font-size: 0.8rem;
 }
 
+.change-nick {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.change-nick input {
+  width: 100%;
+  text-align: center;
+}
+
+.change-nick-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .sync-password-form {
   display: grid;
   justify-items: center;
@@ -1767,6 +1796,14 @@ input:focus {
 
 .profile-bar .coins {
   font-size: 1rem;
+}
+
+.profile-guest {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-2);
 }
 
 .profile-menu {

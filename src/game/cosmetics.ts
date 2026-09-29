@@ -53,6 +53,8 @@ export const EMPTY_LOOK: Look = { avatar: null, nameColor: null, frame: null };
 
 /** Perfil do próprio jogador: saldo, itens comprados e o que está equipado. */
 export interface Profile {
+  /** Nick atual da conta (pode ter sido trocado em outro dispositivo). */
+  name: string;
   coins: number;
   owned: string[];
   look: Look;

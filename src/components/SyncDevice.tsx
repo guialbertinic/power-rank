@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { setPassword } from '../api';
+import { claimNick, setPassword } from '../api';
 import { passwordProblem, PASSWORD_MAX_LENGTH } from '../game/account';
 import type { Profile } from '../game/cosmetics';
 import type { Identity } from '../nick';
@@ -9,15 +9,20 @@ interface Props {
   profile: Profile | null;
   /** Busca de novo saldo, itens e visual no servidor. Rejeita se falhar. */
   onRefresh: () => Promise<void>;
+  /** Convidado criou a conta: passa a jogar com o token dela. */
+  onAccountCreated: (identity: Identity) => void;
 }
 
 type SyncStatus = 'idle' | 'syncing' | 'done' | 'error';
 
 /**
- * "Sincronizar dispositivo": criar a senha do nick (para entrar com ele em outro dispositivo) e forçar a
- * sincronização, que recarrega do servidor o que mudou em outro aparelho.
+ * "Sincronizar dispositivo":
+ * - convidado: cria a conta com o nick atual (reserva o nick) e uma senha;
+ * - conta antiga sem senha: cria a senha;
+ * - conta com senha: lembra de entrar com nick + senha no outro dispositivo.
+ * Para contas, "Forçar sincronização" recarrega do servidor o que mudou em outro aparelho.
  */
-export default function SyncDevice({ identity, profile, onRefresh }: Props) {
+export default function SyncDevice({ identity, profile, onRefresh, onAccountCreated }: Props) {
   const [open, setOpen] = useState(false);
   const [password, setPasswordValue] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -25,9 +30,6 @@ export default function SyncDevice({ identity, profile, onRefresh }: Props) {
   const [saving, setSaving] = useState(false);
   const [created, setCreated] = useState(false);
   const [sync, setSync] = useState<SyncStatus>('idle');
-
-  if (!identity.token) return null;
-  const token = identity.token;
 
   if (!open) {
     return (
@@ -37,18 +39,32 @@ export default function SyncDevice({ identity, profile, onRefresh }: Props) {
     );
   }
 
-  const createPassword = (e: FormEvent) => {
+  const isGuest = !identity.token;
+
+  const save = async () => {
+    if (identity.token) {
+      await setPassword(identity.name, identity.token, password);
+      await onRefresh();
+      return;
+    }
+    const result = await claimNick(identity.name, null, password);
+    if (!result.ok) {
+      throw new Error(result.taken ? 'Esse nick acabou de virar conta de outra pessoa. Troque de nick.' : result.error);
+    }
+    onAccountCreated({ name: result.name, token: result.token });
+  };
+
+  const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     const problem = passwordProblem(password) ?? (password !== confirm ? 'As senhas não são iguais' : null);
     if (problem) return setError(problem);
     setSaving(true);
     setError(null);
-    setPassword(identity.name, token, password)
+    save()
       .then(() => {
         setCreated(true);
         setPasswordValue('');
         setConfirm('');
-        return onRefresh();
       })
       .catch((err) => setError(err instanceof TypeError ? 'Sem conexão com o servidor.' : err.message))
       .finally(() => setSaving(false));
@@ -62,19 +78,25 @@ export default function SyncDevice({ identity, profile, onRefresh }: Props) {
     );
   };
 
+  const needsPassword = isGuest || (profile !== null && !profile.hasPassword);
+
   return (
     <div className="panel sync-panel">
       <p className="score-label">Sincronizar dispositivo</p>
 
-      {profile?.hasPassword ? (
-        <p className="nick-screen-text">
-          {created && 'Senha criada! '}Em outro dispositivo, entre com o nick <strong>{identity.name}</strong> e a sua
-          senha.
-        </p>
-      ) : profile ? (
-        <form className="sync-password-form" onSubmit={createPassword}>
+      {needsPassword ? (
+        <form className="sync-password-form" onSubmit={onSubmit}>
           <p className="nick-screen-text">
-            Crie uma senha para entrar como <strong>{identity.name}</strong> em outro dispositivo.
+            {isGuest ? (
+              <>
+                Você está jogando como convidado. Crie uma conta para reservar o nick <strong>{identity.name}</strong>,
+                ganhar moedas e jogar em outros dispositivos.
+              </>
+            ) : (
+              <>
+                Crie uma senha para entrar como <strong>{identity.name}</strong> em outro dispositivo.
+              </>
+            )}
           </p>
           {/* Campo de usuário escondido: ajuda o gerenciador de senhas a salvar o par nick + senha. */}
           <input type="text" value={identity.name} autoComplete="username" readOnly hidden />
@@ -83,7 +105,7 @@ export default function SyncDevice({ identity, profile, onRefresh }: Props) {
             value={password}
             onChange={(e) => setPasswordValue(e.target.value)}
             maxLength={PASSWORD_MAX_LENGTH}
-            placeholder="Nova senha"
+            placeholder="Senha"
             aria-label="Nova senha"
             autoComplete="new-password"
             disabled={saving}
@@ -93,30 +115,37 @@ export default function SyncDevice({ identity, profile, onRefresh }: Props) {
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             maxLength={PASSWORD_MAX_LENGTH}
-            placeholder="Repita a senha"
+            placeholder="Confirmar senha"
             aria-label="Repita a senha"
             autoComplete="new-password"
             disabled={saving}
           />
           <button className="btn btn-primary btn-sm" disabled={saving || !password || !confirm}>
-            {saving ? 'Salvando...' : 'Criar senha'}
+            {saving ? 'Salvando...' : isGuest ? 'Criar conta' : 'Criar senha'}
           </button>
           {error && <p className="error">{error}</p>}
         </form>
+      ) : profile ? (
+        <p className="nick-screen-text">
+          {created && 'Conta pronta! '}Em outro dispositivo, toque em <strong>Login</strong> e entre com o nick{' '}
+          <strong>{identity.name}</strong> e a sua senha.
+        </p>
       ) : null}
 
-      <div className="sync-force">
-        <button className="btn btn-secondary btn-sm" onClick={forceSync} disabled={sync === 'syncing'}>
-          {sync === 'syncing' ? 'Sincronizando...' : 'Forçar sincronização'}
-        </button>
-        <p className="muted sync-note">
-          {sync === 'done'
-            ? 'Pronto: saldo, itens e visual atualizados.'
-            : sync === 'error'
-              ? 'Não foi possível sincronizar. Tente de novo.'
-              : 'Jogou em outro dispositivo? Traz o saldo, os itens e o visual salvos no servidor.'}
-        </p>
-      </div>
+      {!isGuest && (
+        <div className="sync-force">
+          <button className="btn btn-secondary btn-sm" onClick={forceSync} disabled={sync === 'syncing'}>
+            {sync === 'syncing' ? 'Sincronizando...' : 'Forçar sincronização'}
+          </button>
+          <p className="muted sync-note">
+            {sync === 'done'
+              ? 'Pronto: saldo, itens e visual atualizados.'
+              : sync === 'error'
+                ? 'Não foi possível sincronizar. Tente de novo.'
+                : 'Jogou em outro dispositivo? Traz o saldo, os itens e o visual salvos no servidor.'}
+          </p>
+        </div>
+      )}
 
       <button className="link-button" onClick={() => setOpen(false)}>
         Fechar

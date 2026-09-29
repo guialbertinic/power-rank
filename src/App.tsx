@@ -7,7 +7,7 @@ import { isPartyCode } from './game/party';
 import { SLOTS } from './game/scoring';
 import type { Character } from './game/types';
 import { POOL, POOL_BY_ID } from './data';
-import { loadIdentity, loadMode, saveIdentity, saveMode, type Identity } from './nick';
+import { clearIdentity, forgetToken, loadIdentity, loadMode, saveIdentity, saveMode, type Identity } from './nick';
 import { clearCodeFromUrl, codeFromUrl, newPid, partyPid, rememberPartyPid } from './party/session';
 import { preloadImages } from './ui/fallback';
 import IntroScreen from './components/IntroScreen';
@@ -127,6 +127,30 @@ export default function App() {
   const [partyError, setPartyError] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
 
+  /** Trocou o nick, criou a conta ou o nick da conta mudou em outro dispositivo. */
+  const changeIdentity = (next: Identity) => {
+    // O token da conta passa a ficar guardado com o nick novo.
+    if (identity?.token && identity.name !== next.name) forgetToken(identity.name);
+    saveIdentity(next);
+    setIdentity(next);
+  };
+
+  /** Perfil vindo do servidor; se o nick da conta foi trocado em outro dispositivo, adota o nick novo. */
+  const applyProfile = (p: Profile) => {
+    setProfile(p);
+    if (identity?.token && p.name && p.name !== identity.name) changeIdentity({ name: p.name, token: identity.token });
+  };
+
+  /** Conta: sai dela neste navegador. Convidado: vai para a tela do nick para entrar numa conta. */
+  const leave = () => {
+    if (identity?.token) {
+      clearIdentity(identity);
+      setIdentity(null);
+    }
+    setProfile(null);
+    dispatch({ type: 'nick' });
+  };
+
   // Saldo e visual são recarregados ao voltar para a home ou abrir a loja (depois de partidas e da party).
   const token = identity?.token;
   const name = identity?.name;
@@ -135,7 +159,7 @@ export default function App() {
     let cancelled = false;
     fetchProfile({ name, token })
       .then((p) => {
-        if (!cancelled) setProfile(p);
+        if (!cancelled) applyProfile(p);
       })
       .catch(() => {
         // Sem conexão: a home funciona sem saldo e sem loja.
@@ -149,7 +173,7 @@ export default function App() {
   const refreshProfile = async () => {
     if (!name || !token) return;
     try {
-      setProfile(await fetchProfile({ name, token }));
+      applyProfile(await fetchProfile({ name, token }));
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         dispatch({ type: 'nick', reason: 'Confirme seu nick de novo para continuar.' });
@@ -181,7 +205,11 @@ export default function App() {
     try {
       const game = await newGame(identity, mode);
       if (game === 'unauthorized') {
-        dispatch({ type: 'nick', reason: 'Confirme seu nick de novo para continuar.' });
+        // Convidado cujo nick virou conta de outra pessoa, ou token que deixou de valer.
+        const reason = identity.token
+          ? 'Confirme seu nick de novo para continuar.'
+          : 'Esse nick agora é de uma conta. Entre com a senha ou escolha outro.';
+        dispatch({ type: 'nick', reason });
       } else {
         dispatch({ type: 'start', mode, ...game });
       }
@@ -225,7 +253,8 @@ export default function App() {
           identity={identity}
           profile={profile}
           onOpenShop={() => dispatch({ type: 'shop' })}
-          onChangeNick={() => dispatch({ type: 'nick' })}
+          onIdentityChange={changeIdentity}
+          onLeave={leave}
           onRefresh={refreshProfile}
           disabled={starting}
         />

@@ -36,11 +36,15 @@ export default function RankingStatus({ gameId, placements, onSubmitted }: Props
     return <p className="ranking-status error">Não foi possível enviar ao ranking: {status.message}</p>;
   }
 
-  const { isNewBest, rank, coinsEarned } = status.result;
+  const { isNewBest, rank, coinsEarned, coins } = status.result;
   return (
     <>
       <p className="coins-earned">
-        {coinsEarned ? <Coins amount={coinsEarned} prefix="+" /> : 'Faça 500+ pontos para ganhar moedas'}
+        {coins === null
+          ? 'Crie uma conta para ganhar moedas'
+          : coinsEarned
+            ? <Coins amount={coinsEarned} prefix="+" />
+            : 'Faça 500+ pontos para ganhar moedas'}
       </p>
       {isNewBest && (
         <p className="ranking-status new-best">

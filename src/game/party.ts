@@ -25,6 +25,8 @@ export interface PartyPlayer {
   finished: boolean;
   /** Visual equipado do jogador. */
   look: Look;
+  /** Jogando como convidado (nick sem conta): não ganha moedas. */
+  guest?: boolean;
   /** Só aparecem no pódio. */
   score?: number;
   placements?: string[];

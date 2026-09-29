@@ -1,7 +1,7 @@
 import { createGame } from './games';
 import { json, type Env } from './lib';
 import { connectParty, createParty } from './party';
-import { claimPlayer, setPassword } from './players';
+import { claimPlayer, playerStatus, renamePlayer, setPassword } from './players';
 import { buyItem, equipItem, getProfile } from './profile';
 import { getLeaderboard, submitScore } from './scores';
 
@@ -34,6 +34,10 @@ export default {
           return await createParty(request, env);
         case 'POST /api/players':
           return await claimPlayer(request, env);
+        case 'GET /api/players/status':
+          return await playerStatus(request, env);
+        case 'POST /api/players/rename':
+          return await renamePlayer(request, env);
         case 'POST /api/players/password':
           return await setPassword(request, env);
         case 'POST /api/profile':

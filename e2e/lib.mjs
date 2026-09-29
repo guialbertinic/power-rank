@@ -1,14 +1,13 @@
 // Utilitários dos testes e2e. Rodam contra o `npm run dev` (http://localhost:5173) e o D1 local.
 // Todo nick de teste começa com "E2e": a limpeza do banco apaga por esse prefixo.
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const BASE = process.env.E2E_BASE ?? 'http://localhost:5173';
-export const SHOTS = join(ROOT, 'e2e/screenshots');
 export const DESKTOP = { width: 1280, height: 860 };
 export const PHONE = { width: 390, height: 844, isMobile: true, hasTouch: true };
 
@@ -67,11 +66,13 @@ export function d1(sql) {
   );
 }
 
-/** Apaga tudo dos nicks de teste (prefixo e2e). */
+/** Apaga tudo dos nicks de teste (prefixo e2e): contas e o que aponta para elas, e partidas de convidados. */
 export function cleanTestData() {
+  const accounts = "(SELECT id FROM players WHERE name_key LIKE 'e2e%')";
   d1(
-    "DELETE FROM player_items WHERE name_key LIKE 'e2e%'; DELETE FROM player_tokens WHERE name_key LIKE 'e2e%'; " +
-      "DELETE FROM scores WHERE name_key LIKE 'e2e%'; DELETE FROM games WHERE lower(name) LIKE 'e2e%'; " +
+    `DELETE FROM player_items WHERE player_id IN ${accounts}; DELETE FROM player_tokens WHERE player_id IN ${accounts}; ` +
+      `DELETE FROM scores WHERE name_key LIKE 'e2e%' OR player_id IN ${accounts}; ` +
+      `DELETE FROM games WHERE lower(name) LIKE 'e2e%' OR player_id IN ${accounts}; ` +
       "DELETE FROM players WHERE name_key LIKE 'e2e%';",
   );
 }
@@ -91,10 +92,13 @@ export async function get(path) {
   return (await fetch(`${BASE}/api${path}`)).json();
 }
 
-/** Cria (ou confirma) um nick de teste e devolve { name, token }. */
+/** Senha das contas de teste. */
+export const PASSWORD = 'e2e-senha';
+
+/** Cria (ou entra n)a conta de um nick de teste e devolve { name, token }. */
 export async function player(name) {
   const full = nick(name);
-  const { data } = await post('/players', { name: full });
+  const { data } = await post('/players', { name: full, password: PASSWORD });
   return { name: full, token: data.token };
 }
 
@@ -160,7 +164,6 @@ export async function launchBrowser() {
     }
   }
   const browser = await puppeteer.connect({ browserURL: `http://127.0.0.1:${port}` });
-  mkdirSync(SHOTS, { recursive: true });
   const errors = [];
   return {
     browser,
@@ -190,16 +193,30 @@ export async function launchBrowser() {
 }
 
 export const text = (page, selector) => page.$eval(selector, (el) => el.textContent.trim()).catch(() => null);
-export const shot = (page, name, fullPage = false) => page.screenshot({ path: join(SHOTS, `${name}.png`), fullPage });
 export const overflowX = (page) => page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
 
-/** Escolhe o nick na primeira tela e espera a home (ou a sala, se veio de convite). */
+/** Cria a conta na primeira tela (Login → nick livre → senha) e espera a home (ou a sala, se veio de convite). */
 export async function chooseNick(page, name, waitFor = '.play-buttons') {
+  await typeNick(page, name);
+  await page.click('.nick-login');
+  await page.waitForSelector('input[aria-label="Confirmar senha"]');
+  await page.type('input[aria-label="Senha"]', PASSWORD);
+  await page.type('input[aria-label="Confirmar senha"]', PASSWORD);
+  await page.click('.nick-screen .btn-primary');
+  await page.waitForSelector(waitFor);
+}
+
+/** Entra como convidado na primeira tela. */
+export async function chooseGuest(page, name, waitFor = '.play-buttons') {
+  await typeNick(page, name);
+  await page.click('.nick-guest');
+  await page.waitForSelector(waitFor);
+}
+
+async function typeNick(page, name) {
   await page.waitForSelector('#nick');
   await page.$eval('#nick', (el) => (el.value = ''));
   await page.type('#nick', name);
-  await page.click('.nick-guest');
-  await page.waitForSelector(waitFor);
 }
 
 /** Posiciona todos os personagens restantes no primeiro espaço livre. */

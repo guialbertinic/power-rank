@@ -3,11 +3,13 @@
 import {
   check,
   cleanTestData,
+  d1,
   ensureServer,
   finish,
   get,
   nick,
   partyClient,
+  PASSWORD,
   perfectOrder,
   player,
   playSolo,
@@ -19,41 +21,71 @@ import {
 await ensureServer();
 cleanTestData();
 
-// ---------- Nick com dono ----------
-section('Nick');
+// ---------- Conta e convidado ----------
+section('Conta e convidado');
 {
-  const name = nick('Dono');
-  const { status, data: a } = await post('/players', { name });
-  check('nick livre vira seu (token)', status === 200 && Boolean(a.token));
-  check('mesmo dono confirma', (await post('/players', { name: name.toLowerCase(), token: a.token })).status === 200);
-  const taken = await post('/players', { name: name.toUpperCase() });
-  check('outro navegador é recusado (409)', taken.status === 409 && taken.data.taken === true);
+  const guest = nick('Convidado');
+  check('nick livre: não existe', (await get(`/players/status?name=${guest}`)).exists === false);
+  const guestResult = await playSolo({ name: guest }, 'perfect');
+  check('convidado joga e entra no ranking sem moedas', guestResult.score === 1000 && guestResult.coins === null && guestResult.coinsEarned === 0);
+  check('convidado não reserva o nick', (await get(`/players/status?name=${guest}`)).exists === false);
+  check('conta sem senha é recusada', (await post('/players', { name: guest })).status === 400);
 
-  check('nick sem senha avisa que não tem senha', taken.data.hasPassword === false);
-  check('senha em nick de convidado é recusada (409)', (await post('/players', { name, password: 'qualquer1' })).status === 409);
-  check('senha curta é recusada', (await post('/players/password', { name, token: a.token, password: '123' })).status === 400);
-  check('criar senha sem token é recusado', (await post('/players/password', { name, password: 'segredo1' })).status === 401);
-  check('dono cria a senha', (await post('/players/password', { name, token: a.token, password: 'segredo1' })).status === 200);
-  check('senha não é trocada sem a atual', (await post('/players/password', { name, token: a.token, password: 'outra123' })).status === 409);
-  const { data: prof } = await post('/profile', { name, token: a.token });
-  check('perfil diz que tem senha', prof.hasPassword === true);
-  const withPw = await post('/players', { name });
-  check('nick com senha avisa que tem senha', withPw.status === 409 && withPw.data.hasPassword === true);
+  const name = nick('Dono');
+  const { status, data: a } = await post('/players', { name, password: 'segredo1' });
+  check('nick livre + senha cria a conta', status === 200 && Boolean(a.token));
+  const st = await get(`/players/status?name=${name.toUpperCase()}`);
+  check('status: existe e tem senha', st.exists === true && st.hasPassword === true);
+  check('dono confirma com o token', (await post('/players', { name: name.toLowerCase(), token: a.token })).status === 200);
+  check('convidado não joga com nick de conta', (await post('/games', { name, mode: 'anime' })).status === 401);
+  const taken = await post('/players', { name: name.toUpperCase() });
+  check('sem token nem senha: 409 com hasPassword', taken.status === 409 && taken.data.hasPassword === true);
   const login = await post('/players', { name: name.toUpperCase(), password: 'segredo1' });
   check('senha certa dá token novo em outro dispositivo', login.status === 200 && Boolean(login.data.token) && login.data.token !== a.token);
   check('token do outro dispositivo vale', (await post('/profile', { name, token: login.data.token })).status === 200);
   check('senha errada é recusada (403)', (await post('/players', { name, password: 'errada00' })).status === 403);
+  check('conta com senha curta é recusada', (await post('/players', { name: nick('Curta'), password: '12' })).status === 400);
 
-  const fresh = nick('ComSenha');
-  const created = await post('/players', { name: fresh, password: 'minhasenha' });
-  check('nick novo já nasce com senha', created.status === 200 && (await post('/players', { name: fresh, password: 'minhasenha' })).status === 200);
-  check('nick novo com senha curta é recusado', (await post('/players', { name: nick('Curta'), password: '12' })).status === 400);
-  for (let i = 0; i < 5; i++) await post('/players', { name: fresh, password: 'errada00' });
-  check('5 senhas erradas bloqueiam o nick (429)', (await post('/players', { name: fresh, password: 'minhasenha' })).status === 429);
+  const locked = await player('Bloqueio');
+  for (let i = 0; i < 5; i++) await post('/players', { name: locked.name, password: 'errada00' });
+  check('5 senhas erradas bloqueiam o nick (429)', (await post('/players', { name: locked.name, password: PASSWORD })).status === 429);
 
-  check('partida solo sem token é recusada', (await post('/games', { name, mode: 'anime' })).status === 401);
-  const other = await player('Outro');
-  check('token de um nick não serve para outro', (await post('/games', { name, token: other.token, mode: 'anime' })).status === 401);
+  // Conta antiga, criada antes da senha existir.
+  const old = await player('Antiga');
+  d1(`UPDATE players SET password_hash = NULL WHERE name_key = '${old.name.toLowerCase()}'`);
+  const oldTaken = await post('/players', { name: old.name, password: 'qualquer1' });
+  check('conta antiga sem senha: 409 com hasPassword false', oldTaken.status === 409 && oldTaken.data.hasPassword === false);
+  check('senha curta é recusada', (await post('/players/password', { ...old, password: '123' })).status === 400);
+  check('criar senha sem token é recusado', (await post('/players/password', { name: old.name, password: 'segredo1' })).status === 401);
+  check('dono da conta antiga cria a senha', (await post('/players/password', { ...old, password: 'segredo1' })).status === 200);
+  check('senha não é trocada sem a atual', (await post('/players/password', { ...old, password: 'outra123' })).status === 409);
+  check('perfil diz que tem senha', (await post('/profile', old)).data.hasPassword === true);
+
+  check('token inválido é recusado', (await post('/games', { name, token: 'token-falso', mode: 'anime' })).status === 401);
+}
+
+// ---------- Trocar nick ----------
+section('Trocar nick');
+{
+  const acc = await player('Renome');
+  await playSolo(acc, 'perfect');
+  const other = await player('Ocupado');
+  const newName = nick('Renomeado');
+  check('não troca para nick de outra conta (409)', (await post('/players/rename', { token: acc.token, name: other.name.toUpperCase() })).status === 409);
+  check('trocar nick sem token é recusado', (await post('/players/rename', { name: newName })).status === 401);
+  const renamed = await post('/players/rename', { token: acc.token, name: newName });
+  check('troca para nick livre', renamed.status === 200 && renamed.data.name === newName);
+  check('nick antigo fica livre', (await get(`/players/status?name=${acc.name}`)).exists === false);
+  const { data: prof } = await post('/profile', { token: acc.token });
+  check('mesma conta: perfil com o nick novo e as moedas', prof.name === newName && prof.coins === 60, `${prof.name} ${prof.coins}`);
+  const { scores } = await get('/scores?mode=anime');
+  check('ranking mostra o nick novo', scores.some((s) => s.name === newName) && !scores.some((s) => s.name === acc.name));
+  const again = await playSolo({ name: newName, token: acc.token }, 'reversed');
+  check('recorde segue a conta depois de trocar o nick', again.isNewBest === false && again.best === 1000);
+  const guestOld = await playSolo({ name: acc.name }, 'reversed');
+  check('convidado pode usar o nick antigo', typeof guestOld.score === 'number' && guestOld.coins === null);
+  check('mudar só maiúsculas vale', (await post('/players/rename', { token: acc.token, name: newName.toUpperCase() })).status === 200);
+  check('entra com o nick novo + senha', (await post('/players', { name: newName, password: PASSWORD })).status === 200);
 }
 
 // ---------- Economia e loja ----------
@@ -116,10 +148,18 @@ section('Party');
   t2.ws.close();
   await sleep(400);
 
+  // Nick sem conta entra como convidado (e sai: quem cai no lobby sai da sala).
+  const visitor = partyClient(code, 'e2e-visi-pid-01', nick('Visitante'), '');
+  await visitor.ready;
+  await sleep(300);
+  check('nick sem conta entra como convidado', h.state.players.some((p) => p.name === nick('Visitante') && p.guest === true));
+  visitor.ws.close();
+  await sleep(400);
+
   const g = partyClient(code, 'e2e-gues-pid-01', guest.name, guest.token);
   await g.ready;
   await sleep(300);
-  check('convidado entra', h.state.players.length === 2);
+  check('segundo jogador entra', h.state.players.length === 2);
   const dup = partyClient(code, 'e2e-dupe-pid-01', guest.name.toLowerCase(), guest.token);
   await dup.ready;
   await sleep(300);

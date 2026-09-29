@@ -65,9 +65,23 @@ export async function claimNick(name: string, token: string | null, password?: s
   }
 }
 
+/** Consulta um nick sem ficar com ele: já tem dono? tem senha? */
+export function nickStatus(name: string): Promise<{ exists: boolean; hasPassword: boolean }> {
+  return request(`/api/players/status?name=${encodeURIComponent(name)}`);
+}
+
 /** Cria a senha de um nick que ainda não tem (depois ele entra com nick + senha em qualquer dispositivo). */
 export async function setPassword(name: string, token: string, password: string): Promise<void> {
   await request('/api/players/password', { method: 'POST', body: JSON.stringify({ name, token, password }) });
+}
+
+/** Troca o nick da conta (se o novo não for de outra conta). Devolve o nick como ficou gravado. */
+export async function renameNick(token: string, name: string): Promise<string> {
+  const data = await request<{ name: string }>('/api/players/rename', {
+    method: 'POST',
+    body: JSON.stringify({ token, name }),
+  });
+  return data.name;
 }
 
 /**
@@ -79,7 +93,6 @@ export async function createGame(
   token: string | null,
   mode: Mode,
 ): Promise<{ gameId: string; characterIds: string[] } | 'unauthorized' | null> {
-  if (!token) return null;
   try {
     return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode }) });
   } catch (err) {

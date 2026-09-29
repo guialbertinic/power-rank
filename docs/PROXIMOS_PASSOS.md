@@ -8,12 +8,13 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 - Categorias Animes / Games / Free for All, cada uma com ranking (melhor resultado por nick).
 - Design system "Dark Battle Interface"; resultado sem valores de poder.
 - Party (multiplayer) com Durable Objects: sala por código/convite, espera ao vivo, pódio, revanche, reconexão.
-- Nick único com dono: convidado (preso ao navegador) ou com senha (entra em qualquer dispositivo); criar senha e
-  forçar sincronização no menu do perfil; convite entra direto.
+- Conta (nick + senha, reserva o nick, moedas, qualquer dispositivo) ou convidado (qualquer nick livre, sem
+  moedas); criar conta e forçar sincronização no menu do perfil; convite entra direto.
+- Jogador identificado por id (migração 0007): trocar nick renomeia a conta; sair da conta.
 - Moedas (a partir de 500 pontos, bônus de pódio), loja de cosméticos, `PlayerTag` e barra de perfil na home.
 - Testes e2e no repositório (`npm run e2e:api`, `npm run e2e:ui`), skills do projeto (`.claude/skills/`) e
   documentação dividida entre `CLAUDE.md` (regras) e `docs/ARQUITETURA.md` (referência).
-- Produção: migrações 0001–0006 aplicadas; deploy automático pela `main`.
+- Produção: migrações 0001–0007 aplicadas; deploy automático pela `main`.
 
 ## Party (multiplayer)
 

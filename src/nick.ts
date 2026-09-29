@@ -2,10 +2,10 @@ import { DEFAULT_MODE, isMode, type Mode } from './game/modes';
 
 export const NICK_MAX_LENGTH = 20;
 
-/** Nick verificado neste navegador: o token prova que ele é o dono (ver server/players.ts). */
+/** Quem está jogando neste navegador: dono de uma conta (com token) ou convidado (ver server/players.ts). */
 export interface Identity {
   name: string;
-  /** null quando o nick foi escolhido sem conexão com o servidor (partidas não contam para o ranking). */
+  /** null = convidado: o nick não é reservado e não ganha moedas (só pode usar nicks sem conta). */
   token: string | null;
 }
 
@@ -48,6 +48,24 @@ export function loadIdentity(): Identity | null {
 export function saveIdentity(identity: Identity) {
   write(IDENTITY_KEY, identity);
   if (identity.token) write(TOKENS_KEY, { ...read<Record<string, string>>(TOKENS_KEY), [nickKey(identity.name)]: identity.token });
+}
+
+/** Esquece o token de um nick (saiu da conta ou trocou o nick dela). */
+export function forgetToken(nick: string) {
+  const tokens = read<Record<string, string>>(TOKENS_KEY);
+  if (!tokens) return;
+  delete tokens[nickKey(nick)];
+  write(TOKENS_KEY, tokens);
+}
+
+/** Sai da conta neste navegador: volta para a tela do nick sem guardar o token. */
+export function clearIdentity(identity: Identity) {
+  forgetToken(identity.name);
+  try {
+    localStorage.removeItem(IDENTITY_KEY);
+  } catch {
+    // Storage indisponível: nada a limpar.
+  }
 }
 
 /** Token guardado para um nick que este navegador já usou. */
