@@ -1,4 +1,5 @@
 import { getCasino, spin } from './casino';
+import { getCharacters, getCharactersWithPower } from './catalog';
 import { createGame } from './games';
 import { openBox } from './gacha';
 import { json, type Env } from './lib';
@@ -26,6 +27,10 @@ export default {
       if (partySocket) return await connectParty(request, env, partySocket[1].toUpperCase());
 
       switch (route) {
+        case 'GET /api/characters':
+          return await getCharacters(env);
+        case 'GET /api/dev/characters':
+          return await getCharactersWithPower(request, env);
         case 'GET /api/casino':
           return await getCasino(env);
         case 'POST /api/casino/spin':

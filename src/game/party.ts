@@ -44,6 +44,8 @@ export interface PartyState {
   hostId: string;
   /** Os 10 personagens sorteados da partida atual (vazio no lobby). */
   characterIds: string[];
+  /** Só no pódio: quantos sorteados são mais fortes que cada um (a ordem correta, nunca o `power`). */
+  ranks?: Record<string, number>;
   players: PartyPlayer[];
 }
 

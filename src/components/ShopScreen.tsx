@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { buyItem, equipItem } from '../api';
 import { AVATAR_PRICE, avatarItemId, COSMETICS, type Cosmetic, type Profile } from '../game/cosmetics';
-import type { Character } from '../game/types';
+import type { CharacterInfo } from '../game/types';
 import type { Identity } from '../nick';
 import { POOL } from '../data';
 import Avatar from './Avatar';
@@ -170,7 +170,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
     );
   }, [query, owned, filter]);
 
-  const avatarItem = (c: Character) => (
+  const avatarItem = (c: CharacterInfo) => (
     <li key={c.id} className="shop-avatar">
       <Avatar character={c} size={72} />
       <span className="shop-avatar-name">{c.name}</span>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { correctRange, MAX_SCORE, scoreGame } from './scoring';
+import { correctRange, MAX_SCORE, scoreGame, strengthRanks, withRanks } from './scoring';
 import { drawCharacters } from './draw';
 import type { Character } from './types';
 
@@ -63,5 +63,23 @@ describe('drawCharacters', () => {
 
   it('throws when the pool is too small', () => {
     expect(() => drawCharacters([char('a', 1)], 10)).toThrow();
+  });
+});
+
+describe('strengthRanks / withRanks', () => {
+  it('posições relativas dão a mesma pontuação que o poder real (com empates)', () => {
+    const powers = [95, 80, 80, 70, 50, 50, 50, 30, 10, 5];
+    const drawn = powers.map((p, i) => char(`c${i}`, p));
+    const ranks = strengthRanks(drawn);
+    expect(ranks.c1).toBe(1);
+    expect(ranks.c2).toBe(1); // empatado com c1
+    for (let round = 0; round < 50; round++) {
+      const shuffled = [...drawn].sort(() => Math.random() - 0.5);
+      const real = scoreGame(shuffled);
+      const fromRanks = scoreGame(withRanks(shuffled.map(({ power: _, ...info }) => info), ranks));
+      expect(fromRanks.total).toBe(real.total);
+      expect(fromRanks.results.map((r) => r.pairsRight)).toEqual(real.results.map((r) => r.pairsRight));
+      expect(fromRanks.correctOrder.map((c) => c.id)).toEqual(real.correctOrder.map((c) => c.id));
+    }
   });
 });

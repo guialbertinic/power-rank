@@ -16,11 +16,13 @@ interface Props {
   onJoinParty: (code: string) => void;
   /** Erro ao criar/entrar em sala, vindo do App. */
   partyError: string | null;
+  /** Erro ao começar uma partida solo (ex: sem conexão). */
+  soloError?: string | null;
 }
 
 /** Home: SOLO / PARTY e o ranking da categoria escolhida no título (o perfil fica na ProfileBar, no canto). */
 export default function IntroScreen(props: Props) {
-  const { identity, mode, canStart, busy, onSolo, onCreateParty, onJoinParty, partyError } = props;
+  const { identity, mode, canStart, busy, onSolo, onCreateParty, onJoinParty, partyError, soloError } = props;
   const [partyOpen, setPartyOpen] = useState(false);
   const [code, setCode] = useState('');
 
@@ -49,6 +51,7 @@ export default function IntroScreen(props: Props) {
           Party
         </button>
       </div>
+      {soloError && <p className="error">{soloError}</p>}
 
       {partyOpen && (
         <div className="panel party-entry">

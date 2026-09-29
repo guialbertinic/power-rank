@@ -1,5 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
-import { badRequest, CHARACTERS, CHARACTERS_BY_ID, json, nameKey, sanitizeName, type Env } from './lib';
+import { loadCatalog } from './catalog';
+import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
 import { playerAccess } from './players';
 import { creditCoins, lookOf } from './profile';
 import { EMPTY_LOOK, type Look } from '../src/game/cosmetics';
@@ -17,8 +18,7 @@ import {
   type PartyState,
   type ServerMessage,
 } from '../src/game/party';
-import { scoreGame, SLOTS } from '../src/game/scoring';
-import type { Character } from '../src/game/types';
+import { scoreGame, SLOTS, strengthRanks, withRanks } from '../src/game/scoring';
 
 /** Sala sem ninguém conectado é apagada depois desse tempo. */
 const IDLE_CLEANUP_MS = 30 * 60 * 1000;
@@ -54,6 +54,11 @@ interface StoredRoom {
   createdAt: number;
   /** Início da rodada atual (mede o tempo de cada jogador para o desempate do ranking). */
   startedAt?: number;
+  /**
+   * Posição relativa dos sorteados (quantos são mais fortes que cada um), calculada no início da rodada: pontua
+   * os jogadores sem consultar o banco no meio da partida e vai para o site só no pódio (nunca o `power`).
+   */
+  ranks?: Record<string, number>;
 }
 
 const isPid = (value: unknown): value is string => typeof value === 'string' && /^[\w-]{8,64}$/.test(value);
@@ -166,6 +171,10 @@ export class PartyRoom extends DurableObject<Env> {
       return;
     }
 
+    // Consulta antes das checagens: durante o await outras mensagens rodam (ex: dois "start" seguidos).
+    // Só para o dono (quem pode iniciar): os outros recebem o erro na hora.
+    const catalog = message.type === 'start' && room.hostPid === player.pid ? await loadCatalog(this.env) : null;
+
     const isHost = room.hostPid === player.pid;
     const fail = (text: string) => this.send(ws, { type: 'error', message: text });
 
@@ -173,9 +182,11 @@ export class PartyRoom extends DurableObject<Env> {
       case 'start': {
         if (!isHost) return fail('Só o dono da sala pode iniciar');
         if (room.phase === 'playing') return;
-        const pool = poolFor(room.mode, CHARACTERS);
+        const pool = poolFor(room.mode, catalog!.active);
         if (pool.length < SLOTS) return fail('Categoria sem personagens suficientes');
-        room.characterIds = drawCharacters(pool, SLOTS).map((c) => c.id);
+        const drawn = drawCharacters(pool, SLOTS);
+        room.characterIds = drawn.map((c) => c.id);
+        room.ranks = strengthRanks(drawn);
         room.round++;
         room.phase = 'playing';
         room.startedAt = Date.now();
@@ -214,8 +225,8 @@ export class PartyRoom extends DurableObject<Env> {
         if (!valid) return fail('Posições inválidas');
 
         // Pontuação sempre calculada aqui, nunca vem do cliente.
-        const slots = placements.map((id) => CHARACTERS_BY_ID.get(id)) as Character[];
-        const score = scoreGame(slots).total;
+        // Pelas posições relativas guardadas no início da rodada (mesmo resultado que pelo poder real).
+        const score = scoreGame(withRanks(placements.map((id) => ({ id })), room.ranks ?? {})).total;
         Object.assign(player, {
           finished: true,
           progress: SLOTS,
@@ -372,6 +383,8 @@ export class PartyRoom extends DurableObject<Env> {
       round: room.round,
       hostId: room.players.find((p) => p.pid === room.hostPid)?.id ?? '',
       characterIds: room.characterIds,
+      // A ordem correta só no pódio.
+      ...(reveal && room.ranks ? { ranks: room.ranks } : {}),
       // Pontuações, posições e moedas só aparecem no pódio.
       players: room.players.map(
         ({ id, name, connected, progress, finished, look, playerId, score, placements, finishedAt, coinsEarned }) => ({
@@ -415,7 +428,9 @@ export async function createParty(request: Request, env: Env): Promise<Response>
   const body = (await request.json().catch(() => null)) as { mode?: unknown; pid?: unknown } | null;
   if (!isMode(body?.mode)) return badRequest('Categoria inválida');
   if (!isPid(body?.pid)) return badRequest('Identificação inválida');
-  if (poolFor(body.mode, CHARACTERS).length < SLOTS) return badRequest('Categoria sem personagens suficientes');
+  if (poolFor(body.mode, (await loadCatalog(env)).active).length < SLOTS) {
+    return badRequest('Categoria sem personagens suficientes');
+  }
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = randomCode();

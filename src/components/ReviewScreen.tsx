@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Character } from '../game/types';
 import { tierClass, tierForPower, type Tier } from '../ui/tiers';
 import Avatar from './Avatar';
@@ -9,8 +9,16 @@ const TIER_LABEL: Record<Tier, string> = { ss: 'SS · 95+', s: 'S · 85+', a: 'A
 /**
  * Só em desenvolvimento (http://localhost:5173/?review): todos os personagens ordenados por poder,
  * agrupados por tier, com filtro por obra e busca. Serve para revisar a escala de `power`.
+ * O `power` não vai para o site: vem da rota /api/dev/characters, que só responde no servidor local.
  */
-export default function ReviewScreen({ characters }: { characters: Character[] }) {
+export default function ReviewScreen() {
+  const [characters, setCharacters] = useState<Character[]>([]);
+  useEffect(() => {
+    fetch('/api/dev/characters')
+      .then((res) => res.json())
+      .then(setCharacters)
+      .catch(() => setCharacters([]));
+  }, []);
   const [category, setCategory] = useState('');
   const [series, setSeries] = useState('');
   const [query, setQuery] = useState('');

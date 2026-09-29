@@ -28,6 +28,7 @@ npm test               # unitários (src/game)
 npm run e2e:api        # e2e sem navegador (precisa do dev rodando)
 npm run e2e:ui         # e2e com Edge headless (sem screenshots)
 npm run validate       # valida data/characters.json
+npm run characters:sync # copia data/characters.json para o D1 local (-- --remote: produção, o usuário roda)
 npm run contact-sheet -- <ids> | --category games | --series "X" | --recent N   # mosaico de imagens
 npm run db:migrate:local
 ```
@@ -40,7 +41,8 @@ npm run db:migrate:local
   Depois do push, não acompanhar o deploy. Mudança de schema: `migrations/000N_*.sql`, aplicar local, e avisar que
   precisa de `db:migrate:remote` antes do push.
 - `src/game/*` é compartilhado com o Worker: sem DOM.
-- **Nunca mostrar o valor de `power` ao jogador** (nem partida nem resultado); só em `/?review`.
+- **O `power` nunca chega ao site**: o servidor lê do D1 (`characters`), o site recebe só o catálogo público e, no
+  fim da partida, a ordem (`ranks`). `/?review` só funciona no dev local. Não importar `data/characters.json` no front.
 - Pontuação, moedas, compras e sorteios sempre no servidor; o cliente só envia escolhas.
 - Durable Object: durante um `await` de I/O externo (D1, fetch) outras mensagens rodam. Consultas antes;
   checagens + mudança de estado juntas, sem `await` no meio.

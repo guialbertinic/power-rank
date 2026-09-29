@@ -1,10 +1,8 @@
-import { CHARACTERS, json, type Env } from './lib';
+import { loadCatalog } from './catalog';
+import { json, type Env } from './lib';
 import { accountByToken } from './players';
 import { loadProfile } from './profile';
 import { BOX_PRICE, drawBox, duplicateRefund } from '../src/game/gacha';
-
-/** Personagens que podem sair como avatar (os mesmos da loja: com imagem). */
-const AVATAR_IDS = CHARACTERS.filter((c) => c.image).map((c) => c.id);
 
 const secureRandom = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
 
@@ -25,7 +23,9 @@ export async function openBox(request: Request, env: Env): Promise<Response> {
     .run();
   if (!paid.meta.changes) return json({ error: 'Moedas insuficientes' }, { status: 402 });
 
-  const draw = drawBox(secureRandom, AVATAR_IDS);
+  // Personagens que podem sair como avatar: os mesmos da loja (ativos, com imagem).
+  const avatarIds = (await loadCatalog(env)).active.filter((c) => c.image).map((c) => c.id);
+  const draw = drawBox(secureRandom, avatarIds);
   const now = Date.now();
   const added = await env.DB.prepare('INSERT OR IGNORE INTO player_items (player_id, item_id, acquired_at) VALUES (?, ?, ?)')
     .bind(account.id, draw.itemId, now)

@@ -15,7 +15,7 @@ Objetivo: **abrir o site para pessoas testarem**. Na ordem:
 
 | # | Item | Tipo | Dif. | Status |
 |---|---|---|---|---|
-| 1 | Personagens no banco + tirar o `power` do código do site | Arquitetura | 🟡 | 🚧 |
+| 1 | Personagens no banco + tirar o `power` do código do site | Arquitetura | 🟡 | ✅ |
 | 2 | Segurança para teste aberto (rate limit, cabeçalhos, anti-bot, nicks, placar honesto) | Arquitetura | 🟡 | 🚧 |
 | 3 | Tradução para inglês + menu de configurações com idioma | Feature | 🟡 | 🚧 |
 
@@ -194,7 +194,7 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
 
 ## Dados: personagens no banco
 
-### 🚧 Personagens no banco + tirar o `power` do site · `Arquitetura` 🟡
+### ✅ Personagens no banco + tirar o `power` do site · `Arquitetura` 🟡
 Hoje os personagens (nome, obra, `power`, imagem) vivem em `data/characters.json`, que vai para o Worker **e** para
 o site — qualquer um que abra o código do site vê o `power` de todos. Migrar para o D1:
 - Tabela `characters` (+ categoria, obra, versão, `power`, imagem, origem da imagem, ativo/inativo); o JSON vira só

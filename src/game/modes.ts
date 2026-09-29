@@ -1,4 +1,4 @@
-import type { Category, Character } from './types';
+import type { Category, CharacterInfo } from './types';
 
 /** Modo de jogo: uma categoria ou todas misturadas (free for all). Cada modo tem seu próprio ranking. */
 export type Mode = Category | 'all';
@@ -16,6 +16,6 @@ export function isMode(value: unknown): value is Mode {
 }
 
 /** Personagens sorteáveis no modo. Quem ainda não tem imagem fica de fora até ganhar uma. */
-export function poolFor(mode: Mode, characters: readonly Character[]): Character[] {
+export function poolFor<T extends CharacterInfo>(mode: Mode, characters: readonly T[]): T[] {
   return characters.filter((c) => c.image && (mode === 'all' || c.category === mode));
 }

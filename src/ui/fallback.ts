@@ -1,4 +1,4 @@
-import type { Character } from '../game/types';
+import type { CharacterInfo } from '../game/types';
 
 /** Hash curto e estável de uma string (base 36). */
 function hashString(value: string): string {
@@ -23,16 +23,13 @@ export function initials(name: string): string {
 }
 
 /**
- * URL da imagem do personagem. As imagens ficam em cache por dias (public/_headers), então o id da
- * fonte (AniList/IGDB/Wikipédia/import manual) entra na URL: se a imagem for trocada por outro personagem, a URL muda e o cache é ignorado.
+ * URL da imagem do personagem. As imagens ficam em cache por dias (public/_headers), então a versão da imagem
+ * entra na URL: se a imagem for trocada, a URL muda e o cache é ignorado. A versão vem pronta do catálogo
+ * (`imageVersion`, calculada no `characters:sync` a partir da fonte: import manual, AniList, IGDB ou Wikipédia).
  */
-export function characterImageUrl(character: Character): string | null {
+export function characterImageUrl(character: CharacterInfo): string | null {
   if (!character.image) return null;
-  const sourceId =
-    character.imageVersion ??
-    character.anilistId ??
-    character.igdbId ??
-    (character.wikipedia && hashString(character.wikipedia));
+  const sourceId = character.imageVersion ?? character.anilistId;
   const version = sourceId ? `?v=${sourceId}` : '';
   return `${import.meta.env.BASE_URL}${character.image}${version}`;
 }
@@ -41,7 +38,7 @@ export function characterImageUrl(character: Character): string | null {
  * Baixa as imagens da partida antes de ela começar. Espera só a primeira (até `timeoutMs`),
  * o resto continua em segundo plano enquanto o jogador posiciona.
  */
-export async function preloadImages(characters: Character[], timeoutMs = 1500): Promise<void> {
+export async function preloadImages(characters: CharacterInfo[], timeoutMs = 1500): Promise<void> {
   const loads = characters.map((c) => {
     const url = characterImageUrl(c);
     if (!url) return Promise.resolve();

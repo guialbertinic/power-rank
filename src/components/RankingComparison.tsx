@@ -1,5 +1,5 @@
-import { scoreGame } from '../game/scoring';
-import type { Character } from '../game/types';
+import { scoreGame, withRanks } from '../game/scoring';
+import type { CharacterInfo } from '../game/types';
 import Avatar from './Avatar';
 import RankBadge from './RankBadge';
 
@@ -14,10 +14,11 @@ function hitLevel(pairsWrong: number): number {
 
 /**
  * "Seu ranking" ao lado do "Ranking correto". Usado no solo e na party.
- * O valor de poder nunca aparece: só a ordem (senão os jogadores decorariam os números).
+ * O site não sabe o poder: `ranks` (vindo do servidor no fim da partida) diz quantos são mais fortes que cada um,
+ * o que basta para a ordem e as cores de acerto.
  */
-export default function RankingComparison({ slots }: { slots: Character[] }) {
-  const { results, correctOrder } = scoreGame(slots);
+export default function RankingComparison({ slots, ranks }: { slots: CharacterInfo[]; ranks: Record<string, number> }) {
+  const { results, correctOrder } = scoreGame(withRanks(slots, ranks));
 
   return (
     <div className="result-columns">

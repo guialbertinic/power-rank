@@ -1,12 +1,11 @@
 import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
 import { ApiError, createGame, createParty, fetchProfile } from './api';
 import type { Profile } from './game/cosmetics';
-import { drawCharacters } from './game/draw';
 import { MODES, poolFor, type Mode } from './game/modes';
 import { isPartyCode } from './game/party';
 import { SLOTS } from './game/scoring';
-import type { Character } from './game/types';
-import { POOL, POOL_BY_ID } from './data';
+import type { CharacterInfo } from './game/types';
+import { loadCatalog, POOL, POOL_BY_ID, rememberCharacters } from './data';
 import { clearIdentity, forgetToken, loadIdentity, loadMode, saveIdentity, saveMode, type Identity } from './nick';
 import { clearCodeFromUrl, codeFromUrl, newPid, partyPid, rememberPartyPid } from './party/session';
 import { preloadImages } from './ui/fallback';
@@ -26,7 +25,6 @@ const showReview = import.meta.env.DEV && new URLSearchParams(window.location.se
 // Link de convite da party (?sala=ABCDEF): lido uma vez ao abrir o jogo.
 const INVITE_CODE = isPartyCode(codeFromUrl()) ? codeFromUrl() : '';
 
-/** `gameId` é null quando a partida foi sorteada localmente (sem API): aí ela não vai pro ranking. */
 type State =
   /** Escolher o nick: primeira tela de quem ainda não tem um (ou cujo nick deixou de valer). */
   | { phase: 'nick'; reason: string | null }
@@ -40,15 +38,15 @@ type State =
   | {
       phase: 'playing';
       mode: Mode;
-      gameId: string | null;
-      drawn: Character[];
+      gameId: string;
+      drawn: CharacterInfo[];
       index: number;
-      slots: (Character | null)[];
+      slots: (CharacterInfo | null)[];
     }
-  | { phase: 'result'; mode: Mode; gameId: string | null; slots: Character[] };
+  | { phase: 'result'; mode: Mode; gameId: string; slots: CharacterInfo[] };
 
 type Action =
-  | { type: 'start'; mode: Mode; gameId: string | null; drawn: Character[] }
+  | { type: 'start'; mode: Mode; gameId: string; drawn: CharacterInfo[] }
   | { type: 'party'; code: string; pid: string }
   | { type: 'place'; slot: number }
   | { type: 'nick'; reason?: string }
@@ -73,7 +71,7 @@ function reducer(state: State, action: Action): State {
       slots[action.slot] = state.drawn[state.index];
       const index = state.index + 1;
       if (index >= state.drawn.length) {
-        return { phase: 'result', mode: state.mode, gameId: state.gameId, slots: slots as Character[] };
+        return { phase: 'result', mode: state.mode, gameId: state.gameId, slots: slots as CharacterInfo[] };
       }
       return { ...state, index, slots };
     }
@@ -101,27 +99,24 @@ function initialState(identity: Identity | null): State {
 }
 
 /**
- * Pede a partida ao servidor (ou sorteia localmente se a API falhar) e já baixa as imagens
- * dos personagens sorteados, para cada revelação ser instantânea.
+ * Pede a partida ao servidor (é ele que sorteia e guarda a resposta certa) e já baixa as imagens dos
+ * personagens sorteados, para cada revelação ser instantânea. Sem servidor não tem partida.
  */
 async function newGame(
   identity: Identity,
   mode: Mode,
-): Promise<{ gameId: string | null; drawn: Character[] } | 'unauthorized'> {
+): Promise<{ gameId: string; drawn: CharacterInfo[] } | 'unauthorized' | 'offline'> {
   const game = await createGame(identity.name, identity.token, mode);
   if (game === 'unauthorized') return game;
-  const fromServer = game?.characterIds.map((id) => POOL_BY_ID.get(id));
-  const result =
-    game && fromServer?.every(Boolean)
-      ? { gameId: game.gameId, drawn: fromServer as Character[] }
-      : { gameId: null, drawn: drawCharacters(poolFor(mode, POOL), SLOTS) };
-  await preloadImages(result.drawn);
-  return result;
+  if (!game) return 'offline';
+  rememberCharacters(game.characters);
+  await preloadImages(game.characters);
+  return { gameId: game.gameId, drawn: game.characters };
 }
 
 const isModeAvailable = (mode: Mode) => poolFor(mode, POOL).length >= SLOTS;
 
-export default function App() {
+function Game() {
   const [identity, setIdentity] = useState(loadIdentity);
   const [state, dispatch] = useReducer(reducer, identity, initialState);
   const [pendingInvite, setPendingInvite] = useState(identity ? '' : INVITE_CODE);
@@ -131,6 +126,7 @@ export default function App() {
   });
   const [starting, setStarting] = useState(false);
   const [partyError, setPartyError] = useState<string | null>(null);
+  const [soloError, setSoloError] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
 
   /** Trocou o nick, criou a conta ou o nick da conta mudou em outro dispositivo. */
@@ -216,7 +212,10 @@ export default function App() {
           ? 'Confirme seu nick de novo para continuar.'
           : 'Esse nick agora é de uma conta. Entre com a senha ou escolha outro.';
         dispatch({ type: 'nick', reason });
+      } else if (game === 'offline') {
+        setSoloError('Sem conexão com o servidor. Tente de novo.');
       } else {
+        setSoloError(null);
         dispatch({ type: 'start', mode, ...game });
       }
     } finally {
@@ -288,7 +287,7 @@ export default function App() {
 
       {ReviewScreen && showReview && (
         <Suspense>
-          <ReviewScreen characters={POOL} />
+          <ReviewScreen />
         </Suspense>
       )}
       {!showReview && state.phase === 'nick' && (
@@ -304,6 +303,7 @@ export default function App() {
           onCreateParty={createRoom}
           onJoinParty={joinRoom}
           partyError={partyError}
+          soloError={soloError}
         />
       )}
       {state.phase === 'casino' && identity?.token && profile && (
@@ -341,6 +341,42 @@ export default function App() {
           onRestart={start}
         />
       )}
+    </main>
+  );
+}
+
+type CatalogStatus = 'loading' | 'ready' | 'error';
+
+/**
+ * Carrega o catálogo público de personagens (sem `power`) antes de montar o jogo: o sorteio, os avatares e a
+ * loja dependem dele. Sem conexão, mostra a opção de tentar de novo.
+ */
+export default function App() {
+  const [status, setStatus] = useState<CatalogStatus>('loading');
+  const load = () => {
+    setStatus('loading');
+    loadCatalog().then(
+      () => setStatus('ready'),
+      () => setStatus('error'),
+    );
+  };
+  useEffect(load, []);
+
+  if (status === 'ready') return <Game />;
+  return (
+    <main className="app">
+      <section className="panel catalog-status">
+        {status === 'loading' ? (
+          <p className="muted">Carregando...</p>
+        ) : (
+          <>
+            <p className="error">Não foi possível conectar ao servidor.</p>
+            <button className="btn btn-primary" onClick={load}>
+              Tentar de novo
+            </button>
+          </>
+        )}
+      </section>
     </main>
   );
 }

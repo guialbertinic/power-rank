@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { SLOTS } from '../../game/scoring';
-import type { Character } from '../../game/types';
+import type { CharacterInfo } from '../../game/types';
 import { preloadImages } from '../../ui/fallback';
 import PlayingScreen from '../PlayingScreen';
 
 interface Props {
-  drawn: Character[];
+  drawn: CharacterInfo[];
   onProgress: (placed: number) => void;
   onFinish: (placements: string[]) => void;
 }
@@ -16,7 +16,7 @@ interface Props {
  * Montado com `key={round}`, então cada rodada começa do zero.
  */
 export default function PartyPlay({ drawn, onProgress, onFinish }: Props) {
-  const [slots, setSlots] = useState<(Character | null)[]>(() => Array(SLOTS).fill(null));
+  const [slots, setSlots] = useState<(CharacterInfo | null)[]>(() => Array(SLOTS).fill(null));
   const placed = slots.filter(Boolean).length;
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function PartyPlay({ drawn, onProgress, onFinish }: Props) {
 
   useEffect(() => {
     onProgress(placed);
-    if (placed === SLOTS) onFinish((slots as Character[]).map((c) => c.id));
+    if (placed === SLOTS) onFinish((slots as CharacterInfo[]).map((c) => c.id));
     // Só reage a cada novo posicionamento.
   }, [placed]);
 

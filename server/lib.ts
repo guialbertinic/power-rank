@@ -1,14 +1,9 @@
-import characters from '../data/characters.json';
-import type { Character } from '../src/game/types';
 import type { PartyRoom } from './party';
 
 export interface Env {
   DB: D1Database;
   PARTY: DurableObjectNamespace<PartyRoom>;
 }
-
-export const CHARACTERS = characters as Character[];
-export const CHARACTERS_BY_ID = new Map(CHARACTERS.map((c) => [c.id, c]));
 
 /** Tempo máximo entre sortear a partida e enviar a pontuação. */
 export const GAME_TTL_MS = 60 * 60 * 1000;

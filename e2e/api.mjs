@@ -22,6 +22,22 @@ import {
 await ensureServer();
 cleanTestData();
 
+// ---------- Catálogo sem power ----------
+section('Catálogo');
+{
+  const catalog = await get('/characters');
+  check('catálogo público tem os personagens', Array.isArray(catalog) && catalog.length >= 100, `${catalog.length}`);
+  check('catálogo público não tem power', !catalog.some((c) => 'power' in c));
+  const names = catalog.map((c) => c.name);
+  check('catálogo em ordem alfabética (a ordem não entrega o ranking)', names.every((n, i) => !i || names[i - 1].localeCompare(n) <= 0));
+  const guestGame = await post('/games', { name: nick('Catalogo'), mode: 'anime' });
+  check('partida traz os personagens sem power', guestGame.data.characters?.length === 10 && !guestGame.data.characters.some((c) => 'power' in c));
+  const ids = perfectOrder(guestGame.data.characterIds);
+  const { data: scored } = await post('/scores', { gameId: guestGame.data.gameId, placements: ids });
+  const ranksOk = ids.every((id, i) => i === 0 || scored.ranks[ids[i - 1]] <= scored.ranks[id]);
+  check('resultado traz a ordem correta (ranks) e não o power', scored.score === 1000 && ranksOk && !JSON.stringify(scored).includes('power'));
+}
+
 // ---------- Conta e convidado ----------
 section('Conta e convidado');
 {

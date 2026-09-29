@@ -1,11 +1,5 @@
-import type { Character } from './types';
-
-/** Sorteia `count` personagens distintos (Fisher-Yates parcial). */
-export function drawCharacters(
-  pool: readonly Character[],
-  count: number,
-  rng: () => number = Math.random,
-): Character[] {
+/** Sorteia `count` itens distintos (Fisher-Yates parcial). */
+export function drawCharacters<T>(pool: readonly T[], count: number, rng: () => number = Math.random): T[] {
   if (pool.length < count) {
     throw new Error(`Pool tem ${pool.length} personagens, precisa de pelo menos ${count}`);
   }

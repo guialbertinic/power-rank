@@ -1,8 +1,8 @@
-import type { Character } from '../game/types';
+import type { CharacterInfo } from '../game/types';
 import { characterImageUrl, fallbackBackground, initials } from '../ui/fallback';
 
 /** Card 3:4 do personagem da vez. Não mostra o poder: isso entregaria a resposta. */
-export default function PowerCard({ character, badge }: { character: Character; badge: string }) {
+export default function PowerCard({ character, badge }: { character: CharacterInfo; badge: string }) {
   const src = characterImageUrl(character);
   return (
     <div className="power-card-glow">

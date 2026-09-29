@@ -1,4 +1,5 @@
-import { badRequest, CHARACTERS_BY_ID, json, type Env } from './lib';
+import { loadCatalog, type Catalog } from './catalog';
+import { badRequest, json, type Env } from './lib';
 import { accountByToken } from './players';
 import {
   AVATAR_PRICE,
@@ -72,9 +73,12 @@ export async function getProfile(request: Request, env: Env): Promise<Response> 
 }
 
 /** Preço de um item do catálogo (ou de um avatar). null se o item não existe. */
-function priceOf(itemId: string): number | null {
+function priceOf(itemId: string, catalog: Catalog): number | null {
   const character = characterIdOfAvatar(itemId);
-  if (character !== null) return CHARACTERS_BY_ID.get(character)?.image ? AVATAR_PRICE : null;
+  if (character !== null) {
+    const c = catalog.byId.get(character);
+    return c?.image && catalog.active.includes(c) ? AVATAR_PRICE : null;
+  }
   const item = cosmeticById(itemId);
   // Exclusivos só saem na Mystery Box.
   return item && !item.exclusive ? item.price : null;
@@ -89,7 +93,7 @@ export async function buyItem(request: Request, env: Env): Promise<Response> {
   const auth = await authenticate<{ itemId?: unknown }>(request, env);
   if (auth instanceof Response) return auth;
   const itemId = auth.body.itemId;
-  const price = typeof itemId === 'string' ? priceOf(itemId) : null;
+  const price = typeof itemId === 'string' ? priceOf(itemId, await loadCatalog(env)) : null;
   if (typeof itemId !== 'string' || price === null) return badRequest('Item inexistente');
 
   const added = await env.DB.prepare('INSERT OR IGNORE INTO player_items (player_id, item_id, acquired_at) VALUES (?, ?, ?)')

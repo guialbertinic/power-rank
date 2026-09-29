@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Character } from '../../game/types';
+import type { CharacterInfo } from '../../game/types';
 import { usePartyRoom } from '../../party/usePartyRoom';
 import PartyLobby from './PartyLobby';
 import PartyPlay from './PartyPlay';
@@ -11,7 +11,7 @@ interface Props {
   pid: string;
   nick: string;
   token: string | null;
-  charactersById: Map<string, Character>;
+  charactersById: Map<string, CharacterInfo>;
   onExit: () => void;
 }
 
@@ -22,7 +22,7 @@ export default function PartyScreen({ code, pid, nick, token, charactersById, on
   const [finishedRound, setFinishedRound] = useState(0);
 
   const drawn = useMemo(
-    () => (state?.characterIds ?? []).map((id) => charactersById.get(id)).filter((c): c is Character => Boolean(c)),
+    () => (state?.characterIds ?? []).map((id) => charactersById.get(id)).filter((c): c is CharacterInfo => Boolean(c)),
     [state?.characterIds, charactersById],
   );
 

@@ -42,7 +42,17 @@ npm run build
 Abra o mosaico e confira personagem certo e recorte (imagens largas são recortadas em 3:4 e às vezes pegam a área
 errada; recorte à mão e use `import:image`). Personagem sem imagem fica fora do sorteio automaticamente.
 
-## 4. Depois
+## 4. Sincronizar com o banco
+
+O jogo não lê o JSON: o servidor usa a tabela `characters` do D1 (o site recebe só nome/obra/imagem, nunca o
+`power`). Depois de mexer no JSON:
+- `npm run characters:sync` → banco local (o dev já passa a usar; o servidor guarda o catálogo em memória por até
+  5 min — reinicie o dev para ver na hora).
+- Avise o usuário para rodar `npm.cmd run characters:sync -- --remote` (produção) **junto com o push** das imagens
+  novas (a imagem precisa estar publicada quando o personagem entrar no sorteio).
+- Personagem removido do JSON fica `active = 0` (sai do sorteio e da loja, mas partidas e avatares antigos continuam).
+
+## 5. Depois
 
 Mudou `power` de personagens que já existiam? As pontuações gravadas ficaram com a regra antiga: avise o usuário
 para rodar `npm.cmd run rescore -- --remote` depois do push (localmente: `npm run rescore -- --local`).

@@ -1,6 +1,6 @@
 import { podiumOrder, type PartyPlayer, type PartyState } from '../../game/party';
 import { MAX_SCORE, rankTitle } from '../../game/scoring';
-import type { Character } from '../../game/types';
+import type { CharacterInfo } from '../../game/types';
 import Coins from '../Coins';
 import PlayerTag from '../PlayerTag';
 import RankBadge from '../RankBadge';
@@ -10,7 +10,7 @@ import { usePendingClick } from '../../ui/usePendingClick';
 interface Props {
   state: PartyState;
   you: string;
-  charactersById: Map<string, Character>;
+  charactersById: Map<string, CharacterInfo>;
   onRestart: () => void;
   onLeave: () => void;
 }
@@ -28,7 +28,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
   const ranking = podiumOrder(state.players);
   const unfinished = state.players.filter((p) => !p.finished);
   const me = state.players.find((p) => p.id === you);
-  const mySlots = me?.placements?.map((id) => charactersById.get(id)).filter((c): c is Character => Boolean(c));
+  const mySlots = me?.placements?.map((id) => charactersById.get(id)).filter((c): c is CharacterInfo => Boolean(c));
   const isHost = state.hostId === you;
   const myPlace = ranking.findIndex((p) => p.id === you) + 1;
 
@@ -115,7 +115,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
         </button>
       </div>
 
-      {mySlots && mySlots.length > 0 && <RankingComparison slots={mySlots} />}
+      {mySlots && mySlots.length > 0 && state.ranks && <RankingComparison slots={mySlots} ranks={state.ranks} />}
     </section>
   );
 }

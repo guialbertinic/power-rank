@@ -5,13 +5,15 @@ Referência detalhada, lida sob demanda. As regras de trabalho estão no `CLAUDE
 ## Estrutura
 
 ```
-data/characters.json      base de personagens (fonte da verdade, ordenada por power desc)
+data/characters.json      base de personagens (fonte de edição, ordenada por power desc); `npm run characters:sync`
+                          copia para a tabela `characters` do D1, que é o que o jogo usa
 public/chars/<id>.webp    imagens 240px (≈18 KB cada)
 public/_headers           cache: /chars 7 dias, /assets imutável
 migrations/               schema do D1 (0001 scores · 0002 melhor por jogador · 0003 categorias ·
                           0004 donos de nick · 0005 moedas e cosméticos ·
                           0006 senha do nick · 0007 jogador por id · 0008 títulos ·
-                          0009 tempo da partida · 0010 cassino · 0011 mystery box)
+                          0009 tempo da partida · 0010 cassino · 0011 mystery box ·
+                          0012 personagens no banco)
 scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet (+ lib/images.mjs)
 e2e/                      testes e2e: api.mjs (sem navegador), ui.mjs (Edge headless), lib.mjs (utilitários)
 server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick),
@@ -26,6 +28,17 @@ src/components/party/     PartyScreen, PartyLobby, PartyPlay, PartyWaiting, Part
 src/styles/tokens.css     design tokens · src/styles.css componentes
 src/ui/                   tiers (posição/poder → cor), fallback (URL de imagem, preload, iniciais)
 ```
+
+## Personagens: banco e o que o site sabe
+
+- O servidor lê os personagens da tabela `characters` (`server/catalog.ts`, cache em memória de 5 min). Inativos
+  (`active = 0`, saíram do JSON) não são sorteados nem vendidos, mas partidas e avatares antigos continuam.
+- O site recebe `GET /api/characters` (nome, obra, versão, imagem — **sem `power`**, em ordem alfabética para a ordem
+  não entregar o ranking) e, ao sortear, os 10 personagens da partida.
+- No fim da partida o servidor devolve `ranks` (quantos sorteados são mais fortes que cada um); o site pontua e
+  mostra a ordem correta com `withRanks` (mesmo resultado que o poder real, provado em `scoring.test.ts`). Na party,
+  os `ranks` são calculados no início da rodada e só vão para o site no pódio.
+- `/?review` usa `GET /api/dev/characters` (com `power`), que só responde em localhost.
 
 ## Regras do jogo
 
@@ -52,6 +65,8 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/players/rename` `{ token, name }` | Troca o nick da conta, se não for de outra conta (409). Tudo segue a conta (id). |
 | `POST /api/games` `{ name, token?, mode }` | Com token: a conta dele (token inválido, 401). Sem token: convidado, se o nick não for de uma conta (401). Sorteia no servidor e grava a partida (com `player_id` da conta). |
 | `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Recalcula a pontuação, mede o tempo (sorteio → envio), credita moedas. Devolve `durationMs` e `best`/`isNewBest`/`rank` do ranking de hoje. Uma vez por partida, TTL 1h. |
+| `GET /api/characters` | Catálogo público (sem `power`), ordem alfabética, cache 5 min. |
+| `GET /api/dev/characters` | Com `power`, só em localhost (tela `/?review`). |
 | `GET /api/scores?mode=&period=today\|total` | Top 20 do modo, só contas (nick atual + visual). `today` (padrão): melhor do dia, com `durationMs`; `total`: soma do melhor de cada dia, com `days`. |
 | `POST /api/party` `{ mode, pid }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
 | `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |

@@ -1,11 +1,13 @@
-import { badRequest, CHARACTERS, GAME_TTL_MS, json, sanitizeName, type Env } from './lib';
+import { loadCatalog, publicInfo } from './catalog';
+import { badRequest, GAME_TTL_MS, json, sanitizeName, type Env } from './lib';
 import { playerAccess } from './players';
 import { drawCharacters } from '../src/game/draw';
 import { DEFAULT_MODE, isMode, poolFor } from '../src/game/modes';
 import { SLOTS } from '../src/game/scoring';
 
 /**
- * POST /api/games: { name, token?, mode? } → sorteia uma partida para esse nick e devolve { gameId, characterIds }.
+ * POST /api/games: { name, token?, mode? } → sorteia uma partida para esse nick e devolve
+ * { gameId, characterIds, characters } (characters = dados públicos dos sorteados, sem `power`).
  * Nick de conta exige o token do dono; nick livre joga como convidado.
  */
 export async function createGame(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -17,11 +19,12 @@ export async function createGame(request: Request, env: Env, ctx: ExecutionConte
   const mode = body?.mode ?? DEFAULT_MODE;
   if (!isMode(mode)) return badRequest('Categoria inválida');
 
-  const pool = poolFor(mode, CHARACTERS);
+  const pool = poolFor(mode, (await loadCatalog(env)).active);
   if (pool.length < SLOTS) return badRequest('Categoria ainda sem personagens suficientes');
 
   const gameId = crypto.randomUUID();
-  const characterIds = drawCharacters(pool, SLOTS).map((c) => c.id);
+  const drawn = drawCharacters(pool, SLOTS);
+  const characterIds = drawn.map((c) => c.id);
   const now = Date.now();
 
   // Conta: grava o id (e o nick atual dela); convidado: só o nick.
@@ -36,5 +39,5 @@ export async function createGame(request: Request, env: Env, ctx: ExecutionConte
     );
   }
 
-  return json({ gameId, characterIds });
+  return json({ gameId, characterIds, characters: drawn.map(publicInfo) });
 }

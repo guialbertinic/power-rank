@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
-import type { Character } from '../game/types';
+import type { CharacterInfo } from '../game/types';
 import { tierClass, tierForPosition } from '../ui/tiers';
 import Avatar from './Avatar';
 import PowerCard from './PowerCard';
 import RankBadge from './RankBadge';
 
 interface Props {
-  current: Character;
+  current: CharacterInfo;
   index: number;
-  slots: (Character | null)[];
+  slots: (CharacterInfo | null)[];
   onPlace: (slot: number) => void;
 }
 

@@ -1,8 +1,9 @@
-import { badRequest, CHARACTERS_BY_ID, GAME_TTL_MS, json, LEADERBOARD_SIZE, nameKey, type Env } from './lib';
+import { loadCatalog } from './catalog';
+import { badRequest, GAME_TTL_MS, json, LEADERBOARD_SIZE, nameKey, type Env } from './lib';
 import { creditCoins, toLook } from './profile';
 import { coinsForScore } from '../src/game/economy';
 import { DEFAULT_MODE, isMode } from '../src/game/modes';
-import { scoreGame } from '../src/game/scoring';
+import { scoreGame, strengthRanks } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
 /** Dia do ranking "Hoje": horário de Brasília (UTC−3, sem horário de verão). */
@@ -124,11 +125,14 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
     placements.every((id) => drawn.includes(id));
   if (!samePlayers) return badRequest('placements não corresponde à partida');
 
-  // Um personagem removido do JSON depois do sorteio invalida a partida.
-  const slots = placements.map((id) => CHARACTERS_BY_ID.get(id));
+  // O catálogo guarda também os inativos: partida sorteada antes de um personagem sair continua valendo.
+  const { byId } = await loadCatalog(env);
+  const slots = placements.map((id) => byId.get(id));
   if (slots.some((c) => !c)) return badRequest('Personagem desconhecido');
 
   const { total } = scoreGame(slots as Character[]);
+  // O site recebe a ordem correta (quantos são mais fortes que cada um), nunca o valor de `power`.
+  const ranks = strengthRanks(slots as Character[]);
   const key = nameKey(game.name);
   const playerId = game.player_id;
   const now = Date.now();
@@ -145,7 +149,7 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   // Convidado (partida sem conta): a partida fica gravada, mas não entra no ranking nem rende moedas.
   if (playerId === null) {
     await insert(0);
-    return json({ score: total, durationMs, best: total, isNewBest: false, rank: null, coinsEarned: 0, coins: null });
+    return json({ score: total, ranks, durationMs, best: total, isNewBest: false, rank: null, coinsEarned: 0, coins: null });
   }
 
   const today = startOfToday(now);
@@ -170,6 +174,7 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
 
   return json({
     score: total,
+    ranks,
     durationMs,
     best,
     isNewBest: previous?.best == null || total > previous.best,

@@ -2,6 +2,7 @@ import type { Outcome, SymbolId } from './game/casino';
 import type { CosmeticSlot, Look, Profile } from './game/cosmetics';
 import type { Rarity } from './game/gacha';
 import type { Mode } from './game/modes';
+import type { CharacterInfo } from './game/types';
 
 /** "Hoje": melhor partida do dia (zera à meia-noite de Brasília). "Acumulado": soma do melhor de cada dia. */
 export type Period = 'today' | 'total';
@@ -18,6 +19,8 @@ export interface LeaderboardEntry {
 
 export interface SubmitResult {
   score: number;
+  /** Ordem correta dos 10: quantos são mais fortes que cada um (nunca o valor de `power`). */
+  ranks: Record<string, number>;
   /** Tempo da partida medido no servidor. */
   durationMs: number;
   /** Melhor pontuação do jogador hoje, contando esta partida. */
@@ -103,7 +106,7 @@ export async function createGame(
   name: string,
   token: string | null,
   mode: Mode,
-): Promise<{ gameId: string; characterIds: string[] } | 'unauthorized' | null> {
+): Promise<{ gameId: string; characterIds: string[]; characters: CharacterInfo[] } | 'unauthorized' | null> {
   try {
     return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode }) });
   } catch (err) {
