@@ -1,10 +1,14 @@
 import type { Character } from './types';
 
 export const SLOTS = 10;
+export const MAX_SCORE = 1000;
 
-/** Pontos pela distância entre a posição escolhida e a correta. */
-export const POINTS_BY_DISTANCE = [100, 60, 30, 10];
-export const MAX_SCORE = SLOTS * POINTS_BY_DISTANCE[0];
+/**
+ * Pontuação por ordem entre pares: para cada par de personagens, o que o jogador colocou mais acima
+ * precisa ser pelo menos tão forte quanto o outro. Com 10 personagens são 45 pares.
+ * Acertar a ordem relativa vale mesmo com as posições absolutas deslocadas.
+ * Pares com o mesmo poder contam sempre como certos.
+ */
 
 /** Posições (1-based) aceitas como corretas; empates de poder cobrem várias posições. */
 export type Range = { min: number; max: number };
@@ -12,13 +16,17 @@ export type Range = { min: number; max: number };
 export interface SlotResult {
   position: number;
   character: Character;
+  /** Onde o personagem deveria estar (usado só como dica no resultado). */
   correct: Range;
-  distance: number;
-  points: number;
+  /** Pares envolvendo este personagem com a ordem certa, de `pairsTotal`. */
+  pairsRight: number;
+  pairsTotal: number;
 }
 
 export interface GameResult {
   total: number;
+  pairsRight: number;
+  pairsTotal: number;
   results: SlotResult[];
   /** Os personagens sorteados na ordem correta (mais forte primeiro). */
   correctOrder: Character[];
@@ -30,35 +38,41 @@ export function correctRange(character: Character, drawn: readonly Character[]):
   return { min: stronger + 1, max: stronger + tied };
 }
 
-export function distanceTo(position: number, range: Range): number {
-  if (position < range.min) return range.min - position;
-  if (position > range.max) return position - range.max;
-  return 0;
-}
-
-export function pointsFor(distance: number): number {
-  return POINTS_BY_DISTANCE[distance] ?? 0;
-}
-
 /** `slots[i]` é o personagem colocado na posição i + 1. */
 export function scoreGame(slots: readonly Character[]): GameResult {
-  const results = slots.map((character, i) => {
-    const position = i + 1;
-    const correct = correctRange(character, slots);
-    const distance = distanceTo(position, correct);
-    return { position, character, correct, distance, points: pointsFor(distance) };
-  });
+  const right = slots.map(() => 0);
+  let pairsRight = 0;
+  for (let i = 0; i < slots.length; i++) {
+    for (let j = i + 1; j < slots.length; j++) {
+      if (slots[i].power >= slots[j].power) {
+        pairsRight++;
+        right[i]++;
+        right[j]++;
+      }
+    }
+  }
+  const pairsTotal = (slots.length * (slots.length - 1)) / 2;
+
   return {
-    total: results.reduce((sum, r) => sum + r.points, 0),
-    results,
+    total: pairsTotal ? Math.round((MAX_SCORE * pairsRight) / pairsTotal) : 0,
+    pairsRight,
+    pairsTotal,
+    results: slots.map((character, i) => ({
+      position: i + 1,
+      character,
+      correct: correctRange(character, slots),
+      pairsRight: right[i],
+      pairsTotal: slots.length - 1,
+    })),
     correctOrder: [...slots].sort((a, b) => b.power - a.power),
   };
 }
 
+/** Uma ordem aleatória acerta ~50% dos pares (~500 pontos), por isso os títulos começam acima disso. */
 export function rankTitle(total: number): string {
-  if (total >= 900) return 'Lendário';
-  if (total >= 700) return 'Mestre do Power Scaling';
-  if (total >= 500) return 'Veterano';
-  if (total >= 300) return 'Aprendiz';
-  return 'Só viu o trailer';
+  if (total >= 950) return 'Nerd esquisito';
+  if (total >= 850) return 'Tá cozinhando chefe';
+  if (total >= 750) return 'Brabo';
+  if (total >= 600) return 'Tente novamente';
+  return 'Kk Noob';
 }

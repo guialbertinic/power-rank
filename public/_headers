@@ -1,0 +1,8 @@
+# Cabeçalhos dos arquivos estáticos (Cloudflare Workers Static Assets).
+# Imagens de personagem: 7 dias de cache; a URL leva ?v=<anilistId>, então trocar a imagem invalida.
+/chars/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+# JS/CSS/fontes do Vite têm hash no nome: podem ficar em cache para sempre.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

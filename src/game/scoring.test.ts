@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { correctRange, distanceTo, MAX_SCORE, scoreGame } from './scoring';
+import { correctRange, MAX_SCORE, scoreGame } from './scoring';
 import { drawCharacters } from './draw';
 import type { Character } from './types';
 
@@ -14,26 +14,39 @@ describe('correctRange', () => {
   });
 });
 
-describe('distanceTo', () => {
-  it('is zero inside the range and grows outside it', () => {
-    const range = { min: 3, max: 5 };
-    expect(distanceTo(4, range)).toBe(0);
-    expect(distanceTo(1, range)).toBe(2);
-    expect(distanceTo(7, range)).toBe(2);
-  });
-});
-
 describe('scoreGame', () => {
   const ten = Array.from({ length: 10 }, (_, i) => char(`c${i}`, 100 - i * 10));
 
   it('gives max score for the perfect order', () => {
-    expect(scoreGame(ten).total).toBe(MAX_SCORE);
+    const result = scoreGame(ten);
+    expect(result.total).toBe(MAX_SCORE);
+    expect(result.pairsRight).toBe(45);
+    expect(result.results.every((r) => r.pairsRight === 9)).toBe(true);
   });
 
-  it('scores the reversed order by distance', () => {
-    const result = scoreGame([...ten].reverse());
-    expect(result.results.map((r) => r.distance)).toEqual([9, 7, 5, 3, 1, 1, 3, 5, 7, 9]);
-    expect(result.total).toBe(10 + 60 + 60 + 10);
+  it('gives zero for the reversed order', () => {
+    expect(scoreGame([...ten].reverse()).total).toBe(0);
+  });
+
+  it('loses a single pair when two neighbours are swapped', () => {
+    const swapped = [...ten];
+    [swapped[4], swapped[5]] = [swapped[5], swapped[4]];
+    const result = scoreGame(swapped);
+    expect(result.pairsRight).toBe(44);
+    expect(result.total).toBe(Math.round((1000 * 44) / 45));
+    expect(result.results.map((r) => r.pairsRight)).toEqual([9, 9, 9, 9, 8, 8, 9, 9, 9, 9]);
+  });
+
+  it('rewards relative order even when every position is shifted', () => {
+    // O mais fraco foi colocado em 1º; o resto está na ordem certa, só deslocado uma posição.
+    const shifted = [ten[9], ...ten.slice(0, 9)];
+    expect(scoreGame(shifted).pairsRight).toBe(36);
+  });
+
+  it('counts tied pairs as right in either order', () => {
+    const tied = [char('a', 50), char('b', 50), char('c', 10)];
+    expect(scoreGame(tied).total).toBe(MAX_SCORE);
+    expect(scoreGame([tied[1], tied[0], tied[2]]).total).toBe(MAX_SCORE);
   });
 
   it('returns the correct order strongest first', () => {

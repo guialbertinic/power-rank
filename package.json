@@ -13,7 +13,8 @@
     "fetch:images": "node scripts/fetch-images.mjs",
     "db:migrate:local": "wrangler d1 migrations apply power-rank --local",
     "db:migrate:remote": "wrangler d1 migrations apply power-rank --remote",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "rescore": "node scripts/rescore.mjs"
   },
   "dependencies": {
     "@fontsource/chakra-petch": "^5.3.0",
@@ -30,6 +31,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "sharp": "^0.35.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
     "vitest": "^5.0.2",

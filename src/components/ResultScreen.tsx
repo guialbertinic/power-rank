@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MAX_SCORE, rankTitle, scoreGame, type Range } from '../game/scoring';
+import { MAX_SCORE, rankTitle, scoreGame } from '../game/scoring';
 import type { Character } from '../game/types';
 import { tierClass, tierForPower } from '../ui/tiers';
 import Avatar from './Avatar';
@@ -8,7 +8,14 @@ import PowerMeter from './PowerMeter';
 import RankBadge from './RankBadge';
 import RankingStatus from './RankingStatus';
 
-const formatRange = ({ min, max }: Range) => (min === max ? `#${min}` : `#${min}–${max}`);
+/** Cor da linha pela quantidade de pares errados envolvendo o personagem (0 = todos certos). */
+function hitLevel(pairsWrong: number): number {
+  if (pairsWrong === 0) return 0;
+  if (pairsWrong <= 2) return 1;
+  if (pairsWrong <= 4) return 2;
+  if (pairsWrong <= 6) return 3;
+  return 4;
+}
 
 interface Props {
   gameId: string | null;
@@ -52,12 +59,10 @@ export default function ResultScreen({ gameId, nick, slots, starting, onRestart,
           <h3 className="section-title">Seu ranking</h3>
           <ol className="row-list">
             {results.map((r) => (
-              <li key={r.position} className={`row row-yours hit-${Math.min(r.distance, 4)}`}>
+              <li key={r.position} className={`row row-yours hit-${hitLevel(r.pairsTotal - r.pairsRight)}`}>
                 <RankBadge position={r.position} small />
                 <Avatar character={r.character} size={32} />
                 <span className="row-name">{r.character.name}</span>
-                <span className="row-note">{r.distance === 0 ? 'Exato' : `→ ${formatRange(r.correct)}`}</span>
-                <span className="row-points">+{r.points}</span>
               </li>
             ))}
           </ol>

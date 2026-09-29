@@ -1,4 +1,4 @@
-/* Componentes do Dark Battle Interface. Cores, fontes e formas vÃªm de styles/tokens.css. */
+/* Componentes do Dark Battle Interface. Cores, fontes e formas vêm de styles/tokens.css. */
 
 * {
   box-sizing: border-box;
@@ -82,7 +82,7 @@ p {
   font-size: clamp(3rem, 12vw, 6rem);
 }
 
-/* ---------- PainÃ©is e tÃ­tulos de seÃ§Ã£o ---------- */
+/* ---------- Painéis e títulos de seção ---------- */
 
 .panel {
   position: relative;
@@ -134,7 +134,7 @@ p {
   font-size: 0.95rem;
 }
 
-/* ---------- BotÃµes e inputs ---------- */
+/* ---------- Botões e inputs ---------- */
 
 .btn {
   border: 0;
@@ -214,7 +214,7 @@ input:focus {
   color: #fff;
 }
 
-/* ---------- Badge de posiÃ§Ã£o ---------- */
+/* ---------- Badge de posição ---------- */
 
 .rank-badge {
   display: grid;
@@ -419,7 +419,7 @@ input:focus {
   }
 }
 
-/* Faixas de posiÃ§Ã£o (Rank Slots) */
+/* Faixas de posição (Rank Slots) */
 .rank-slots {
   list-style: none;
   margin: 0;
@@ -545,6 +545,7 @@ input:focus {
   text-shadow: 0 0 28px rgba(255, 42, 109, 0.35);
 }
 
+
 .score-value span {
   margin-left: 6px;
   font-size: 0.3em;
@@ -667,15 +668,7 @@ input:focus {
   color: var(--text-2);
 }
 
-.row-note {
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--hit-color);
-}
 
-.row-points,
 .row-power,
 .row-score {
   min-width: 2.6em;
@@ -686,15 +679,11 @@ input:focus {
   font-variant-numeric: tabular-nums;
 }
 
-.row-points {
-  color: var(--hit-color);
-}
-
 .row-power {
   color: var(--tier-text);
 }
 
-/* PrecisÃ£o de cada palpite: 0 = exato â€¦ 4+ = errou feio */
+/* Precisão de cada palpite: 0 = exato … 4+ = errou feio */
 .hit-0 { --hit-color: var(--tier-c); }
 .hit-1 { --hit-color: var(--tier-a); }
 .hit-2 { --hit-color: #ffd700; }
@@ -710,7 +699,7 @@ input:focus {
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 
-/* Power Meter: segmentos inclinados que acendem em sequÃªncia */
+/* Power Meter: segmentos inclinados que acendem em sequência */
 .power-meter {
   display: inline-flex;
   gap: 2px;
@@ -749,7 +738,7 @@ input:focus {
     gap: 12px;
   }
 
-  /* Card fica fixo no topo enquanto rola as posiÃ§Ãµes */
+  /* Card fica fixo no topo enquanto rola as posições */
   .playing-card {
     top: 0;
     z-index: 2;
@@ -800,4 +789,52 @@ input:focus {
     animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ---------- Revisão da base (só em dev, ?review) ---------- */
+
+.review {
+  display: grid;
+  gap: 16px;
+}
+
+.review-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.review-filters select {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+}
+
+.review-filters input {
+  flex: 1 1 200px;
+}
+
+.review-tier {
+  color: var(--tier-text);
+}
+
+.review-tier::before {
+  background: var(--tier-fill);
+}
+
+.review-tier span {
+  color: var(--text-2);
+}
+
+.review-row {
+  padding-left: 6px;
+}
+
+.review-row code {
+  font-size: 0.75rem;
+  opacity: 0.7;
 }

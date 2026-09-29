@@ -1,16 +1,21 @@
-import { useReducer, useState } from 'react';
+import { lazy, Suspense, useReducer, useState } from 'react';
 import characters from '../data/characters.json';
 import { createGame } from './api';
 import { drawCharacters } from './game/draw';
 import { SLOTS } from './game/scoring';
 import type { Character } from './game/types';
 import { loadNick, saveNick } from './nick';
+import { preloadImages } from './ui/fallback';
 import IntroScreen from './components/IntroScreen';
 import PlayingScreen from './components/PlayingScreen';
 import ResultScreen from './components/ResultScreen';
 
 const POOL = characters as Character[];
 const POOL_BY_ID = new Map(POOL.map((c) => [c.id, c]));
+
+// Tela de revisão da base (http://localhost:5173/?review). Só existe em dev: sai do build de produção.
+const ReviewScreen = import.meta.env.DEV ? lazy(() => import('./components/ReviewScreen')) : null;
+const showReview = import.meta.env.DEV && new URLSearchParams(window.location.search).has('review');
 
 /** `gameId` é null quando a partida foi sorteada localmente (sem API): aí ela não vai pro ranking. */
 type State =
@@ -40,12 +45,19 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-/** Pede a partida ao servidor; se a API falhar ou devolver um id desconhecido, sorteia localmente. */
+/**
+ * Pede a partida ao servidor (ou sorteia localmente se a API falhar) e já baixa as imagens
+ * dos personagens sorteados, para cada revelação ser instantânea.
+ */
 async function newGame(nick: string): Promise<{ gameId: string | null; drawn: Character[] }> {
   const game = await createGame(nick);
-  const drawn = game?.characterIds.map((id) => POOL_BY_ID.get(id));
-  if (game && drawn?.every(Boolean)) return { gameId: game.gameId, drawn: drawn as Character[] };
-  return { gameId: null, drawn: drawCharacters(POOL, SLOTS) };
+  const fromServer = game?.characterIds.map((id) => POOL_BY_ID.get(id));
+  const result =
+    game && fromServer?.every(Boolean)
+      ? { gameId: game.gameId, drawn: fromServer as Character[] }
+      : { gameId: null, drawn: drawCharacters(POOL, SLOTS) };
+  await preloadImages(result.drawn);
+  return result;
 }
 
 export default function App() {
@@ -75,7 +87,12 @@ export default function App() {
           </span>
         </h1>
       </header>
-      {state.phase === 'intro' && (
+      {ReviewScreen && showReview && (
+        <Suspense>
+          <ReviewScreen characters={POOL} />
+        </Suspense>
+      )}
+      {!showReview && state.phase === 'intro' && (
         <IntroScreen nick={nick} onNickChange={setNick} starting={starting} onStart={start} />
       )}
       {state.phase === 'playing' && (

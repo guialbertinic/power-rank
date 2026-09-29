@@ -1,3 +1,5 @@
+import type { Character } from '../game/types';
+
 /** Placeholder para personagens sem imagem: iniciais sobre um gradiente derivado do id. */
 export function fallbackBackground(id: string): string {
   let hash = 0;
@@ -15,4 +17,27 @@ export function initials(name: string): string {
     .toUpperCase();
 }
 
-export const imageUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+/**
+ * URL da imagem do personagem. As imagens ficam em cache por dias (public/_headers), então o id do
+ * AniList entra na URL: se a imagem for trocada por outro personagem, a URL muda e o cache é ignorado.
+ */
+export function characterImageUrl(character: Character): string | null {
+  if (!character.image) return null;
+  const version = character.anilistId ? `?v=${character.anilistId}` : '';
+  return `${import.meta.env.BASE_URL}${character.image}${version}`;
+}
+
+/**
+ * Baixa as imagens da partida antes de ela começar. Espera só a primeira (até `timeoutMs`),
+ * o resto continua em segundo plano enquanto o jogador posiciona.
+ */
+export async function preloadImages(characters: Character[], timeoutMs = 1500): Promise<void> {
+  const loads = characters.map((c) => {
+    const url = characterImageUrl(c);
+    if (!url) return Promise.resolve();
+    const img = new Image();
+    img.src = url;
+    return img.decode().catch(() => undefined);
+  });
+  await Promise.race([loads[0] ?? Promise.resolve(), new Promise((r) => setTimeout(r, timeoutMs))]);
+}
