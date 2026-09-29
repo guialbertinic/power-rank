@@ -1,4 +1,4 @@
-import type { Look, Profile } from './game/cosmetics';
+import type { CosmeticSlot, Look, Profile } from './game/cosmetics';
 import type { Mode } from './game/modes';
 
 export interface LeaderboardEntry {
@@ -139,7 +139,7 @@ export function buyItem(auth: Auth, itemId: string): Promise<Profile> {
   return request('/api/shop/buy', { method: 'POST', body: JSON.stringify({ ...auth, itemId }) });
 }
 
-export function equipItem(auth: Auth, slot: 'avatar' | 'nameColor' | 'frame', itemId: string | null): Promise<Profile> {
+export function equipItem(auth: Auth, slot: CosmeticSlot, itemId: string | null): Promise<Profile> {
   return request('/api/profile/equip', { method: 'POST', body: JSON.stringify({ ...auth, slot, itemId }) });
 }
 

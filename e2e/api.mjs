@@ -115,9 +115,18 @@ section('Economia e loja');
   check('compra avatar (50)', avatar.status === 200 && avatar.data.coins === 10);
   await post('/profile/equip', { ...me, slot: 'avatar', itemId: 'avatar:goku' });
   check('avatar inexistente é recusado', (await post('/shop/buy', { ...me, itemId: 'avatar:nao-existe' })).status === 400);
+  await playSolo(me, 'perfect');
+  const title = await post('/shop/buy', { ...me, itemId: 'title-iniciante-prospero' });
+  check('compra título (50)', title.status === 200 && title.data.coins === 20);
+  check('título não vai no espaço da moldura', (await post('/profile/equip', { ...me, slot: 'frame', itemId: 'title-iniciante-prospero' })).status === 400);
+  const equipped = await post('/profile/equip', { ...me, slot: 'title', itemId: 'title-iniciante-prospero' });
+  check('equipa título', equipped.data.look?.title === 'title-iniciante-prospero');
   const { scores } = await get('/scores?mode=anime');
   const row = scores.find((s) => s.name === me.name);
-  check('ranking traz o visual', row?.look.avatar === 'goku' && row.look.nameColor === 'name-cyan');
+  check(
+    'ranking traz o visual (com título)',
+    row?.look.avatar === 'goku' && row.look.nameColor === 'name-cyan' && row.look.title === 'title-iniciante-prospero',
+  );
 }
 
 // ---------- Party ----------

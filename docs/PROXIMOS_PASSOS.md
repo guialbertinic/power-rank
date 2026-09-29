@@ -14,7 +14,7 @@ Lista viva: marque o que foi feito e acrescente o que surgir. A ordem dentro de 
 - Moedas (a partir de 500 pontos, bônus de pódio), loja de cosméticos, `PlayerTag` e barra de perfil na home.
 - Testes e2e no repositório (`npm run e2e:api`, `npm run e2e:ui`), skills do projeto (`.claude/skills/`) e
   documentação dividida entre `CLAUDE.md` (regras) e `docs/ARQUITETURA.md` (referência).
-- Produção: migrações 0001–0007 aplicadas; deploy automático pela `main`.
+- Produção: migrações 0001–0008 aplicadas; deploy automático pela `main`.
 
 ## Party (multiplayer)
 

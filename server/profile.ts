@@ -13,17 +13,19 @@ interface LookRow {
   avatar: string | null;
   name_color: string | null;
   frame: string | null;
+  title: string | null;
 }
 
 export const toLook = (row: LookRow | null | undefined): Look => ({
   avatar: row?.avatar ?? null,
   nameColor: row?.name_color ?? null,
   frame: row?.frame ?? null,
+  title: row?.title ?? null,
 });
 
 /** Visual equipado de uma conta (usado pela party, que precisa dele ao entrar na sala). */
 export async function lookOf(env: Env, playerId: number): Promise<Look> {
-  const row = await env.DB.prepare('SELECT avatar, name_color, frame FROM players WHERE id = ?')
+  const row = await env.DB.prepare('SELECT avatar, name_color, frame, title FROM players WHERE id = ?')
     .bind(playerId)
     .first<LookRow>();
   return toLook(row);
@@ -48,7 +50,7 @@ async function authenticate<T extends object>(request: Request, env: Env): Promi
 async function loadProfile(env: Env, playerId: number): Promise<Profile> {
   const [player, items] = await env.DB.batch([
     env.DB.prepare(
-      'SELECT name, coins, avatar, name_color, frame, password_hash IS NOT NULL AS has_password FROM players WHERE id = ?',
+      'SELECT name, coins, avatar, name_color, frame, title, password_hash IS NOT NULL AS has_password FROM players WHERE id = ?',
     ).bind(playerId),
     env.DB.prepare('SELECT item_id FROM player_items WHERE player_id = ? ORDER BY acquired_at').bind(playerId),
   ]);
@@ -103,7 +105,12 @@ export async function buyItem(request: Request, env: Env): Promise<Response> {
   return json(await loadProfile(env, auth.id));
 }
 
-const SLOT_COLUMN: Record<CosmeticSlot, string> = { avatar: 'avatar', nameColor: 'name_color', frame: 'frame' };
+const SLOT_COLUMN: Record<CosmeticSlot, string> = {
+  avatar: 'avatar',
+  nameColor: 'name_color',
+  frame: 'frame',
+  title: 'title',
+};
 
 /** POST /api/profile/equip: { token, slot, itemId | null } → Profile. Só equipa o que o jogador tem. */
 export async function equipItem(request: Request, env: Env): Promise<Response> {

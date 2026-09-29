@@ -24,12 +24,12 @@ export async function getLeaderboard(request: Request, env: Env): Promise<Respon
 
   const { results } = await env.DB.prepare(
     // Mostra o nick atual da conta.
-    `SELECT p.name, b.score, b.created_at AS createdAt, p.avatar, p.name_color, p.frame
+    `SELECT p.name, b.score, b.created_at AS createdAt, p.avatar, p.name_color, p.frame, p.title
      FROM (${BEST_PER_PLAYER}) b JOIN players p ON p.id = b.player_id
      ORDER BY b.score DESC, b.created_at ASC LIMIT ?`,
   )
     .bind(mode, LEADERBOARD_SIZE)
-    .all<{ name: string; score: number; createdAt: number; avatar: string | null; name_color: string | null; frame: string | null }>();
+    .all<{ name: string; score: number; createdAt: number; avatar: string | null; name_color: string | null; frame: string | null; title: string | null }>();
   return json({
     scores: results.map(({ name, score, createdAt, ...look }) => ({ name, score, createdAt, look: toLook(look) })),
   });

@@ -8,11 +8,12 @@ import Avatar from './Avatar';
 import Coins from './Coins';
 import PlayerTag from './PlayerTag';
 
-type Tab = 'nameColor' | 'frame' | 'avatar';
+type Tab = 'nameColor' | 'frame' | 'title' | 'avatar';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'nameColor', label: 'Cor do nick' },
   { id: 'frame', label: 'Moldura' },
+  { id: 'title', label: 'Título' },
   { id: 'avatar', label: 'Avatar' },
 ];
 
@@ -26,42 +27,56 @@ interface Props {
 export default function ShopScreen({ identity, profile, onProfileChange }: Props) {
   const [tab, setTab] = useState<Tab>('nameColor');
   const [confirming, setConfirming] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  /** Item cuja compra/equipar está esperando o servidor: só o botão dele mostra o loading. */
+  const [pending, setPending] = useState<string | null>(null);
+  const busy = pending !== null;
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const owned = useMemo(() => new Set(profile.owned), [profile.owned]);
 
-  const act = async (action: () => Promise<Profile>) => {
-    setBusy(true);
+  const act = async (itemId: string, action: () => Promise<Profile>) => {
+    setPending(itemId);
     setError(null);
     try {
       onProfileChange(await action());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Algo deu errado');
     } finally {
-      setBusy(false);
+      setPending(null);
       setConfirming(null);
     }
   };
 
   const buy = (itemId: string) => {
     if (confirming !== itemId) return setConfirming(itemId);
-    void act(() => buyItem(identity, itemId));
+    void act(itemId, () => buyItem(identity, itemId));
   };
-  const equip = (slot: Tab, itemId: string | null) => void act(() => equipItem(identity, slot, itemId));
+  /** `button`: item cujo botão foi clicado (ao desequipar, itemId é null). */
+  const equip = (slot: Tab, itemId: string | null, button: string) =>
+    void act(button, () => equipItem(identity, slot, itemId));
 
   /** Botão de cada item: comprar (com confirmação), equipar ou "Equipado" (clique desequipa). */
   const itemButton = (slot: Tab, itemId: string, price: number, equipped: boolean) => {
     if (equipped) {
       return (
-        <button className="shop-action equipped" onClick={() => equip(slot, null)} disabled={busy}>
+        <button
+          className="shop-action equipped"
+          onClick={() => equip(slot, null, itemId)}
+          disabled={busy}
+          aria-busy={pending === itemId}
+        >
           Equipado
         </button>
       );
     }
     if (owned.has(itemId)) {
       return (
-        <button className="shop-action" onClick={() => equip(slot, itemId)} disabled={busy}>
+        <button
+          className="shop-action"
+          onClick={() => equip(slot, itemId, itemId)}
+          disabled={busy}
+          aria-busy={pending === itemId}
+        >
           Equipar
         </button>
       );
@@ -72,6 +87,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
         className={`shop-action buy${confirming === itemId ? ' confirm' : ''}`}
         onClick={() => buy(itemId)}
         disabled={busy || !affordable}
+        aria-busy={pending === itemId}
         title={affordable ? undefined : 'Moedas insuficientes'}
       >
         {confirming === itemId ? 'Confirmar?' : <Coins amount={price} />}
@@ -79,17 +95,27 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
     );
   };
 
-  const cosmetics = (slot: Cosmetic['slot']) =>
-    COSMETICS.filter((c) => c.slot === slot).map((c) => {
-      const preview = slot === 'nameColor' ? { ...profile.look, nameColor: c.id } : { ...profile.look, frame: c.id };
-      return (
-        <li key={c.id} className="shop-item">
-          <PlayerTag name={identity.name} look={preview} size={40} avatarOnly={slot === 'frame'} />
-          <span className="shop-item-label">{c.label}</span>
-          {itemButton(slot, c.id, c.price, profile.look[slot] === c.id)}
-        </li>
-      );
-    });
+  const cosmeticItem = (c: Cosmetic) => (
+    <li key={c.id} className="shop-item">
+      <PlayerTag name={identity.name} look={{ ...profile.look, [c.slot]: c.id }} size={40} avatarOnly={c.slot === 'frame'} />
+      {/* No título, a prévia já mostra o texto. */}
+      {c.slot !== 'title' && <span className="shop-item-label">{c.label}</span>}
+      {itemButton(c.slot, c.id, c.price, profile.look[c.slot] === c.id)}
+    </li>
+  );
+
+  /** Itens do espaço, do mais barato ao mais caro; títulos separados por grupo. */
+  const cosmetics = (slot: Cosmetic['slot']) => {
+    const items = COSMETICS.filter((c) => c.slot === slot).sort((a, b) => a.price - b.price);
+    if (slot !== 'title') return <ol className="shop-list">{items.map(cosmeticItem)}</ol>;
+    const groups = [...new Set(items.map((c) => c.group))];
+    return groups.map((group) => (
+      <section key={group} className="shop-group">
+        <h3 className="shop-group-title">{group}</h3>
+        <ol className="shop-list">{items.filter((c) => c.group === group).map(cosmeticItem)}</ol>
+      </section>
+    ));
+  };
 
   const avatars = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -151,7 +177,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
             <ol className="shop-avatars">{avatars.map(avatarItem)}</ol>
           </>
         ) : (
-          <ol className="shop-list">{cosmetics(tab)}</ol>
+          cosmetics(tab)
         )}
       </div>
     </section>

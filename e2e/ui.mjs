@@ -104,23 +104,38 @@ try {
     await sleep(600);
     return text(item, '.shop-action');
   }
-  await ana.waitForSelector('.shop-list .shop-item:nth-child(5) .shop-action');
-  const nameColor = await buyAndEquip((await ana.$$('.shop-list .shop-item'))[4]);
+  /** Item da lista pelo texto (nome do item ou, nos títulos, o próprio título). */
+  async function shopItem(label) {
+    for (const item of await ana.$$('.shop-list .shop-item')) {
+      const texts = await item.$$eval('.shop-item-label, .player-title', (els) => els.map((e) => e.textContent));
+      if (texts.includes(label)) return item;
+    }
+    throw new Error(`Item não encontrado na loja: ${label}`);
+  }
+  const tabs = async (i) => (await ana.$$('.shop-tabs .mode-option'))[i].click();
+
+  await ana.waitForSelector('.shop-list .shop-item .shop-action');
+  const nameColor = await buyAndEquip(await shopItem('Fogo'));
   check('compra e equipa cor do nick (Fogo)', nameColor === 'Equipado', nameColor ?? '');
-  await (await ana.$$('.shop-tabs .mode-option'))[1].click();
+  await tabs(1);
   await sleep(200);
-  check('compra e equipa moldura (Lendária)', (await buyAndEquip((await ana.$$('.shop-list .shop-item'))[4])) === 'Equipado');
-  await (await ana.$$('.shop-tabs .mode-option'))[2].click();
+  check('compra e equipa moldura (Lendária)', (await buyAndEquip(await shopItem('Lendária'))) === 'Equipado');
+  await tabs(2);
+  await sleep(200);
+  check('títulos separados por grupo', (await ana.$$('.shop-group')).length >= 5);
+  check('compra e equipa título', (await buyAndEquip(await shopItem('Iniciante Próspero'))) === 'Equipado');
+  await tabs(3);
   await ana.type('.shop-search', 'son goku');
   await sleep(300);
   check('compra e equipa avatar', (await buyAndEquip((await ana.$$('.shop-avatars .shop-avatar'))[0])) === 'Equipado');
   const balance = await text(ana, '.shop-balance .coins');
-  check('saldo descontado (2000 − 250 − 600 − 50)', balance === '1100', balance ?? '');
+  check('saldo descontado (2000 − 250 − 600 − 50 − 50)', balance === '1050', balance ?? '');
 
   await ana.click('.home-button');
   await ana.waitForSelector('.profile-bar .player-tag img');
   const tag = await ana.$eval('.profile-bar .player-tag', (el) => el.innerHTML);
   check('barra de perfil mostra o visual', tag.includes('cosmetic-name-fire') && tag.includes('cosmetic-frame-legend') && tag.includes('goku'));
+  check('título aparece embaixo do nick', (await text(ana, '.profile-bar .player-title')) === 'Iniciante Próspero');
 
   // ---------- Conta e sincronização ----------
   section('Conta e sincronização');

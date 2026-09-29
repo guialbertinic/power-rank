@@ -1,4 +1,4 @@
-import type { Look } from '../game/cosmetics';
+import { cosmeticById, type Look } from '../game/cosmetics';
 import { POOL_BY_ID } from '../data';
 import { fallbackBackground, initials } from '../ui/fallback';
 import Avatar from './Avatar';
@@ -13,11 +13,12 @@ interface Props {
 }
 
 /**
- * Jogador com o visual equipado: avatar (personagem escolhido) com moldura e nick com cor.
+ * Jogador com o visual equipado: avatar (personagem escolhido) com moldura, nick com cor e o título embaixo.
  * Cada cosmético é uma classe `cosmetic-<id>` definida em styles.css.
  */
 export default function PlayerTag({ name, look, size = 28, avatarOnly }: Props) {
   const character = look.avatar ? POOL_BY_ID.get(look.avatar) : undefined;
+  const title = look.title ? cosmeticById(look.title)?.label : undefined;
 
   const avatar = (
     <span className={`player-frame${look.frame ? ` cosmetic-${look.frame}` : ''}`}>
@@ -40,7 +41,10 @@ export default function PlayerTag({ name, look, size = 28, avatarOnly }: Props) 
   return (
     <span className="player-tag">
       {avatar}
-      <span className={`player-name${look.nameColor ? ` cosmetic-${look.nameColor}` : ''}`}>{name}</span>
+      <span className="player-text">
+        <span className={`player-name${look.nameColor ? ` cosmetic-${look.nameColor}` : ''}`}>{name}</span>
+        {title && <span className="player-title">{title}</span>}
+      </span>
     </span>
   );
 }

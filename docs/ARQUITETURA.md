@@ -10,7 +10,7 @@ public/chars/<id>.webp    imagens 240px (≈18 KB cada)
 public/_headers           cache: /chars 7 dias, /assets imutável
 migrations/               schema do D1 (0001 scores · 0002 melhor por jogador · 0003 categorias ·
                           0004 donos de nick · 0005 moedas e cosméticos ·
-                          0006 senha do nick · 0007 jogador por id)
+                          0006 senha do nick · 0007 jogador por id · 0008 títulos)
 scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet (+ lib/images.mjs)
 e2e/                      testes e2e: api.mjs (sem navegador), ui.mjs (Edge headless), lib.mjs (utilitários)
 server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick),
@@ -89,10 +89,12 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - **Moedas** (`economy.ts`), creditadas no servidor: < 500 pts: 0 (anti-spam, sem limite diário) · 500–599: 5 ·
   600–749: 10 · 750–849: 20 · 850–949: 35 · 950+: 60. Bônus de pódio na party (+20/+10/+5) só com 2+ jogadores
   que terminaram **e** 500+ pontos. O `rescore` não mexe em moedas creditadas.
-- **Loja** (`cosmetics.ts`): cor do nick, moldura e avatar (qualquer personagem, preço único de 50: preço por
-  força revelaria o poder).
-- **Visual** (`PlayerTag`): avatar + moldura + nick colorido no ranking, party, pódio e `ProfileBar`.
-  Cada cosmético é a classe `cosmetic-<id>` em `styles.css`.
+- **Loja** (`cosmetics.ts`): cor do nick, moldura, título (`group` separa os blocos na loja; o `label` é o texto
+  do título) e avatar (qualquer personagem, preço único de 50: preço por força revelaria o poder). A loja lista por
+  preço. Item novo: entrada no catálogo + classe CSS (cor/moldura); título só precisa da entrada.
+- **Visual** (`PlayerTag`): avatar + moldura + nick colorido + título embaixo do nick, no ranking, party, pódio e
+  `ProfileBar`. Cada cor/moldura é a classe `cosmetic-<id>` em `styles.css` (anéis que giram usam o `@property
+  --cosmetic-angle`).
 
 ## Party (multiplayer)
 
