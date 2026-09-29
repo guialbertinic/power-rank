@@ -137,15 +137,18 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
     </li>
   );
 
-  /** Itens do espaço, do mais barato ao mais caro. */
+  /** Itens do espaço, do mais barato ao mais caro; títulos separados por categoria (2 por linha). */
   const cosmetics = (slot: Cosmetic['slot']) => {
     const items = COSMETICS.filter((c) => c.slot === slot && visible(c.id)).sort((a, b) => a.price - b.price);
     if (!items.length) return <p className="muted shop-empty">Nenhum item aqui.</p>;
-    return slot === 'title' ? (
-      <ol className="shop-rows">{items.map(titleRow)}</ol>
-    ) : (
-      <ol className="shop-list">{items.map(cosmeticItem)}</ol>
-    );
+    if (slot !== 'title') return <ol className="shop-list">{items.map(cosmeticItem)}</ol>;
+    const groups = [...new Set(items.map((c) => c.group))];
+    return groups.map((group) => (
+      <section key={group} className="shop-group">
+        <h3 className="shop-group-title">{group}</h3>
+        <ol className="shop-rows">{items.filter((c) => c.group === group).map(titleRow)}</ol>
+      </section>
+    ));
   };
 
   const avatars = useMemo(() => {

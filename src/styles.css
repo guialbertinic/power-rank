@@ -2037,13 +2037,34 @@ input:focus {
   background: var(--bg);
 }
 
-/* Títulos: lista simples, um por linha. */
+/* Títulos: por categoria, 2 por linha (1 no celular estreito). */
+.shop-group + .shop-group {
+  margin-top: 18px;
+}
+
+.shop-group-title {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
 .shop-rows {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
+}
+
+@media (max-width: 560px) {
+  .shop-rows {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .shop-row {

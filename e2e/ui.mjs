@@ -93,16 +93,30 @@ try {
   await ana.click('.profile-bar .btn');
   await ana.waitForSelector('.shop');
 
-  /** Compra (comprar → confirmar) e equipa um item de uma lista da loja. */
-  async function buyAndEquip(item) {
-    const btn = await item.$('.shop-action');
-    await btn.click();
-    await sleep(100);
-    await btn.click();
-    await sleep(600);
-    await (await item.$('.shop-action')).click();
-    await sleep(600);
+  /** Espera o botão do item mostrar `label` (e não estar carregando). Devolve o texto final, mesmo se não chegar. */
+  async function waitAction(item, label) {
+    await ana
+      .waitForFunction(
+        (el, want) => {
+          const b = el.querySelector('.shop-action');
+          return b && b.getAttribute('aria-busy') !== 'true' && !b.disabled && b.textContent.trim() === want;
+        },
+        { timeout: 8000 },
+        item,
+        label,
+      )
+      .catch(() => {});
     return text(item, '.shop-action');
+  }
+
+  /** Compra (comprar → confirmar) e equipa um item da loja, esperando cada passo terminar no servidor. */
+  async function buyAndEquip(item) {
+    await (await item.$('.shop-action')).click();
+    await waitAction(item, 'Confirmar?');
+    await (await item.$('.shop-action')).click();
+    await waitAction(item, 'Equipar');
+    await (await item.$('.shop-action')).click();
+    return waitAction(item, 'Equipado');
   }
   /** Item da loja (cor, moldura ou título) pelo nome. */
   async function shopItem(label) {
@@ -128,7 +142,9 @@ try {
   check('compra e equipa moldura (Lendária)', (await buyAndEquip(await shopItem('Lendária'))) === 'Equipado');
   await tabs(2);
   await sleep(200);
-  check('títulos em lista, um por linha', (await ana.$$('.shop-rows .shop-row')).length >= 20);
+  check('títulos separados por categoria', (await ana.$$('.shop-group')).length === 5);
+  const [row1, row2] = await ana.$$eval('.shop-rows .shop-row', (els) => els.slice(0, 2).map((e) => e.getBoundingClientRect().top));
+  check('2 títulos por linha no computador', Math.abs(row1 - row2) < 2, `${row1} / ${row2}`);
   check('compra e equipa título', (await buyAndEquip(await shopItem('Iniciante Próspero'))) === 'Equipado');
   await tabs(3);
   await ana.type('.shop-search', 'son goku');

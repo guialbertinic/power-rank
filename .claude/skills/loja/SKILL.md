@@ -16,7 +16,8 @@ Avatar é sempre `AVATAR_PRICE` (50): preço por força revelaria o `power`.
 ## Item novo (cor, moldura ou título)
 
 1. Entrada em `COSMETICS` (`src/game/cosmetics.ts`): `id` com prefixo do espaço (`name-`, `frame-`, `title-`),
-   `label` em português, `price`. Títulos: helper `title('slug', 'Texto', preço)` — o `label` é o texto exibido.
+   `label` em português, `price`. Títulos: helper `title('slug', 'Texto', preço, 'Categoria')` — o `label` é o
+   texto exibido; a categoria (Iniciante, Otaku, Animes, Games, Lendário) agrupa na loja.
 2. Cor/moldura: classe `.cosmetic-<id>` em `src/styles.css`, junto das outras (seção "Cosméticos").
    - Cor: `color` + `text-shadow`, ou gradiente com `background-clip: text`.
    - Moldura: estilo em `.cosmetic-<id> .player-frame-border` (a borda) e brilho com `filter: drop-shadow`
@@ -47,6 +48,7 @@ Exige migração (`ALTER TABLE players ADD COLUMN <coluna> TEXT`, sem risco para
 
 ## UI da loja
 
-Cor = o nome da cor com o efeito; moldura = quadro vazio (`.shop-frame-empty`); título = lista (`.shop-rows`).
+Cor = o nome da cor com o efeito; moldura = quadro vazio (`.shop-frame-empty`); título = por categoria, 2 por
+linha (`.shop-group` + `.shop-rows`, 1 por linha abaixo de 560px).
 Botões que esperam o servidor usam `aria-busy` (spinner em `.btn`/`.shop-action`); só o clicado mostra o loading.
 Sem screenshots: valide com `npm run e2e:ui`.

@@ -97,7 +97,7 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   que terminaram **e** 500+ pontos. O `rescore` não mexe em moedas creditadas.
 - **Loja** (`cosmetics.ts`): cor do nick, moldura, título (o `label` é o texto do título) e avatar (qualquer
   personagem, preço único de 50: preço por força revelaria o poder). A loja lista por preço, com filtro
-  Todos/Obtidos/Não obtidos; cor = o nome da cor com o efeito, moldura = quadro vazio, título = lista simples.
+  Todos/Obtidos/Não obtidos; cor = o nome da cor com o efeito, moldura = quadro vazio, título = por categoria (`group`), 2 por linha.
   Item novo: entrada no catálogo + classe CSS (cor/moldura); título só precisa da entrada.
 - **Visual** (`PlayerTag`): avatar + moldura + nick colorido + título embaixo do nick, no ranking, party, pódio e
   `ProfileBar`. Cada cor/moldura é a classe `cosmetic-<id>` em `styles.css` (anéis que giram usam o `@property

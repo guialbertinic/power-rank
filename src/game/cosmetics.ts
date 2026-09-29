@@ -11,9 +11,17 @@ export interface Cosmetic {
   /** Nome do item na loja; nos títulos, é o próprio texto que aparece embaixo do nick. */
   label: string;
   price: number;
+  /** Categoria do título na loja (Iniciante, Otaku...). */
+  group?: string;
 }
 
-const title = (id: string, label: string, price: number): Cosmetic => ({ id: `title-${id}`, slot: 'title', label, price });
+const title = (id: string, label: string, price: number, group: string): Cosmetic => ({
+  id: `title-${id}`,
+  slot: 'title',
+  label,
+  price,
+  group,
+});
 
 /** Qualquer personagem da base pode virar avatar. Preço único: preço por força revelaria o poder. */
 export const AVATAR_PRICE = 50;
@@ -55,33 +63,33 @@ export const COSMETICS: Cosmetic[] = [
   { id: 'frame-galaxy', slot: 'frame', label: 'Galáxia', price: 500 },
   { id: 'frame-dragon', slot: 'frame', label: 'Dragão', price: 800 },
 
-  title('iniciante-prospero', 'Iniciante Próspero', 50),
-  title('novato-promissor', 'Novato Promissor', 50),
-  title('chutador-profissional', 'Chutador Profissional', 50),
-  title('so-mais-uma', 'Só Mais Uma Partida', 50),
-  title('mestre-dos-animes', 'Mestre dos Animes', 150),
-  title('senhor-das-waifus', 'Senhor das Waifus', 150),
-  title('rei-dos-husbandos', 'Rei dos Husbandos', 150),
-  title('otaku-de-carteirinha', 'Otaku de Carteirinha', 150),
-  title('power-scaling', 'Especialista em Power Scaling', 150),
-  title('chapeu-de-palha', 'Do Bando do Chapéu de Palha', 250),
-  title('decima-primeira-espada', 'Décima Primeira Espada', 250),
-  title('akatsuki', 'Membro da Akatsuki', 250),
-  title('hashira', 'Hashira do Corpo de Caça-Demônios', 250),
-  title('tropa-de-exploracao', 'Tropa de Exploração', 250),
-  title('usuario-de-stand', 'Usuário de Stand', 250),
-  title('heroi-classe-s', 'Herói Classe S', 250),
-  title('alquimista-federal', 'Alquimista Federal', 250),
-  title('mago-fairy-tail', 'Mago da Fairy Tail', 250),
-  title('cacador-licenciado', 'Caçador Licenciado', 250),
-  title('keyblade', 'Portador da Keyblade', 250),
-  title('soldado-primeira-classe', 'Soldado de Primeira Classe', 250),
-  title('guardiao-da-triforce', 'Guardião da Triforce', 250),
-  title('morri-mil-vezes', 'Morri Mil Vezes', 250),
-  title('deus-da-destruicao', 'Deus da Destruição', 600),
-  title('ultra-instinto', 'Ultra Instinto', 700),
-  title('o-mais-forte', 'O Mais Forte da Atualidade', 700),
-  title('rei-dos-piratas', 'Rei dos Piratas', 800),
+  title('iniciante-prospero', 'Iniciante Próspero', 50, 'Iniciante'),
+  title('novato-promissor', 'Novato Promissor', 50, 'Iniciante'),
+  title('chutador-profissional', 'Chutador Profissional', 50, 'Iniciante'),
+  title('so-mais-uma', 'Só Mais Uma Partida', 50, 'Iniciante'),
+  title('mestre-dos-animes', 'Mestre dos Animes', 150, 'Otaku'),
+  title('senhor-das-waifus', 'Senhor das Waifus', 150, 'Otaku'),
+  title('rei-dos-husbandos', 'Rei dos Husbandos', 150, 'Otaku'),
+  title('otaku-de-carteirinha', 'Otaku de Carteirinha', 150, 'Otaku'),
+  title('power-scaling', 'Especialista em Power Scaling', 150, 'Otaku'),
+  title('chapeu-de-palha', 'Do Bando do Chapéu de Palha', 250, 'Animes'),
+  title('decima-primeira-espada', 'Décima Primeira Espada', 250, 'Animes'),
+  title('akatsuki', 'Membro da Akatsuki', 250, 'Animes'),
+  title('hashira', 'Hashira do Corpo de Caça-Demônios', 250, 'Animes'),
+  title('tropa-de-exploracao', 'Tropa de Exploração', 250, 'Animes'),
+  title('usuario-de-stand', 'Usuário de Stand', 250, 'Animes'),
+  title('heroi-classe-s', 'Herói Classe S', 250, 'Animes'),
+  title('alquimista-federal', 'Alquimista Federal', 250, 'Animes'),
+  title('mago-fairy-tail', 'Mago da Fairy Tail', 250, 'Animes'),
+  title('cacador-licenciado', 'Caçador Licenciado', 250, 'Animes'),
+  title('keyblade', 'Portador da Keyblade', 250, 'Games'),
+  title('soldado-primeira-classe', 'Soldado de Primeira Classe', 250, 'Games'),
+  title('guardiao-da-triforce', 'Guardião da Triforce', 250, 'Games'),
+  title('morri-mil-vezes', 'Morri Mil Vezes', 250, 'Games'),
+  title('deus-da-destruicao', 'Deus da Destruição', 600, 'Lendário'),
+  title('ultra-instinto', 'Ultra Instinto', 700, 'Lendário'),
+  title('o-mais-forte', 'O Mais Forte da Atualidade', 700, 'Lendário'),
+  title('rei-dos-piratas', 'Rei dos Piratas', 800, 'Lendário'),
 ];
 
 const COSMETICS_BY_ID = new Map(COSMETICS.map((c) => [c.id, c]));

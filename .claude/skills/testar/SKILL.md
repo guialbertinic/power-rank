@@ -31,8 +31,9 @@ o servidor e rode `npm run db:migrate:local` antes.
 - HTTP 500 em `/api/scores` logo depois de um `d1()` do teste: disputa pelo SQLite local entre o Wrangler e o dev
   server. Só existe em dev; rode de novo.
 - Falha isolada num teste da **Party** do `e2e:api` (ex: "só o dono inicia", "queda aparece como desconectado",
-  "dono sai → outro vira dono") ou em "compra e equipa avatar" do `e2e:ui`: os testes esperam com `sleep` fixo e
-  às vezes perdem a corrida. Rode de novo antes de investigar; se repetir, é real.
+  "dono sai → outro vira dono"): esses testes esperam com `sleep` fixo e às vezes perdem a corrida. Rode de novo
+  antes de investigar; se repetir, é real. Em teste novo, espere o estado (`waitForFunction`/`waitForSelector`,
+  como o `buyAndEquip` da loja), não um tempo fixo.
 - Falha que se repete num texto: confira se o usuário não mudou a mensagem na tela (ele edita textos direto);
   ajuste o teste ao texto dele, não o contrário.
 
