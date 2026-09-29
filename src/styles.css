@@ -846,7 +846,46 @@ input:focus {
 
 .leaderboard-periods {
   display: flex;
+  align-items: center;
   gap: 6px;
+}
+
+/* "?" que abre a explicação do ranking. */
+.leaderboard-help-toggle {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: none;
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.leaderboard-help-toggle:hover,
+.leaderboard-help-toggle[aria-expanded='true'] {
+  border-color: var(--tier-a);
+  color: var(--text);
+}
+
+.leaderboard-help {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--tier-a);
+  background: var(--surface-2);
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+.leaderboard-help strong {
+  color: var(--text);
 }
 
 /* Tempo (Hoje) ou dias (Acumulado), embaixo da pontuação. */

@@ -39,6 +39,7 @@ function detail(s: LeaderboardEntry): string | null {
  */
 export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) {
   const [period, setPeriod] = useState<Period>('today');
+  const [helpOpen, setHelpOpen] = useState(false);
   const [scores, setScores] = useState<LeaderboardEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -95,8 +96,29 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
               {p.label}
             </button>
           ))}
+          <button
+            className="leaderboard-help-toggle"
+            onClick={() => setHelpOpen((open) => !open)}
+            aria-expanded={helpOpen}
+            aria-label="Como funciona o ranking"
+          >
+            ?
+          </button>
         </div>
       </div>
+      {helpOpen && (
+        <div className="leaderboard-help">
+          <p>
+            <strong>Hoje:</strong> vale a sua melhor partida do dia (zera à meia-noite, horário de Brasília). Em caso
+            de empate na pontuação, fica na frente quem terminou a partida em menos tempo.
+          </p>
+          <p>
+            <strong>Acumulado:</strong> soma o seu melhor resultado de cada dia jogado (jogar várias vezes no mesmo dia
+            conta só a melhor). Embaixo da pontuação aparecem quantos dias somaram; no empate, fica na frente quem
+            precisou de menos dias.
+          </p>
+        </div>
+      )}
       {scores === null && <p className="muted">Carregando...</p>}
       {scores?.length === 0 && (
         <p className="muted">{period === 'today' ? 'Ninguém jogou hoje ainda.' : 'Ninguém jogou ainda.'} Seja o primeiro.</p>

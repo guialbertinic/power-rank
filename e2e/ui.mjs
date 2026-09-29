@@ -203,6 +203,9 @@ try {
   await ana.waitForSelector('.leaderboard-podium .podium-detail ::-p-text(dia)');
   check('aba Acumulado mostra os dias', true);
   await ana.click('.leaderboard-periods button:nth-child(1)');
+  await ana.click('.leaderboard-help-toggle');
+  check('"?" explica o desempate e o acumulado', /menos tempo/.test((await text(ana, '.leaderboard-help')) ?? ''));
+  await ana.click('.leaderboard-help-toggle');
 
   // ---------- Trocar nick e sair ----------
   section('Trocar nick e sair');
