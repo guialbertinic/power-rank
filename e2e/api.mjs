@@ -167,19 +167,20 @@ section('Ranking');
 section('Cassino');
 {
   const me = await player('Cassino');
-  check('convidado não joga (401)', (await post('/casino/spin', { bet: 10 })).status === 401);
-  check('aposta fora da regra é recusada', (await post('/casino/spin', { ...me, bet: 15 })).status === 400);
-  check('sem saldo: 402', (await post('/casino/spin', { ...me, bet: 10 })).status === 402);
+  check('convidado não joga (401)', (await post('/casino/spin', { bet: 1 })).status === 401);
+  check('aposta fora da regra é recusada', (await post('/casino/spin', { ...me, bet: 11 })).status === 400);
+  check('sem saldo: 402', (await post('/casino/spin', { ...me, bet: 1 })).status === 402);
 
   d1(`UPDATE players SET coins = 2000 WHERE name_key = '${me.name.toLowerCase()}'`);
-  const { pot: potBefore } = await get('/casino');
+  const potCents = () => Number(/"amount_cents": (\d+)/.exec(d1('SELECT amount_cents FROM casino_pot'))?.[1]);
+  const potBefore = potCents();
   const PAIR = { seven: 5, galactic: 3, replay: 2, cherry: 1, pikachu: 1, moonstone: 0 };
   const THREE = { galactic: 60, replay: 30, cherry: 18, pikachu: 10, moonstone: 5 };
   let expectedCoins = 2000;
   let prizesOk = true;
   let jackpots = 0;
   for (let i = 0; i < 25; i++) {
-    const bet = i % 2 ? 10 : 50;
+    const bet = i % 2 ? 1 : 10;
     const { status, data } = await post('/casino/spin', { ...me, bet });
     if (status !== 200) {
       prizesOk = false;
@@ -194,10 +195,10 @@ section('Cassino');
     if (data.coins !== expectedCoins) prizesOk = false;
   }
   check('prêmio segue a tabela e o saldo fecha giro a giro', prizesOk, `saldo esperado ${expectedCoins}`);
-  const { pot: potAfter } = await get('/casino');
-  // 13 giros de 50 (+3 cada) e 12 de 10 (+1 cada) = +51, se não saiu jackpot. O pote é compartilhado: se alguém
-  // jogar ao mesmo tempo (ex: no dev local), ele cresce mais.
-  check('pote recebe 5% de cada aposta', jackpots > 0 || potAfter - potBefore >= 51, `${potBefore} → ${potAfter}`);
+  const potAfter = potCents();
+  // Em centésimos: 13 giros de 10 (+50 cada) e 12 de 1 (+5 cada) = +710, se não saiu jackpot. O pote é
+  // compartilhado: se alguém jogar ao mesmo tempo (ex: no dev local), ele cresce mais.
+  check('pote recebe 5% de cada aposta (em centésimos)', jackpots > 0 || potAfter - potBefore >= 710, `${potBefore} → ${potAfter}`);
   const logged = d1(`SELECT COUNT(*) AS n FROM casino_spins WHERE player_id = (SELECT id FROM players WHERE name_key = '${me.name.toLowerCase()}')`);
   check('todo giro fica registrado', /"n": 25/.test(logged));
 }

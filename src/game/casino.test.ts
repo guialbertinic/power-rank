@@ -5,7 +5,7 @@ import {
   evaluate,
   isValidBet,
   jackpotPrize,
-  potContribution,
+  potContributionCents,
   potShare,
   SYMBOLS,
   symbolChance,
@@ -51,20 +51,21 @@ describe('cassino', () => {
   });
 
   it('jackpot: nunca menos que 100× e proporcional à aposta', () => {
-    expect(jackpotPrize(10, 1000)).toBe(1000); // pote pequeno: vale o mínimo
-    expect(jackpotPrize(100, 40000)).toBe(20000); // aposta máxima leva 50% do pote
-    expect(potShare(10, 40000)).toBe(2000); // aposta 10 leva 10% disso
-    expect(jackpotPrize(BET_MAX, 0)).toBe(10000);
+    expect(jackpotPrize(1, 50)).toBe(100); // pote pequeno: vale o mínimo
+    expect(jackpotPrize(10, 4000)).toBe(2000); // aposta máxima leva 50% do pote
+    expect(potShare(1, 4000)).toBe(200); // aposta 1 leva 10% disso
+    expect(jackpotPrize(BET_MAX, 0)).toBe(1000);
   });
 
-  it('apostas válidas e contribuição ao pote', () => {
+  it('apostas válidas e contribuição ao pote (em centésimos)', () => {
+    expect(isValidBet(1)).toBe(true);
     expect(isValidBet(10)).toBe(true);
-    expect(isValidBet(100)).toBe(true);
-    expect(isValidBet(15)).toBe(false);
-    expect(isValidBet(110)).toBe(false);
-    expect(isValidBet('50')).toBe(false);
-    expect(potContribution(10)).toBe(1);
-    expect(potContribution(100)).toBe(5);
+    expect(isValidBet(0)).toBe(false);
+    expect(isValidBet(11)).toBe(false);
+    expect(isValidBet(1.5)).toBe(false);
+    expect(isValidBet('5')).toBe(false);
+    expect(potContributionCents(1)).toBe(5);
+    expect(potContributionCents(10)).toBe(50);
   });
 
   it('sorteio usa os pesos', () => {

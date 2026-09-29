@@ -107,17 +107,11 @@ export default function CasinoScreen({ identity, profile, onProfileChange }: Pro
   };
 
   return (
+    // A tela inteira é o gabinete da máquina.
     <section className="casino">
-      <div className="panel casino-header">
-        <div className="casino-pot">
-          <span className="casino-pot-label">Pote acumulado</span>
-          <Coins amount={casino?.pot ?? 0} />
-          {casino && (
-            <span className="muted casino-pot-hint">
-              Jackpot com aposta {bet}: <strong>{coinsText(jackpotPrize(bet, casino.pot))}</strong>
-            </span>
-          )}
-        </div>
+      {/* Letreiro com luzes, como no topo de uma máquina */}
+      <div className="casino-marquee">
+        <span className="casino-title">Power Slots</span>
         <button
           className="leaderboard-help-toggle"
           onClick={() => setHelpOpen((open) => !open)}
@@ -163,7 +157,7 @@ export default function CasinoScreen({ identity, profile, onProfileChange }: Pro
         </div>
       )}
 
-      <div className="panel casino-machine">
+      <div className="casino-machine">
         <div className={`casino-reels${result?.jackpot ? ' jackpot' : ''}`}>
           {reels.map((id, i) => (
             <div
@@ -185,11 +179,41 @@ export default function CasinoScreen({ identity, profile, onProfileChange }: Pro
           ))}
         </div>
 
+        <button className="btn btn-primary btn-lg casino-spin" onClick={onSpin} disabled={!canSpin}>
+          Spin
+        </button>
+
         <p className={`casino-result${result && result.prize > 0 ? ' win' : ''}`} aria-live="polite">
           {result ? resultText(result) : spinning ? 'Girando...' : 'Boa sorte!'}
         </p>
+      </div>
 
-        <div className="casino-controls">
+      {/* Painel de baixo: pote de um lado, saldo + aposta + Spin do outro. */}
+      <div className="casino-panel">
+        <div className="casino-side casino-pot">
+          <span className="casino-label">Pote acumulado</span>
+          {/* Valor no meio do quadrado, com o payout pequeno logo embaixo. */}
+          <div className="casino-pot-main">
+            <Coins amount={casino?.pot ?? 0} />
+            {casino && (
+              <span className="casino-pot-payout">
+                Payout jackpot: <strong>{coinsText(jackpotPrize(bet, casino.pot))}</strong>
+              </span>
+            )}
+          </div>
+          {casino?.lastWinner && (
+            <span className="casino-hint casino-last">
+              Último: <strong>{casino.lastWinner.name}</strong> +{coinsText(casino.lastWinner.prize)} em{' '}
+              {new Date(casino.lastWinner.at).toLocaleDateString('pt-BR')}
+            </span>
+          )}
+        </div>
+
+        <div className="casino-side casino-wallet">
+          <span className="casino-label">Saldo</span>
+          <span className="casino-balance">
+            <Coins amount={profile.coins} />
+          </span>
           <div className="casino-bet" aria-label="Aposta">
             <button className="shop-filter-option" onClick={() => changeBet(-BET_STEP)} disabled={spinning || bet <= BET_MIN}>
               −
@@ -204,24 +228,10 @@ export default function CasinoScreen({ identity, profile, onProfileChange }: Pro
               Máx
             </button>
           </div>
-          <button className="btn btn-primary btn-lg casino-spin" onClick={onSpin} disabled={!canSpin}>
-            Girar
-          </button>
-          {profile.coins < bet && !spinning && <p className="muted">Moedas insuficientes para essa aposta.</p>}
-          {error && <p className="error">{error}</p>}
+          {profile.coins < bet && !spinning && <span className="casino-hint">Moedas insuficientes para essa aposta.</span>}
         </div>
-
-        <p className="muted casino-balance">
-          Saldo: <Coins amount={profile.coins} />
-        </p>
       </div>
-
-      {casino?.lastWinner && (
-        <p className="muted casino-last">
-          Último jackpot: <strong>{casino.lastWinner.name}</strong> ganhou {coinsText(casino.lastWinner.prize)} em{' '}
-          {new Date(casino.lastWinner.at).toLocaleDateString('pt-BR')}
-        </p>
-      )}
+      {error && <p className="error casino-error">{error}</p>}
     </section>
   );
 }

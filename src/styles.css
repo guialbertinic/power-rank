@@ -2292,44 +2292,161 @@ input:focus {
 
 /* ---------- Cassino (caça-níquel) ---------- */
 
+/* Gabinete: a tela inteira é a máquina, com moldura dourada. */
 .casino {
   display: grid;
-  gap: 16px;
+  gap: 14px;
   max-width: 560px;
   margin: 0 auto;
+  padding: 16px;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface) 60%);
+  border: 2px solid color-mix(in srgb, #ffd700 55%, var(--border));
+  clip-path: var(--clip-chamfer);
+  box-shadow: inset 0 0 40px rgba(255, 215, 0, 0.06);
 }
 
-.casino-header {
+/* Letreiro: título em neon entre fileiras de lâmpadas que piscam. */
+.casino-marquee {
+  position: relative;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 44px;
+  background: var(--bg);
+  clip-path: var(--clip-chamfer-sm);
 }
 
-.casino-pot {
-  display: grid;
-  gap: 4px;
+.casino-marquee::before,
+.casino-marquee::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  height: 5px;
+  background: radial-gradient(circle, #ffd700 0 2px, transparent 2.5px) 0 0 / 14px 5px repeat-x;
+  animation: casino-bulbs 1s steps(1) infinite;
 }
 
-.casino-pot-label {
+.casino-marquee::before {
+  top: 4px;
+}
+
+.casino-marquee::after {
+  bottom: 4px;
+  animation-delay: 0.5s;
+}
+
+@keyframes casino-bulbs {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.casino-title {
   font-family: var(--font-display);
-  font-size: 0.8rem;
+  font-size: clamp(1.4rem, 6vw, 2rem);
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow:
+    0 0 8px rgba(255, 42, 109, 0.8),
+    0 0 18px rgba(255, 42, 109, 0.45);
+}
+
+.casino-marquee .leaderboard-help-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Painel de baixo: pote à esquerda, saldo + aposta + Spin à direita. */
+.casino-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.casino-side {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  clip-path: var(--clip-chamfer-sm);
+  text-align: center;
+}
+
+.casino-label {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-2);
 }
 
-.casino-pot .coins {
-  font-size: 2rem;
+.casino-pot-main .coins,
+.casino-balance .coins {
+  font-size: 1.7rem;
 }
 
-.casino-pot-hint {
-  font-size: 0.85rem;
+/* Pote: rótulo no topo, valor + payout no meio da altura (o quadrado tem a altura do lado do saldo),
+   último ganhador embaixo. */
+.casino-pot {
+  grid-template-rows: auto 1fr auto;
 }
 
-.casino-pot-hint strong {
+.casino-pot-main {
+  display: grid;
+  align-self: center;
+  justify-items: center;
+  gap: 2px;
+}
+
+.casino-pot-main .coins {
+  font-size: 1.9rem;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.45);
+}
+
+.casino-pot-payout {
+  font-size: 0.72rem;
+  color: var(--text-2);
+}
+
+.casino-pot-payout strong {
   color: #ffd700;
+}
+
+.casino-hint {
+  font-size: 0.8rem;
+  color: var(--text-2);
+}
+
+.casino-hint strong {
+  color: #ffd700;
+}
+
+.casino-last strong {
+  color: var(--text);
+}
+
+/* Spin logo abaixo dos rolos, da largura da janela deles. */
+.casino-spin {
+  width: min(100%, 340px);
+}
+
+/* Saldo: rótulo, valor e aposta centralizados na altura do quadrado. */
+.casino-wallet {
+  align-content: center;
+}
+
+.casino-error {
+  text-align: center;
 }
 
 .casino-help {
@@ -2371,17 +2488,19 @@ input:focus {
 .casino-machine {
   display: grid;
   justify-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
+/* Janela dos rolos: escura, com aro dourado. */
 .casino-reels {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   padding: 12px;
   background: var(--bg);
-  border: 1px solid var(--border);
+  border: 2px solid color-mix(in srgb, #ffd700 45%, var(--border));
   clip-path: var(--clip-chamfer);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.8);
 }
 
 /* Cada rolo mostra um símbolo por vez (96px). */
@@ -2392,7 +2511,8 @@ input:focus {
   overflow: hidden;
   display: grid;
   place-items: center;
-  background: var(--surface-2);
+  /* Fundo claro, como a fita de uma máquina real: o contorno da pixel art não "estoura" no escuro. */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--text) 80%, var(--text-2)), var(--text) 30%, var(--text) 70%, color-mix(in srgb, var(--text) 80%, var(--text-2)));
   clip-path: var(--clip-chamfer-sm);
 }
 
@@ -2475,39 +2595,44 @@ input:focus {
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.45);
 }
 
-.casino-controls {
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-}
-
+/* Aposta: − valor + Máx (quebra linha se a coluna ficar estreita). */
 .casino-bet {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
 }
 
 .casino-bet .shop-filter-option {
-  min-width: 40px;
+  min-width: 34px;
+  padding: 5px 8px;
 }
 
 .casino-bet-value {
-  min-width: 70px;
+  min-width: 56px;
   text-align: center;
-  font-size: 1.3rem;
-}
-
-.casino-balance,
-.casino-last {
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.casino-last strong {
-  color: var(--text);
+  font-size: 1.15rem;
 }
 
 @media (max-width: 480px) {
+  .casino {
+    padding: 10px;
+  }
+
+  .casino-side {
+    padding: 10px 6px;
+  }
+
+  .casino-pot-main .coins,
+  .casino-balance .coins {
+    font-size: 1.35rem;
+  }
+
+  .casino-spin.btn-lg {
+    padding: 12px 16px;
+  }
+
   .casino-reels {
     gap: 6px;
     padding: 8px;

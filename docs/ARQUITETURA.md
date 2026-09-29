@@ -56,7 +56,7 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/party` `{ mode, pid }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
 | `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |
 | `GET /api/casino` | `{ pot, lastWinner }`: pote acumulado e último ganhador do jackpot. |
-| `POST /api/casino/spin` `{ token, bet }` | Só contas. Aposta 10–100 (de 10 em 10). Sorteia no servidor, debita/credita e devolve `{ reels, outcome, prize, coins, pot, jackpot }`. 402 sem saldo. |
+| `POST /api/casino/spin` `{ token, bet }` | Só contas. Aposta de 1 a 10 moedas. Sorteia no servidor, debita/credita e devolve `{ reels, outcome, prize, coins, pot, jackpot }`. 402 sem saldo. |
 | `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado e `hasPassword`. |
 | `POST /api/shop/buy` `{ token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
 | `POST /api/profile/equip` `{ token, slot, itemId \| null }` | Equipa (ou tira) um item que o jogador tem. |
@@ -110,11 +110,11 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - Regras em `src/game/casino.ts` (compartilhado; `casino.test.ts` calcula o retorno exato das 6³ combinações).
   Servidor em `server/casino.ts`, tela `CasinoScreen` (botão "Cassino" na `ProfileBar`, só contas), ícones em
   `public/cassino/<id>.webp` (pixel art do Game Corner ampliada 4×, via `CasinoIcon`).
-- 3 rolos, 6 símbolos com pesos (ícones do Game Corner de Pokémon). 3 iguais e pares pagam multiplicadores da aposta (10–100, de 10 em 10); a chance
+- 3 rolos, 6 símbolos com pesos (ícones do Game Corner de Pokémon). 3 iguais e pares pagam multiplicadores da aposta (1 a 10 moedas, na escala do que uma partida rende); a chance
   não depende da aposta. Tabela fixa ≈ 90% de retorno + pote ≈ 95% no longo prazo. Jackpot (três 7)
   ≈ 1 a cada 4.600 giros.
-- **Pote** (`casino_pot`, uma linha): recebe 5% de cada aposta. Jackpot = maior entre 100× a aposta e
-  `pote × 50% × aposta/100`; só essa parte sai do pote (o mínimo excedente vem "da casa"). O `UPDATE` do pote
+- **Pote** (`casino_pot`, uma linha, em centésimos de moeda: 5% de uma aposta de 1 = 0,05): recebe 5% de cada aposta. Jackpot = maior entre 100× a aposta e
+  `pote × 50% × aposta/10`; só essa parte sai do pote (o mínimo excedente vem "da casa"). O `UPDATE` do pote
   calcula e desconta o prêmio na mesma operação (dois jackpots simultâneos não levam o mesmo pote).
 - Débito: `coins = coins - aposta + prêmio WHERE coins >= aposta` (prêmio fixo no mesmo UPDATE); jackpot é creditado
   logo depois. Todo giro vai para `casino_spins` (auditoria/balanceamento).

@@ -33,23 +33,24 @@ export const SYMBOLS: CasinoSymbol[] = [
 export const SYMBOLS_BY_ID = new Map(SYMBOLS.map((s) => [s.id, s]));
 export const JACKPOT_SYMBOL: SymbolId = 'seven';
 
-export const BET_MIN = 10;
-export const BET_MAX = 100;
-export const BET_STEP = 10;
+/** Apostas de 1 a 10 moedas (uma partida rende de 5 a 60: a aposta tem que caber nesse ganho). */
+export const BET_MIN = 1;
+export const BET_MAX = 10;
+export const BET_STEP = 1;
 /** Parte de cada aposta que vai para o pote acumulado. */
 export const POT_CONTRIBUTION = 0.05;
-/** O jackpot paga esta fração do pote para quem aposta o máximo (proporcional à aposta: 10 = 10% disso). */
+/** O jackpot paga esta fração do pote para quem aposta o máximo (proporcional à aposta: 1 = 10% disso). */
 export const POT_PAYOUT_SHARE = 0.5;
-/** Valor inicial do pote (migração 0010). */
-export const POT_SEED = 5000;
+/** O pote é guardado em centésimos de moeda: 5% de uma aposta de 1 (0,05) não se perde no arredondamento. */
+export const POT_CENTS = 100;
 
 export const isValidBet = (bet: unknown): bet is number =>
   typeof bet === 'number' && Number.isInteger(bet) && bet >= BET_MIN && bet <= BET_MAX && bet % BET_STEP === 0;
 
-/** Moedas da aposta que vão para o pote (arredondado; 10 → 1). */
-export const potContribution = (bet: number) => Math.round(bet * POT_CONTRIBUTION);
+/** Centésimos de moeda que a aposta põe no pote (5%: aposta 1 → 5, aposta 10 → 50). */
+export const potContributionCents = (bet: number) => Math.round(bet * POT_CONTRIBUTION * POT_CENTS);
 
-/** Parte do pote que o jackpot leva com esta aposta. */
+/** Parte do pote (em moedas) que o jackpot leva com esta aposta. */
 export const potShare = (bet: number, pot: number) => Math.floor(pot * POT_PAYOUT_SHARE * (bet / BET_MAX));
 
 /** Prêmio do jackpot: o maior entre o mínimo (100× a aposta) e a parte do pote. */

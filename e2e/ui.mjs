@@ -207,6 +207,8 @@ try {
   await sleep(1000);
   check('resultado mostra moedas (ou o aviso de 500+)', /^\+\d+$|500\+/.test((await text(ana, '.coins-earned')) ?? ''));
   check('resultado solo sem valores de poder', !(await ana.$('.row-power')));
+  // O ranking aparece na hora como skeleton: espera carregar (e recarregar depois do envio) com a Ana nele.
+  await ana.waitForSelector('.leaderboard [aria-busy="false"] :is(.row.highlight, .podium-step.you)', { timeout: 8000 });
   check(
     'ranking mostra o visual do jogador',
     Boolean(await ana.$('.leaderboard :is(.row.highlight, .podium-step.you) .cosmetic-frame-legend')),
@@ -238,15 +240,16 @@ try {
   await ana.waitForFunction(() => [...document.querySelectorAll('.casino-reel img')].every((i) => i.complete), { timeout: 5000 });
   const broken = await ana.$$eval('.casino-reel img', (imgs) => imgs.filter((i) => !i.naturalWidth).map((i) => i.src));
   check('imagens dos símbolos carregam', broken.length === 0, broken.join(', '));
-  const balanceBefore = Number((await text(ana, '.casino-balance .coins'))?.replace(/\D/g, ''));
+  const spinResponse = ana.waitForResponse((r) => r.url().includes('/api/casino/spin'));
   await ana.click('.casino-spin');
   check('rolos giram', Boolean(await ana.$('.casino-strip')));
+  const { coins: serverCoins } = await (await spinResponse).json();
   await ana.waitForFunction(() => !document.querySelector('.casino-strip'), { timeout: 8000 });
   const spinText = await text(ana, '.casino-result');
   check('rolos param e mostram o resultado', Boolean(spinText) && spinText !== 'Girando...', spinText ?? '');
   const balanceAfter = Number((await text(ana, '.casino-balance .coins'))?.replace(/\D/g, ''));
-  check('saldo atualiza depois do giro', balanceAfter !== balanceBefore || /volta/.test(spinText ?? ''), `${balanceBefore} → ${balanceAfter}`);
-  await ana.click('.casino-header .leaderboard-help-toggle');
+  check('saldo na tela = saldo do servidor depois do giro', balanceAfter === serverCoins, `${balanceAfter} / ${serverCoins}`);
+  await ana.click('.casino-marquee .leaderboard-help-toggle');
   check('"?" mostra a tabela de prêmios', (await ana.$$('.casino-table tbody tr')).length === 6);
 
   // ---------- Trocar nick e sair ----------

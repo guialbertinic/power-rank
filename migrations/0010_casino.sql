@@ -1,12 +1,12 @@
 -- Cassino (caça-níquel): pote acumulado compartilhado e histórico de giros. Regras em src/game/casino.ts.
 CREATE TABLE casino_pot (
   id INTEGER PRIMARY KEY CHECK (id = 1),   -- uma linha só: o pote de todo o jogo
-  amount INTEGER NOT NULL,                  -- acumulado (recebe 5% de cada aposta)
+  amount_cents INTEGER NOT NULL,            -- acumulado em centésimos de moeda (5% de uma aposta de 1 = 5)
   last_winner_id INTEGER REFERENCES players (id),
-  last_prize INTEGER,
+  last_prize INTEGER,                       -- em moedas
   last_won_at INTEGER
 );
-INSERT INTO casino_pot (id, amount) VALUES (1, 5000);
+INSERT INTO casino_pot (id, amount_cents) VALUES (1, 50000);   -- começa com 500 moedas
 
 -- Todo giro fica registrado (auditoria e balanceamento: retorno real, apostas médias).
 CREATE TABLE casino_spins (
