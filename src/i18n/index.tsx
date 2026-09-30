@@ -10,7 +10,7 @@ import { MODES, type Mode } from '../game/modes';
  */
 export type Lang = 'pt' | 'en';
 export type { Key };
-export { cosmeticLabel, symbolLabel } from './catalog';
+export { cosmeticLabel } from './catalog';
 export { serverText } from './server';
 
 const DICTS: Record<Lang, Record<Key, string>> = { pt, en };

@@ -359,9 +359,10 @@ try {
   await ana.click('.adult-confirm');
   await ana.waitForSelector('.casino-machine');
   check('pote acumulado aparece', /\d/.test((await text(ana, '.casino-pot .coins')) ?? ''));
-  await ana.waitForFunction(() => [...document.querySelectorAll('.casino-reel img')].every((i) => i.complete), { timeout: 5000 });
-  const broken = await ana.$$eval('.casino-reel img', (imgs) => imgs.filter((i) => !i.naturalWidth).map((i) => i.src));
-  check('imagens dos símbolos carregam', broken.length === 0, broken.join(', '));
+  const faces = await ana.$$eval('.casino-reel .casino-icon', (els) =>
+    els.map((el) => ({ text: el.textContent, w: el.getBoundingClientRect().width, tier: /tier-(ss|s|a|b|c|d)\b/.test(el.className) })),
+  );
+  check('rolos mostram os badges dos tiers', faces.length === 3 && faces.every((f) => /^(SS|[SABCD])$/.test(f.text) && f.w >= 60 && f.tier), JSON.stringify(faces));
   const spinResponse = ana.waitForResponse((r) => r.url().includes('/api/slots/spin'));
   await ana.click('.casino-spin');
   check('rolos giram', Boolean(await ana.$('.casino-strip')));

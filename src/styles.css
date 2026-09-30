@@ -2691,23 +2691,52 @@ input:focus {
   overflow: hidden;
   display: grid;
   place-items: center;
-  /* Fundo claro, como a fita de uma máquina real: o contorno da pixel art não "estoura" no escuro. */
-  background: linear-gradient(180deg, color-mix(in srgb, var(--text) 80%, var(--text-2)), var(--text) 30%, var(--text) 70%, color-mix(in srgb, var(--text) 80%, var(--text-2)));
+  /* Fita escura, mais clara no meio (onde o símbolo para): os badges dos tiers brilham como nos resultados. */
+  background: linear-gradient(180deg, var(--bg), var(--surface-2) 30%, var(--surface-2) 70%, var(--bg));
   clip-path: var(--clip-chamfer-sm);
 }
 
-/* Símbolos em pixel art (Game Corner): inteiros dentro do quadrado e com pixels nítidos, sem borrar. */
+/* Símbolos = badges dos tiers (SS … D): chanfrados, cor do tier, letra em itálico como o RankBadge.
+   --icon-size define tudo (largura, altura, letra); o rolo, a fita e a tabela só trocam esse valor. */
 .casino-icon {
+  --icon-size: 72px;
   display: block;
-  object-fit: contain;
-  box-sizing: border-box;
-  image-rendering: pixelated;
+  flex: none;
+  width: var(--icon-size);
+  height: var(--icon-size);
   user-select: none;
 }
 
-.casino-reel .casino-icon {
-  width: 72px;
-  height: 72px;
+.casino-icon-face {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: var(--tier-fill);
+  color: var(--tier-on);
+  font-family: var(--font-display);
+  font-size: calc(var(--icon-size) * 0.44);
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  clip-path: var(--clip-chamfer);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* SS: o dourado ganha um brilho (é o jackpot). */
+.casino-icon.tier-ss {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tier-ss) 60%, transparent));
+}
+
+.casino-icon-sm {
+  --icon-size: 28px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.casino-icon-sm .casino-icon-face {
+  clip-path: var(--clip-chamfer-sm);
 }
 
 /* Girando: uma fita com os símbolos repetidos correndo para cima, meio borrada. */
@@ -2723,8 +2752,7 @@ input:focus {
 }
 
 .casino-strip .casino-icon {
-  height: 96px;
-  padding: 12px 0;
+  margin: 12px 0;
 }
 
 @keyframes casino-roll {
@@ -2752,7 +2780,7 @@ input:focus {
 }
 
 .casino-reel.win .casino-icon {
-  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--tier-color) 85%, transparent));
 }
 
 .casino-reels.jackpot {
@@ -2824,13 +2852,11 @@ input:focus {
   }
 
   .casino-reel .casino-icon {
-    width: 62px;
-    height: 62px;
+    --icon-size: 62px;
   }
 
   .casino-strip .casino-icon {
-    height: 84px;
-    padding: 11px 0;
+    margin: 11px 0;
   }
 }
 

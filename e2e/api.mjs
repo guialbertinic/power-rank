@@ -286,8 +286,8 @@ if (section('Slots')) {
   d1(`UPDATE players SET coins = 2000 WHERE name_key = '${me.name.toLowerCase()}'`);
   const potCents = () => Number(/"amount_cents": (\d+)/.exec(d1('SELECT amount_cents FROM casino_pot'))?.[1]);
   const potBefore = potCents();
-  const PAIR = { seven: 5, galactic: 3, replay: 2, cherry: 1, pikachu: 1, moonstone: 0 };
-  const THREE = { galactic: 60, replay: 30, cherry: 18, pikachu: 10, moonstone: 5 };
+  const PAIR = { ss: 5, s: 3, a: 2, b: 1, c: 1, d: 0 };
+  const THREE = { s: 60, a: 30, b: 18, c: 10, d: 5 };
   let expectedCoins = 2000;
   let prizesOk = true;
   let jackpots = 0;
@@ -300,7 +300,7 @@ if (section('Slots')) {
     }
     const [a, b, c] = data.reels;
     const pair = a === b || a === c ? a : b === c ? b : null;
-    const expected = a === b && b === c ? (a === 'seven' ? null : THREE[a] * bet) : pair ? PAIR[pair] * bet : 0;
+    const expected = a === b && b === c ? (a === 'ss' ? null : THREE[a] * bet) : pair ? PAIR[pair] * bet : 0;
     if (expected === null) jackpots++;
     else if (data.prize !== expected) prizesOk = false;
     expectedCoins += data.prize - bet;

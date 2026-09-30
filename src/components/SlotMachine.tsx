@@ -13,9 +13,9 @@ import {
   type SymbolId,
 } from '../game/casino';
 import type { Profile } from '../game/cosmetics';
-import { serverText, symbolLabel, useI18n, type I18n, type Lang } from '../i18n';
+import { serverText, useI18n, type I18n, type Lang } from '../i18n';
 import type { Identity } from '../nick';
-import CasinoIcon, { preloadCasinoIcons } from './CasinoIcon';
+import CasinoIcon from './CasinoIcon';
 import Coins from './Coins';
 
 interface Props {
@@ -31,13 +31,16 @@ const STOP_GAP_MS = 380;
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 const coinsText = (n: number, lang: Lang) => n.toLocaleString(lang === 'pt' ? 'pt-BR' : 'en-US');
 
+/** Nome do símbolo no texto do resultado (igual nos dois idiomas: é o tier). */
+const symbolText = (id: SymbolId) => SYMBOLS_BY_ID.get(id)!.label;
+
 /** Texto do resultado de um giro. */
 function resultText(r: SpinResult, t: I18n['t'], lang: Lang): string {
   const prize = coinsText(r.prize, lang);
   if (r.jackpot) return t('slots.jackpot', { prize });
-  if (r.outcome.kind === 'three') return t('slots.three', { symbol: symbolLabel(r.outcome.symbol, lang), prize });
+  if (r.outcome.kind === 'three') return t('slots.three', { symbol: symbolText(r.outcome.symbol), prize });
   if (r.outcome.kind === 'pair') {
-    const symbol = symbolLabel(r.outcome.symbol, lang);
+    const symbol = symbolText(r.outcome.symbol);
     return r.outcome.multiplier === 1 ? t('slots.pairBack', { symbol }) : t('slots.pair', { symbol, prize });
   }
   return t('slots.none');
@@ -51,7 +54,7 @@ export default function SlotMachine({ identity, profile, onProfileChange }: Prop
   const { t, lang } = useI18n();
   const [casino, setCasino] = useState<CasinoState | null>(null);
   const [bet, setBet] = useState(BET_MIN);
-  const [reels, setReels] = useState<SymbolId[]>(['seven', 'galactic', 'pikachu']);
+  const [reels, setReels] = useState<SymbolId[]>(['ss', 's', 'c']);
   /** Quantos rolos já pararam (3 = parado). */
   const [stopped, setStopped] = useState(3);
   const [result, setResult] = useState<SpinResult | null>(null);
@@ -60,7 +63,6 @@ export default function SlotMachine({ identity, profile, onProfileChange }: Prop
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
-    preloadCasinoIcons();
     fetchCasino()
       .then(setCasino)
       .catch(() => setError(t('common.offline')));
@@ -139,7 +141,7 @@ export default function SlotMachine({ identity, profile, onProfileChange }: Prop
               {SYMBOLS.map((s) => (
                 <tr key={s.id}>
                   <td>
-                    <CasinoIcon id={s.id} size={28} /> {symbolLabel(s.id, lang)}
+                    <CasinoIcon id={s.id} small />
                   </td>
                   <td>{s.id === JACKPOT_SYMBOL ? 'Jackpot' : `${s.three}×`}</td>
                   <td>{s.pair ? `${s.pair}×` : '—'}</td>

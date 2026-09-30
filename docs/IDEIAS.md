@@ -172,8 +172,8 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
 ## Monetização e legal
 
 (Resumo da conversa; não é aconselhamento jurídico — validar com advogado antes de monetizar.)
-- 🧭 **Trocar os sprites do Game Corner (Pokémon) do cassino por arte própria** antes de monetizar ·
-  `Manutenção` 🟢 (depende de ter a arte)
+- ✅ **Arte própria no caça-níquel:** os símbolos do Game Corner (Pokémon) viraram os badges dos tiers (SS … D),
+  em CSS; a moldura e o título "Game Corner" viraram "Arcade" (ids mantidos).
 - 💡 **Linkar Patreon** (ou Apoia.se / Ko-fi) · `Feature` 🟢 (botão) / 🟡 (selo automático):
   - Botão "Apoie" no rodapé e no menu do perfil; página de agradecimento com os apoiadores (opt-in).
   - Benefício só cosmético: selo/título/moldura "Apoiador" exclusivo — **nunca moedas**, caixas nem vantagem no

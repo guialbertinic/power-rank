@@ -1,13 +1,19 @@
-import { SYMBOLS, type SymbolId } from '../game/casino';
+import type { SymbolId } from '../game/casino';
+import { tierClass } from '../ui/tiers';
 
-const src = (id: SymbolId) => `/slots/${id}.webp`;
-
-/** Ícone de um símbolo do caça-níquel: pixel art do Game Corner, ampliada 4× (public/slots/<id>.webp). */
-export default function CasinoIcon({ id, size = 64 }: { id: SymbolId; size?: number }) {
-  return <img className="casino-icon" src={src(id)} width={size} height={size} alt="" draggable={false} />;
-}
-
-/** Baixa os 7 ícones antes do primeiro giro (a fita dos rolos não pisca). */
-export function preloadCasinoIcons() {
-  for (const s of SYMBOLS) new Image().src = src(s.id);
+/**
+ * Símbolo do caça-níquel: o badge chanfrado do tier (SS … D), nas cores do tier. Desenhado em CSS, sem imagem.
+ * O tamanho vem do CSS (--icon-size: rolo, fita, tabela); `small` = versão da tabela de prêmios.
+ * Duas camadas: o brilho de vitória (filter) fica na de fora, porque o clip-path da de dentro cortaria a sombra.
+ */
+export default function CasinoIcon({ id, small }: { id: SymbolId; small?: boolean }) {
+  return (
+    <span
+      className={`casino-icon ${tierClass(id)}${small ? ' casino-icon-sm' : ''}`}
+      // Na tabela de prêmios o ícone é o nome do símbolo; nos rolos é decoração (o resultado sai em texto).
+      {...(small ? { role: 'img', 'aria-label': id.toUpperCase() } : { 'aria-hidden': true })}
+    >
+      <span className="casino-icon-face">{id.toUpperCase()}</span>
+    </span>
+  );
 }

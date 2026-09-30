@@ -1,5 +1,3 @@
-import type { SymbolId } from '../game/casino';
-import { SYMBOLS_BY_ID } from '../game/casino';
 import type { Cosmetic } from '../game/cosmetics';
 import type { Lang } from './index';
 
@@ -43,7 +41,7 @@ const COSMETICS_EN: Record<string, string> = {
   'frame-galaxy': 'Galaxy',
   'frame-dragon': 'Dragon',
   'frame-masterball': 'Master Ball',
-  'frame-gamecorner': 'Game Corner',
+  'frame-gamecorner': 'Arcade Marquee',
   'frame-holo': 'Holographic',
   // Títulos
   'title-iniciante-prospero': 'Prosperous Beginner',
@@ -73,27 +71,13 @@ const COSMETICS_EN: Record<string, string> = {
   'title-ultra-instinto': 'Ultra Instinct',
   'title-o-mais-forte': 'The Strongest of Today',
   'title-rei-dos-piratas': 'King of the Pirates',
-  'title-sortudo-game-corner': 'Game Corner Lucky Shot',
+  'title-sortudo-game-corner': 'Arcade Lucky Shot',
   'title-viciado-em-gacha': 'Gacha Addict',
   'title-tirou-o-lendario': 'Pulled a Legendary',
   'title-mestre-da-sorte': 'Master of Luck',
 };
 
-const SYMBOLS_EN: Record<SymbolId, string> = {
-  seven: '7',
-  galactic: 'Galactic',
-  replay: 'Replay',
-  cherry: 'Cherries',
-  pikachu: 'Pikachu',
-  moonstone: 'Moon Stone',
-};
-
 /** Nome de uma cor/moldura/título no idioma. */
 export function cosmeticLabel(item: Cosmetic, lang: Lang): string {
   return lang === 'en' ? (COSMETICS_EN[item.id] ?? item.label) : item.label;
-}
-
-/** Nome de um símbolo do caça-níquel no idioma. */
-export function symbolLabel(id: SymbolId, lang: Lang): string {
-  return lang === 'en' ? SYMBOLS_EN[id] : SYMBOLS_BY_ID.get(id)!.label;
 }

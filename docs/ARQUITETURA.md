@@ -198,10 +198,16 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - **Registro** `admin_actions` (admin, ação `feature|coins|rename|password`, jogador, JSON do antes/depois):
   cada mudança vai no mesmo `batch` (transação) que o registro. Moedas: `UPDATE ... WHERE coins + delta >= 0` e
   o `INSERT ... WHERE changes() = 1` (só registra se o saldo mudou); limite de ±100.000 por ação.
-- **Configurar em produção** (o usuário faz): Zero Trust → Access → Applications → Self-hosted, domínio do site
-  com os caminhos `/admin` e `/api/admin`, política "Allow" só para o seu e-mail. Copiar a "Application Audience
-  (AUD) Tag" para `ACCESS_AUD` e `https://<time>.cloudflareaccess.com` para `ACCESS_TEAM_DOMAIN`; depois
-  `npx wrangler secret put ADMIN_EMAILS`.
+- **Configurado em produção** (time `crimson-dream-8892`, valores no `wrangler.jsonc`, `ADMIN_EMAILS` como secret).
+  Aplicação Self-hosted no Cloudflare One → Access → Applications. O que travou na primeira vez:
+  - Destinos: em **Public hostnames → Switch to custom input**, o endereço completo `power-rank.guilherme-albertinic.workers.dev/admin`
+    e `.../api/admin`. **Nunca** a linha "Workers": ela não tem caminho e trancaria o site inteiro.
+  - Login: **One-time PIN** (Integrations → Identity providers, e ligar na aba Login methods da aplicação); o login
+    "Cloudflare" não funcionou.
+  - Política Allow com o e-mail exato (um ponto sobrando no fim fez o PIN nunca chegar: o Access não envia código
+    para e-mail fora da política e não avisa) e clicar em **Save** da aplicação. O Policy tester fica vazio até
+    alguém fazer login.
+  - Conferir sem login: `curl -I .../admin` → 302 para `cloudflareaccess.com`; `/` e `/api/config` → 200.
 
 ## Arcade e chaves (feature flags)
 
@@ -219,9 +225,10 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 ## Caça-níquel (Slots)
 
 - Regras em `src/game/casino.ts` (compartilhado; `casino.test.ts` calcula o retorno exato das 6³ combinações).
-  Servidor em `server/casino.ts`, aba "Slots" do Arcade (`SlotMachine`), ícones em
-  `public/slots/<id>.webp` (pixel art do Game Corner ampliada 4×, via `CasinoIcon`).
-- 3 rolos, 6 símbolos com pesos (ícones do Game Corner de Pokémon). 3 iguais e pares pagam multiplicadores da aposta (1 a 10 moedas, na escala do que uma partida rende); a chance
+  Servidor em `server/casino.ts`, aba "Slots" do Arcade (`SlotMachine`). Símbolos = os tiers
+  SS/S/A/B/C/D (ids iguais aos de `ui/tiers.ts`), desenhados em CSS pelo `CasinoIcon` (badge chanfrado na cor do
+  tier, tamanho por `--icon-size`), sem imagem. Giros antigos em `casino_spins` têm os ids da arte anterior (seven, cherry...).
+- 3 rolos, 6 símbolos com pesos (SS = jackpot, D = o mais comum). 3 iguais e pares pagam multiplicadores da aposta (1 a 10 moedas, na escala do que uma partida rende); a chance
   não depende da aposta. Tabela fixa ≈ 90% de retorno + pote ≈ 95% no longo prazo. Jackpot (três 7)
   ≈ 1 a cada 4.600 giros.
 - **Pote** (`casino_pot`, uma linha, em centésimos de moeda: 5% de uma aposta de 1 = 0,05): recebe 5% de cada aposta. Jackpot = maior entre 100× a aposta e

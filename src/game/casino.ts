@@ -6,15 +6,18 @@
  * os 5% de cada aposta que vão para o pote voltam aos jogadores nos jackpots → ~95% no longo prazo.
  */
 
-/** Símbolos da máquina do Game Corner de Pokémon (public/cassino/<id>.webp), do melhor para o pior. */
-export type SymbolId = 'seven' | 'galactic' | 'replay' | 'cherry' | 'pikachu' | 'moonstone';
+/**
+ * Símbolos = os tiers de poder do jogo (mesmas cores e ids de src/ui/tiers.ts), do melhor para o pior.
+ * O rótulo é igual nos dois idiomas. Giros antigos em casino_spins guardam os ids da máquina anterior (7, cerejas...).
+ */
+export type SymbolId = 'ss' | 's' | 'a' | 'b' | 'c' | 'd';
 
 export interface CasinoSymbol {
   id: SymbolId;
   label: string;
   /** Peso no sorteio (igual nos 3 rolos): quanto maior, mais comum. */
   weight: number;
-  /** 3 iguais: multiplicador da aposta (o 7 = jackpot, com este valor como prêmio mínimo). */
+  /** 3 iguais: multiplicador da aposta (SS = jackpot, com este valor como prêmio mínimo). */
   three: number;
   /** 2 iguais (em qualquer posição): multiplicador da aposta (0 = par não paga). */
   pair: number;
@@ -22,16 +25,16 @@ export interface CasinoSymbol {
 
 /** Do mais raro ao mais comum. */
 export const SYMBOLS: CasinoSymbol[] = [
-  { id: 'seven', label: '7', weight: 6, three: 100, pair: 5 },
-  { id: 'galactic', label: 'Galáctico', weight: 9, three: 60, pair: 3 },
-  { id: 'replay', label: 'Replay', weight: 12, three: 30, pair: 2 },
-  { id: 'cherry', label: 'Cerejas', weight: 16, three: 18, pair: 1 },
-  { id: 'pikachu', label: 'Pikachu', weight: 24, three: 10, pair: 1 },
-  { id: 'moonstone', label: 'Pedra da Lua', weight: 33, three: 5, pair: 0 },
+  { id: 'ss', label: 'SS', weight: 6, three: 100, pair: 5 },
+  { id: 's', label: 'S', weight: 9, three: 60, pair: 3 },
+  { id: 'a', label: 'A', weight: 12, three: 30, pair: 2 },
+  { id: 'b', label: 'B', weight: 16, three: 18, pair: 1 },
+  { id: 'c', label: 'C', weight: 24, three: 10, pair: 1 },
+  { id: 'd', label: 'D', weight: 33, three: 5, pair: 0 },
 ];
 
 export const SYMBOLS_BY_ID = new Map(SYMBOLS.map((s) => [s.id, s]));
-export const JACKPOT_SYMBOL: SymbolId = 'seven';
+export const JACKPOT_SYMBOL: SymbolId = 'ss';
 
 /** Apostas de 1 a 10 moedas (uma partida rende de 5 a 60: a aposta tem que caber nesse ganho). */
 export const BET_MIN = 1;
