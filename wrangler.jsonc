@@ -30,7 +30,7 @@
   "vars": {
     // Anti-bot na criação de conta (Cloudflare Turnstile). Vazio = desligado. A chave do site é pública; a
     // secreta vai como secret: `npx wrangler secret put TURNSTILE_SECRET`. No dev, as duas vêm do .dev.vars.
-    "TURNSTILE_SITE_KEY": ""
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFJsPd3NR64n0iH5"
   },
   "observability": { "enabled": true }
 }
