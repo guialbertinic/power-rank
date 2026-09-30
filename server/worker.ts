@@ -1,3 +1,4 @@
+import { handleAdmin } from './admin';
 import { getCasino, spin } from './casino';
 import { getCharacters, getCharactersWithPower } from './catalog';
 import { dailyStatus } from './daily';
@@ -30,17 +31,18 @@ export default {
 
       const partySocket = request.method === 'GET' ? PARTY_SOCKET.exec(pathname) : null;
       if (partySocket) return await connectParty(request, env, partySocket[1].toUpperCase());
+      if (pathname.startsWith('/api/admin/')) return await handleAdmin(request, env);
 
       switch (route) {
         case 'GET /api/config':
-          return getConfig(env);
+          return await getConfig(env);
         case 'GET /api/characters':
           return await getCharacters(env);
         case 'GET /api/dev/characters':
           return await getCharactersWithPower(request, env);
-        case 'GET /api/casino':
+        case 'GET /api/slots':
           return await getCasino(env);
-        case 'POST /api/casino/spin':
+        case 'POST /api/slots/spin':
           return await spin(request, env);
         case 'POST /api/gacha/open':
           return await openBox(request, env);

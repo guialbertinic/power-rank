@@ -76,7 +76,7 @@ export async function getProfile(request: Request, env: Env): Promise<Response> 
 }
 
 /**
- * POST /api/profile/adult: { token } → Profile. A conta declara ter 18 anos ou mais (libera cassino e Mystery Box).
+ * POST /api/profile/adult: { token } → Profile. A conta declara ter 18 anos ou mais (libera caça-níquel e Mystery Box).
  * Vale a primeira declaração.
  */
 export async function confirmAdult(request: Request, env: Env): Promise<Response> {
@@ -88,7 +88,7 @@ export async function confirmAdult(request: Request, env: Env): Promise<Response
   return json(await loadProfile(env, auth.id));
 }
 
-/** Cassino e Mystery Box: 403 se a conta ainda não declarou ter 18 anos ou mais; null se pode seguir. */
+/** Caça-níquel e Mystery Box: 403 se a conta ainda não declarou ter 18 anos ou mais; null se pode seguir. */
 export async function requireAdult(env: Env, playerId: number): Promise<Response | null> {
   const row = await env.DB.prepare('SELECT adult_confirmed_at IS NOT NULL AS adult FROM players WHERE id = ?')
     .bind(playerId)

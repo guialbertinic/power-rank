@@ -40,7 +40,16 @@ const EXACT_EN: Record<string, string> = {
   'Não foi possível criar a sala': "Couldn't create the room",
   'Conexão encerrada pela sala': 'Connection closed by the room',
   'Não foi possível reconectar à sala': "Couldn't reconnect to the room",
-  // Loja e cassino
+  // Admin
+  'Acesso negado': 'Access denied',
+  'Envie JSON': 'Send JSON',
+  'Chave inválida': 'Invalid switch',
+  'Quantidade inválida': 'Invalid amount',
+  'Informe o motivo': 'Enter the reason',
+  'O saldo não pode ficar negativo': 'The balance cannot go negative',
+  'Jogador não encontrado': 'Player not found',
+  // Loja e Arcade
+  'Este minigame está desligado no momento.': 'This minigame is turned off right now.',
   'Moedas insuficientes': 'Not enough coins',
   'Você já tem esse item': 'You already have this item',
   'Você não tem esse item': 'You don’t have this item',

@@ -133,6 +133,6 @@ export interface Profile {
   look: Look;
   /** O nick tem senha (dá para entrar com ela em outro dispositivo). */
   hasPassword: boolean;
-  /** A conta declarou ter 18 anos ou mais (libera cassino e Mystery Box). */
+  /** A conta declarou ter 18 anos ou mais (libera caça-níquel e Mystery Box). */
   adult: boolean;
 }

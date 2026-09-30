@@ -24,6 +24,7 @@ Sempre escolha as colunas e ponha `LIMIT` em tabelas grandes (`scores`, `games`,
 | Dar moedas | `UPDATE players SET coins = coins + 1000 WHERE name_key = 'nick'` (`name_key` = nick minúsculo) |
 | Itens de uma conta | `SELECT item_id FROM player_items WHERE player_id = <id>` |
 | Últimas partidas | `SELECT name, player_id, mode, score, coins FROM scores ORDER BY created_at DESC LIMIT 10` |
+| Ligar/desligar minigame | `UPDATE features SET enabled = 0, updated_at = unixepoch() * 1000 WHERE id = 'slots'` (ids: `slots`, `mystery_box`) |
 | Tabelas | `SELECT name FROM sqlite_master WHERE type = 'table'` |
 
 Convidados não têm linha em `players` (não têm saldo). Depois de mudar saldo/itens, o jogo só mostra ao recarregar

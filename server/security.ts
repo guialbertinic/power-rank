@@ -1,4 +1,6 @@
+import { loadFeatures } from './features';
 import { json, nameKey, type Env } from './lib';
+import { NO_FEATURES } from '../src/game/features';
 
 /** A rota vem do servidor local (npm run dev)? Em produção o host nunca é localhost. */
 export const isLocalRequest = (request: Request) => ['localhost', '127.0.0.1'].includes(new URL(request.url).hostname);
@@ -15,7 +17,7 @@ const RATE_LIMITED: Record<string, Limiter> = {
   'POST /api/games': 'RL_PLAY',
   'POST /api/scores': 'RL_PLAY',
   'POST /api/party': 'RL_PLAY',
-  'POST /api/casino/spin': 'RL_CASINO',
+  'POST /api/slots/spin': 'RL_CASINO',
   'POST /api/gacha/open': 'RL_CASINO',
   'POST /api/shop/buy': 'RL_CASINO',
 };
@@ -61,9 +63,17 @@ export async function verifyTurnstile(env: Env, token: unknown, request: Request
   }
 }
 
-/** GET /api/config → { turnstileSiteKey }: o que o site precisa saber para montar o widget (null = desligado). */
-export function getConfig(env: Env): Response {
-  return json({ turnstileSiteKey: turnstileEnabled(env) ? env.TURNSTILE_SITE_KEY : null });
+/**
+ * GET /api/config → { turnstileSiteKey, features }: chave do widget anti-bot (null = desligado) e as chaves dos
+ * minigames. Se a leitura das chaves falhar (ex: migração ainda não aplicada), vão todas desligadas: a criação de
+ * conta (que depende desta rota) não pode quebrar por causa delas.
+ */
+export async function getConfig(env: Env): Promise<Response> {
+  const features = await loadFeatures(env).catch((err) => {
+    console.error('features', err);
+    return NO_FEATURES;
+  });
+  return json({ turnstileSiteKey: turnstileEnabled(env) ? env.TURNSTILE_SITE_KEY : null, features });
 }
 
 // ---------- Nicks ----------

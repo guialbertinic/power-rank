@@ -1,3 +1,4 @@
+import { requireFeature } from './features';
 import { badRequest, json, type Env } from './lib';
 import { accountByToken } from './players';
 import { requireAdult } from './profile';
@@ -39,14 +40,16 @@ async function loadPot(env: Env) {
   };
 }
 
-/** GET /api/casino → { pot, lastWinner }: pote acumulado (em moedas) e último ganhador do jackpot (público). */
+/** GET /api/slots → { pot, lastWinner }: pote acumulado (em moedas) e último ganhador do jackpot (público). */
 export async function getCasino(env: Env): Promise<Response> {
+  const disabled = await requireFeature(env, 'slots');
+  if (disabled) return disabled;
   return json(await loadPot(env));
 }
 
 /**
- * POST /api/casino/spin: { token, bet } → { reels, outcome, prize, coins, pot, jackpot }.
- * Só contas. Tudo no servidor:
+ * POST /api/slots/spin: { token, bet } → { reels, outcome, prize, coins, pot, jackpot }.
+ * Só contas, com a chave `slots` ligada. Tudo no servidor:
  * 1. Debita a aposta com a condição de saldo no próprio UPDATE (sem saldo = 402; dois cliques não gastam duas vezes).
  *    Sem jackpot, o prêmio já entra nesse mesmo UPDATE (débito e crédito juntos).
  * 2. O pote recebe 5% da aposta (em centésimos de moeda). No jackpot, o mesmo UPDATE calcula o prêmio a partir do
@@ -54,6 +57,8 @@ export async function getCasino(env: Env): Promise<Response> {
  * 3. Credita o jackpot e registra o giro.
  */
 export async function spin(request: Request, env: Env): Promise<Response> {
+  const disabled = await requireFeature(env, 'slots');
+  if (disabled) return disabled;
   const body = (await request.json().catch(() => null)) as { token?: unknown; bet?: unknown } | null;
   const account = await accountByToken(env, body?.token);
   if (!account) return json({ error: 'Nick não verificado' }, { status: 401 });

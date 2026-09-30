@@ -270,18 +270,18 @@ if (section('Desafio Diário')) {
   check('desafio soma no Acumulado da categoria', total.find((s) => s.name === acc.name)?.score === 1000);
 }
 
-// ---------- Cassino ----------
-if (section('Cassino')) {
-  const me = await player('Cassino');
-  check('convidado não joga (401)', (await post('/casino/spin', { bet: 1 })).status === 401);
-  const underage = await post('/casino/spin', { ...me, bet: 1 });
+// ---------- Caça-níquel ----------
+if (section('Slots')) {
+  const me = await player('Slots');
+  check('convidado não joga (401)', (await post('/slots/spin', { bet: 1 })).status === 401);
+  const underage = await post('/slots/spin', { ...me, bet: 1 });
   check('sem declarar 18+: 403', underage.status === 403 && underage.data.code === 'adult_required');
   check('perfil começa sem 18+', (await post('/profile', me)).data.adult === false);
   const adult = await post('/profile/adult', me);
   check('declara 18+ e o perfil mostra', adult.status === 200 && adult.data.adult === true);
   check('declarar 18+ pede a conta (401)', (await post('/profile/adult', {})).status === 401);
-  check('aposta fora da regra é recusada', (await post('/casino/spin', { ...me, bet: 11 })).status === 400);
-  check('sem saldo: 402', (await post('/casino/spin', { ...me, bet: 1 })).status === 402);
+  check('aposta fora da regra é recusada', (await post('/slots/spin', { ...me, bet: 11 })).status === 400);
+  check('sem saldo: 402', (await post('/slots/spin', { ...me, bet: 1 })).status === 402);
 
   d1(`UPDATE players SET coins = 2000 WHERE name_key = '${me.name.toLowerCase()}'`);
   const potCents = () => Number(/"amount_cents": (\d+)/.exec(d1('SELECT amount_cents FROM casino_pot'))?.[1]);
@@ -293,7 +293,7 @@ if (section('Cassino')) {
   let jackpots = 0;
   for (let i = 0; i < 25; i++) {
     const bet = i % 2 ? 1 : 10;
-    const { status, data } = await post('/casino/spin', { ...me, bet });
+    const { status, data } = await post('/slots/spin', { ...me, bet });
     if (status !== 200) {
       prizesOk = false;
       break;
@@ -313,6 +313,87 @@ if (section('Cassino')) {
   check('pote recebe 5% de cada aposta (em centésimos)', jackpots > 0 || potAfter - potBefore >= 710, `${potBefore} → ${potAfter}`);
   const logged = d1(`SELECT COUNT(*) AS n FROM casino_spins WHERE player_id = (SELECT id FROM players WHERE name_key = '${me.name.toLowerCase()}')`);
   check('todo giro fica registrado', /"n": 25/.test(logged));
+}
+
+// ---------- Chaves dos minigames (tabela features) ----------
+if (section('Chaves')) {
+  const me = await player('Chaves');
+  await post('/profile/adult', me);
+  d1(`UPDATE players SET coins = 500 WHERE name_key = '${me.name.toLowerCase()}'`);
+  const on = (await get('/config')).features;
+  check('config traz as chaves (ligadas por padrão)', on?.slots === true && on?.mystery_box === true, JSON.stringify(on));
+  const setFlag = (id, enabled) => d1(`UPDATE features SET enabled = ${enabled} WHERE id = '${id}'`);
+  try {
+    setFlag('slots', 0);
+    const off = (await get('/config')).features;
+    check('config mostra o caça-níquel desligado', off.slots === false && off.mystery_box === true);
+    const spun = await post('/slots/spin', { ...me, bet: 1 });
+    check('caça-níquel desligado: 403', spun.status === 403 && spun.data.code === 'feature_disabled');
+    check('pote do caça-níquel desligado: 403', (await get('/slots')).code === 'feature_disabled');
+    check('a outra chave segue valendo', (await post('/gacha/open', me)).status === 200);
+    setFlag('mystery_box', 0);
+    const box = await post('/gacha/open', me);
+    check('Mystery Box desligada: 403', box.status === 403 && box.data.code === 'feature_disabled');
+    const coins = (await post('/profile', me)).data.coins;
+    check('desligado não cobra moedas', coins === 400, String(coins));
+  } finally {
+    setFlag('slots', 1);
+    setFlag('mystery_box', 1);
+  }
+  check('religado: caça-níquel volta', (await post('/slots/spin', { ...me, bet: 1 })).status === 200);
+}
+
+// ---------- Admin (/api/admin/*; no dev local libera sem o Cloudflare Access) ----------
+if (section('Admin')) {
+  const me = await player('Admin');
+  const other = await player('AdminOutro');
+  const id = Number(/"id": (\d+)/.exec(d1(`SELECT id FROM players WHERE name_key = '${me.name.toLowerCase()}'`))?.[1]);
+  const lastAction = Number(/"n": (\d+)/.exec(d1('SELECT COALESCE(MAX(id), 0) AS n FROM admin_actions'))?.[1]);
+  check('dev local entra como admin', (await get('/admin/me')).email === 'local');
+  const form = await fetch(`${BASE}/api/admin/features`, { method: 'POST', body: JSON.stringify({ id: 'slots', enabled: false }) });
+  check('POST sem JSON é recusado (CSRF)', form.status === 400);
+
+  try {
+    const off = await post('/admin/features', { id: 'slots', enabled: false });
+    check('desliga uma chave', off.status === 200 && off.data.find((f) => f.id === 'slots')?.enabled === false);
+    check('o jogo vê a chave desligada', (await get('/config')).features.slots === false);
+    check('chave inexistente: 400', (await post('/admin/features', { id: 'nada', enabled: true })).status === 400);
+  } finally {
+    await post('/admin/features', { id: 'slots', enabled: true });
+  }
+  check('religa a chave', (await get('/config')).features.slots === true);
+
+  const found = await get(`/admin/players?q=${encodeURIComponent(me.name.slice(0, -2).toLowerCase())}`);
+  check('busca acha a conta por parte do nick', found.some((p) => p.id === id));
+  check('busca trata % como texto', (await get('/admin/players?q=%25')).length === 0);
+
+  const plus = await post(`/admin/players/${id}/coins`, { delta: 150, reason: 'e2e' });
+  check('dá moedas', plus.status === 200 && plus.data.coins === 150);
+  check('motivo é obrigatório', (await post(`/admin/players/${id}/coins`, { delta: 10, reason: ' ' })).status === 400);
+  check('quantidade fora do limite: 400', (await post(`/admin/players/${id}/coins`, { delta: 1e9, reason: 'x' })).status === 400);
+  check('saldo não fica negativo (409)', (await post(`/admin/players/${id}/coins`, { delta: -151, reason: 'e2e' })).status === 409);
+  const minus = await post(`/admin/players/${id}/coins`, { delta: -50, reason: 'e2e' });
+  check('tira moedas', minus.data.coins === 100);
+  const coinLog = minus.data.actions.filter((a) => a.action === 'coins');
+  check('só as mudanças que valeram ficam no registro', coinLog.length === 2 && coinLog[0].details.coins === 100, JSON.stringify(coinLog));
+  check('economia soma as moedas dadas', (await get('/admin/economy')).granted.total >= 100);
+
+  const newName = nick('AdminNovo');
+  const renamed = await post(`/admin/players/${id}/rename`, { name: newName });
+  check('renomeia a conta', renamed.status === 200 && renamed.data.name === newName);
+  check('nick de outra conta: 409', (await post(`/admin/players/${id}/rename`, { name: other.name })).status === 409);
+
+  const reset = await post(`/admin/players/${id}/password`, {});
+  check('gera senha temporária', reset.status === 200 && reset.data.password.length === 10 && reset.data.player.devices === 0);
+  check('aparelhos antigos saem da conta', (await post('/profile', { token: me.token })).status === 401);
+  const login = await post('/players', { name: newName, password: reset.data.password });
+  check('entra com a senha temporária', login.status === 200 && Boolean(login.data.token));
+  check('jogador inexistente: 404', (await post('/admin/players/999999999/rename', { name: nick('X') })).status === 404);
+
+  const log = await get('/admin/actions');
+  check('registro geral mostra as ações', log.some((a) => a.action === 'password' && a.playerId === id) && log.some((a) => a.action === 'feature'));
+  // As chaves não apontam para jogador: apaga o que este teste gravou (o resto sai no cleanTestData).
+  d1(`DELETE FROM admin_actions WHERE action = 'feature' AND id > ${lastAction}`);
 }
 
 // ---------- Mystery Box ----------

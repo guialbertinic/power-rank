@@ -35,8 +35,8 @@ O `e2e:csp` precisa de `npx vite preview --port 4173`: peça também (ou pergunt
 
 - A saída já é curta: só as falhas (`✗`, com a seção) e o resumo ("Tudo certo: N checagens" ou "N falha(s), M ok").
   Use `2>&1 | tail -20`; `--verbose` mostra também os `✓` (só se precisar ver um valor de um teste que passou).
-- Filtro de seções do e2e:api (parte do nome, sem diferenciar maiúsculas): `npm run e2e:api -- cassino party`.
-  Seções: Catálogo, Segurança, Conta e convidado, Trocar nick, Economia e loja, Ranking, Cassino, Mystery Box, Party.
+- Filtro de seções do e2e:api (parte do nome, sem diferenciar maiúsculas): `npm run e2e:api -- slots party`.
+  Seções: Catálogo, Segurança, Conta e convidado, Trocar nick, Economia e loja, Ranking, Slots, Chaves, Mystery Box, Party.
   O e2e:ui não filtra (as seções dependem umas das outras: a Ana é criada no começo e usada até o fim).
 - Os e2e limpam sozinhos os nicks de teste (prefixo `E2e`) do D1 local, no começo e no fim.
 - `e2e:ui` **não tira screenshots** (custa tokens): valide layout com checagens (`overflowX()`, posição via

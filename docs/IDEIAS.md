@@ -117,7 +117,9 @@ ginásio chega**, se passa pela Liga/Elite 4 e se vence o jogo.
 
 ---
 
-## Cassino
+## Arcade (ex-cassino)
+
+Na tela é "Arcade" (nome mais seguro para redes de anúncio); cada minigame tem chave no banco.
 
 Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no servidor.
 
@@ -132,8 +134,8 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
   calibrar.
 - 🧭 Olhar o retorno real depois de uns dias · `Manutenção` 🟢:
   `SELECT SUM(prize) * 1.0 / SUM(bet) FROM casino_spins` e `SELECT rarity, COUNT(*) FROM gacha_openings GROUP BY rarity`.
-- ✅ **Idade:** trava 18+ no cassino e na Mystery Box (declaração da conta, checada no servidor). 💡 Depois: chave
-  para desligar o cassino; verificação de idade mais forte se o ECA Digital exigir.
+- ✅ **Idade:** trava 18+ no cassino e na Mystery Box (declaração da conta, checada no servidor). ✅ Chave por minigame
+  (tabela `features`). 💡 Depois: verificação de idade mais forte se o ECA Digital exigir.
   (ver "Monetização e legal").
 
 ## Economia e cosméticos
@@ -206,17 +208,21 @@ o site — qualquer um que abra o código do site vê o `power` de todos. Migrar
 
 ## Tela de admin · `Feature` 🔴 (no total; cada parte 🟡)
 
-Área restrita (só contas marcadas como admin) para operar o jogo sem mexer em código nem em SQL:
+✅ Primeira entrega em `/admin` (Cloudflare Access + JWT conferido no Worker, registro de toda ação): chaves,
+economia e jogadores. O resto abaixo continua 💡.
+
+Área restrita para operar o jogo sem mexer em código nem em SQL:
 - 💡 **Personagens:** buscar, editar `power`/nome/obra/imagem, ativar/desativar (ex: pedido de remoção de imagem),
   adicionar novos. Depende de "Personagens no banco".
-- 💡 **Jogadores:** buscar conta, ver histórico, ajustar moedas, renomear/bloquear nick ofensivo, banir, marcar
-  apoiador (Patreon), resetar senha a pedido.
-- 💡 **Economia e cassino:** painel com moedas em circulação, retorno real do caça-níquel, raridades da Mystery Box,
-  itens mais comprados; ajustar o pote.
-- 💡 **Chaves (feature flags):** ligar/desligar cassino, Mystery Box, anúncios, modos novos sem deploy.
+- ✅ **Jogadores:** buscar conta, ver histórico, ajustar moedas, renomear, senha temporária. 💡 Falta: banir/bloquear
+  (coluna nova + checagem no login, partidas e party), marcar apoiador (Patreon).
+- ✅ **Economia:** moedas em circulação, fluxo (partidas, admin, caça-níquel, Mystery Box), retorno real, raridades
+  reais × configuradas, itens com mais donos. 💡 Falta: ajustar o pote; histórico de compras da loja (hoje sem preço).
+- ✅ **Chaves (feature flags)** na tabela `features`: caça-níquel e Mystery Box, pela aba Chaves. 💡 Falta: chaves
+  para anúncios e modos novos.
 - 💡 **Moderação:** fila de pedidos de remoção de imagem e denúncias de nick.
-- Acesso: papel `admin` na conta + checagem em toda rota `/api/admin/*` no servidor; registrar toda ação (quem, o
-  quê, quando).
+- ✅ Acesso: Cloudflare Access + JWT e lista de e-mails conferidos em toda rota `/api/admin/*`; toda ação em
+  `admin_actions`.
 
 ## Segurança
 

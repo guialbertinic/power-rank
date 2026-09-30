@@ -44,7 +44,7 @@ function resultText(r: SpinResult, t: I18n['t'], lang: Lang): string {
 }
 
 /**
- * Caça-níquel de 3 rolos (aba "Slots" do cassino). O servidor sorteia e acerta as moedas; aqui os rolos giram até
+ * Caça-níquel de 3 rolos (aba "Slots" do Arcade). O servidor sorteia e acerta as moedas; aqui os rolos giram até
  * a resposta chegar e param um a um no resultado. O saldo na tela só muda quando o último rolo para.
  */
 export default function SlotMachine({ identity, profile, onProfileChange }: Props) {

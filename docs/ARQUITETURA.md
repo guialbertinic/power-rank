@@ -13,17 +13,19 @@ migrations/               schema do D1 (0001 scores · 0002 melhor por jogador �
                           0004 donos de nick · 0005 moedas e cosméticos ·
                           0006 senha do nick · 0007 jogador por id · 0008 títulos ·
                           0009 tempo da partida · 0010 cassino · 0011 mystery box ·
-                          0012 personagens no banco · 0013 18+ e registro de acesso)
+                          0012 personagens no banco · 0013 18+ e registro de acesso · 0014/0015 desafio diário ·
+                          0016 chaves dos minigames · 0017 registro do admin)
 scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet (+ lib/images.mjs)
 e2e/                      testes e2e: api.mjs (sem navegador), ui.mjs (Edge headless), lib.mjs (utilitários)
 server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick),
-                          profile.ts (moedas, loja), party.ts (Durable Object), lib.ts
+                          profile.ts (moedas, loja), party.ts (Durable Object), admin.ts + accessJwt.ts (admin), lib.ts
 src/game/                 lógica pura, compartilhada com o server (sem DOM): types, draw, scoring, modes,
                           party (protocolo), economy (moedas), cosmetics (catálogo da loja)
 src/data.ts               base de personagens para o front (POOL, POOL_BY_ID)
 src/party/                cliente da party: usePartyRoom (WebSocket + reconexão), session (pid, convite)
 src/components/           telas: NickScreen, IntroScreen (home), PlayingScreen, ResultScreen, ShopScreen,
                           ProfileBar, PlayerTag, Leaderboard, RankingComparison, ReviewScreen (dev)...
+src/components/admin/     tela de admin (/admin, pacote separado): AdminApp, chaves, economia, jogadores, registro
 src/components/party/     PartyScreen, PartyLobby, PartyPlay, PartyWaiting, PartyPodium, PlayerList
 src/styles/tokens.css     design tokens · src/styles.css componentes
 src/ui/                   tiers (posição/poder → cor), fallback (URL de imagem, preload, iniciais)
@@ -125,11 +127,12 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `GET /api/scores?mode=&period=daily\|total` | Top 20 da categoria, só contas (nick atual + visual), só Desafio Diário. `daily` (padrão): o de hoje, com `durationMs`; `total`: soma de todos os desafios, com `days`. |
 | `POST /api/party` `{ mode, pid }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
 | `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |
-| `GET /api/casino` | `{ pot, lastWinner }`: pote acumulado e último ganhador do jackpot. |
-| `POST /api/gacha/open` `{ token }` | Só contas. Mystery Box: cobra 100, sorteia raridade e item, entrega (ou devolve moedas se repetido) e devolve `{ rarity, itemId, duplicate, refund, profile }`. 402 sem saldo. |
-| `POST /api/casino/spin` `{ token, bet }` | Só contas. Aposta de 1 a 10 moedas. Sorteia no servidor, debita/credita e devolve `{ reels, outcome, prize, coins, pot, jackpot }`. 402 sem saldo. |
+| `GET /api/slots` | `{ pot, lastWinner }`: pote acumulado e último ganhador do jackpot. 403 `feature_disabled` com a chave desligada. |
+| `POST /api/gacha/open` `{ token }` | Só contas. Mystery Box: cobra 100, sorteia raridade e item, entrega (ou devolve moedas se repetido) e devolve `{ rarity, itemId, duplicate, refund, profile }`. 402 sem saldo, 403 `feature_disabled` com a chave `mystery_box` desligada. |
+| `POST /api/slots/spin` `{ token, bet }` | Só contas. Aposta de 1 a 10 moedas. Sorteia no servidor, debita/credita e devolve `{ reels, outcome, prize, coins, pot, jackpot }`. 402 sem saldo, 403 `feature_disabled` com a chave `slots` desligada. |
 | `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado e `hasPassword`. |
 | `POST /api/shop/buy` `{ token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
+| `/api/admin/*` | Só admin (ver "Admin"; 403 `admin_denied`). `GET me` · `GET/POST features` `{ id, enabled }` · `GET economy` · `GET players?q=&sort=recent|coins` · `GET players/:id` · `POST players/:id/coins` `{ delta, reason }` · `POST players/:id/rename` `{ name }` · `POST players/:id/password` → `{ password, player }` · `GET actions`. |
 | `POST /api/profile/equip` `{ token, slot, itemId \| null }` | Equipa (ou tira) um item que o jogador tem. |
 
 `scores` guarda todas as partidas (inclusive de convidados, com `player_id` NULL, que não entram no ranking).
@@ -178,11 +181,46 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   `ProfileBar`. Cada cor/moldura é a classe `cosmetic-<id>` em `styles.css` (anéis que giram usam o `@property
   --cosmetic-angle`).
 
-## Cassino (caça-níquel)
+## Admin (/admin)
+
+- **Tela** em `/admin` (`main.tsx` carrega `components/admin/AdminApp` à parte; o jogo não baixa esse código).
+  Abas: **Chaves** (liga/desliga minigame), **Economia** (só leitura: saldos, fluxo de moedas tudo/7 dias,
+  retorno real do caça-níquel, raridades reais × configuradas, itens com mais donos), **Jogadores** (busca por
+  parte do nick; detalhe com partidas, acessos e ações; ajustar moedas com motivo, renomear sem o filtro de
+  nick, gerar senha temporária, que desbloqueia e desconecta todos os aparelhos) e **Registro**.
+- **Acesso, em duas camadas:** o Cloudflare Access pede o login (e-mail) antes de `/admin` e `/api/admin/*`
+  chegarem ao site; o Worker (`handleAdmin` em `server/admin.ts`) confere o JWT do header
+  `Cf-Access-Jwt-Assertion` (`accessJwt.ts`: RS256 com as chaves do time, `iss`, `aud`, prazo) e o e-mail
+  em `ADMIN_EMAILS`. Faltou `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD` (vars do `wrangler.jsonc`) ou `ADMIN_EMAILS`
+  (secret) = 403 para todos. No dev local (host localhost) entra como `local`, sem Access.
+- POST do admin só com `Content-Type: application/json` (outro site não consegue sem CORS: protege contra CSRF
+  com o cookie do Access).
+- **Registro** `admin_actions` (admin, ação `feature|coins|rename|password`, jogador, JSON do antes/depois):
+  cada mudança vai no mesmo `batch` (transação) que o registro. Moedas: `UPDATE ... WHERE coins + delta >= 0` e
+  o `INSERT ... WHERE changes() = 1` (só registra se o saldo mudou); limite de ±100.000 por ação.
+- **Configurar em produção** (o usuário faz): Zero Trust → Access → Applications → Self-hosted, domínio do site
+  com os caminhos `/admin` e `/api/admin`, política "Allow" só para o seu e-mail. Copiar a "Application Audience
+  (AUD) Tag" para `ACCESS_AUD` e `https://<time>.cloudflareaccess.com` para `ACCESS_TEAM_DOMAIN`; depois
+  `npx wrangler secret put ADMIN_EMAILS`.
+
+## Arcade e chaves (feature flags)
+
+- **Arcade** = a tela dos minigames com moedas (`ArcadeScreen`, botão "Arcade" na `ProfileBar`, só contas, trava
+  18+): uma aba por minigame ligado. Na tela nunca se usa "cassino"; o código interno do caça-níquel segue como
+  `casino` (arquivos, classes `.casino-*`, tabelas `casino_*`, `RL_CASINO`).
+- **Chaves** na tabela `features` (`id`, `enabled`, `updated_at`), ids em `src/game/features.ts` (`slots`,
+  `mystery_box`). Sem linha = desligada. Servidor: `requireFeature` (`server/features.ts`) no começo de cada rota do
+  minigame → 403 `feature_disabled`, antes de cobrar. Site: `GET /api/config` → `features`, lido pelo `App` ao voltar
+  para a home; só as ligadas viram aba, e sem nenhuma o botão do Arcade some. Se a leitura falhar, o config manda
+  tudo desligado (o Turnstile depende dessa rota). Ligar/desligar: aba Chaves do `/admin`, ou por SQL:
+  `UPDATE features SET enabled = 0, updated_at = unixepoch() * 1000 WHERE id = 'slots'`.
+  Minigame novo: id em `FEATURES`, `INSERT` numa migração, `requireFeature` nas rotas e entrada em `GAMES` do `ArcadeScreen`.
+
+## Caça-níquel (Slots)
 
 - Regras em `src/game/casino.ts` (compartilhado; `casino.test.ts` calcula o retorno exato das 6³ combinações).
-  Servidor em `server/casino.ts`, tela `CasinoScreen` (botão "Cassino" na `ProfileBar`, só contas), ícones em
-  `public/cassino/<id>.webp` (pixel art do Game Corner ampliada 4×, via `CasinoIcon`).
+  Servidor em `server/casino.ts`, aba "Slots" do Arcade (`SlotMachine`), ícones em
+  `public/slots/<id>.webp` (pixel art do Game Corner ampliada 4×, via `CasinoIcon`).
 - 3 rolos, 6 símbolos com pesos (ícones do Game Corner de Pokémon). 3 iguais e pares pagam multiplicadores da aposta (1 a 10 moedas, na escala do que uma partida rende); a chance
   não depende da aposta. Tabela fixa ≈ 90% de retorno + pote ≈ 95% no longo prazo. Jackpot (três 7)
   ≈ 1 a cada 4.600 giros.
@@ -194,7 +232,7 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 
 ## Mystery Box (gacha)
 
-- Aba do cassino (`CasinoScreen` → `SlotMachine` | `MysteryBox`). Regras em `src/game/gacha.ts`, servidor em
+- Aba do Arcade (`ArcadeScreen` → `SlotMachine` | `MysteryBox`). Regras em `src/game/gacha.ts`, servidor em
   `server/gacha.ts`. Caixa: 100 moedas.
 - Raridade (60/28/10/2%) e depois um item dela. Pools derivados do catálogo pelo preço: comum < 150 (metade das vezes
   sai um avatar aleatório), raro 150–349, épico 350+, lendário = itens `exclusive` (só saem na caixa; a loja não

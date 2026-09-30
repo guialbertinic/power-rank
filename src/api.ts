@@ -1,5 +1,6 @@
 import type { Outcome, SymbolId } from './game/casino';
 import type { CosmeticSlot, Look, Profile } from './game/cosmetics';
+import type { Features } from './game/features';
 import type { Rarity } from './game/gacha';
 import type { Mode } from './game/modes';
 import type { CharacterInfo } from './game/types';
@@ -35,7 +36,7 @@ export interface SubmitResult {
   coins: number | null;
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
@@ -144,8 +145,8 @@ export function fetchDaily(name: string, token: string | null, mode: Mode): Prom
   return request('/api/daily', { method: 'POST', body: JSON.stringify({ name, token, mode }) });
 }
 
-/** Configuração pública do servidor (ex: chave do anti-bot; null = desligado). */
-export function fetchConfig(): Promise<{ turnstileSiteKey: string | null }> {
+/** Configuração pública do servidor: chave do anti-bot (null = desligado) e chaves dos minigames. */
+export function fetchConfig(): Promise<{ turnstileSiteKey: string | null; features: Features }> {
   return request('/api/config');
 }
 
@@ -191,7 +192,7 @@ export function equipItem(auth: Auth, slot: CosmeticSlot, itemId: string | null)
   return request('/api/profile/equip', { method: 'POST', body: JSON.stringify({ ...auth, slot, itemId }) });
 }
 
-/** A conta declara ter 18 anos ou mais (libera cassino e Mystery Box). */
+/** A conta declara ter 18 anos ou mais (libera caça-níquel e Mystery Box). */
 export function confirmAdult(auth: Auth): Promise<Profile> {
   return request('/api/profile/adult', { method: 'POST', body: JSON.stringify(auth) });
 }
@@ -228,12 +229,12 @@ export function openBox(token: string): Promise<BoxResult> {
 
 /** Pote acumulado e último ganhador do jackpot. */
 export function fetchCasino(): Promise<CasinoState> {
-  return request('/api/casino');
+  return request('/api/slots');
 }
 
 /** Gira o caça-níquel: o servidor debita a aposta, sorteia e credita o prêmio. */
 export function spinCasino(token: string, bet: number): Promise<SpinResult> {
-  return request('/api/casino/spin', { method: 'POST', body: JSON.stringify({ token, bet }) });
+  return request('/api/slots/spin', { method: 'POST', body: JSON.stringify({ token, bet }) });
 }
 
 export async function fetchLeaderboard(mode: Mode, period: Period): Promise<LeaderboardEntry[]> {

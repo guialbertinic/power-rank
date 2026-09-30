@@ -13,7 +13,8 @@ interface Props {
   /** Saldo e visual (null enquanto carrega ou sem conexão). */
   profile: Profile | null;
   onOpenShop: () => void;
-  onOpenCasino: () => void;
+  /** Abre o Arcade; sem ele, o botão não aparece (todos os minigames desligados). */
+  onOpenArcade?: () => void;
   /** Trocou o nick ou o convidado criou a conta pelo menu. */
   onIdentityChange: (identity: Identity) => void;
   /** Conta: sair dela neste navegador. Convidado: ir para a tela do nick entrar numa conta. */
@@ -26,9 +27,9 @@ interface Props {
 /**
  * Canto superior direito da home: quem está jogando, saldo e loja. "Trocar nick", "Sincronizar dispositivo" e
  * sair/entrar numa conta ficam num menu que abre ao tocar no nick (são usados raramente).
- * No celular a faixa mostra só o nick e o saldo; Loja e Cassino vão para o menu, que abre como sanfona.
+ * No celular a faixa mostra só o nick e o saldo; Loja e Arcade vão para o menu, que abre como sanfona.
  */
-export default function ProfileBar({ identity, profile, onOpenShop, onOpenCasino, onIdentityChange, onLeave, onRefresh, disabled }: Props) {
+export default function ProfileBar({ identity, profile, onOpenShop, onOpenArcade, onIdentityChange, onLeave, onRefresh, disabled }: Props) {
   const { t } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -53,9 +54,11 @@ export default function ProfileBar({ identity, profile, onOpenShop, onOpenCasino
       <button className="btn btn-secondary btn-sm" onClick={onOpenShop} disabled={disabled}>
         {t('profile.shop')}
       </button>
-      <button className="btn btn-secondary btn-sm" onClick={onOpenCasino} disabled={disabled}>
-        {t('profile.casino')}
-      </button>
+      {onOpenArcade && (
+        <button className="btn btn-secondary btn-sm" onClick={onOpenArcade} disabled={disabled}>
+          {t('profile.arcade')}
+        </button>
+      )}
     </>
   );
 

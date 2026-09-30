@@ -1,4 +1,5 @@
 import { loadCatalog } from './catalog';
+import { requireFeature } from './features';
 import { json, type Env } from './lib';
 import { accountByToken } from './players';
 import { loadProfile, requireAdult } from './profile';
@@ -8,12 +9,14 @@ const secureRandom = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 
 
 /**
  * POST /api/gacha/open: { token } → { rarity, itemId, duplicate, refund, profile }.
- * Só contas. O sorteio é no servidor:
+ * Só contas, com a chave `mystery_box` ligada. O sorteio é no servidor:
  * 1. Debita o preço da caixa com a condição de saldo no próprio UPDATE (sem saldo = 402).
  * 2. Registra o item com INSERT OR IGNORE: se não inseriu, já era seu (repetido) e devolve moedas.
  * 3. Grava a abertura no histórico e devolve o perfil atualizado (saldo, itens).
  */
 export async function openBox(request: Request, env: Env): Promise<Response> {
+  const disabled = await requireFeature(env, 'mystery_box');
+  if (disabled) return disabled;
   const body = (await request.json().catch(() => null)) as { token?: unknown } | null;
   const account = await accountByToken(env, body?.token);
   if (!account) return json({ error: 'Nick não verificado' }, { status: 401 });

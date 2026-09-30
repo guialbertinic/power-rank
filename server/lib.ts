@@ -10,6 +10,11 @@ export interface Env {
   /** Cloudflare Turnstile (anti-bot na criação de conta). Sem as duas, fica desligado. */
   TURNSTILE_SITE_KEY?: string;
   TURNSTILE_SECRET?: string;
+  /** Tela de admin (server/admin.ts): time e AUD do Cloudflare Access e e-mails liberados (secret, separados por
+   *  vírgula). Faltou algum = admin fechado em produção. */
+  ACCESS_TEAM_DOMAIN?: string;
+  ACCESS_AUD?: string;
+  ADMIN_EMAILS?: string;
 }
 
 /** Tempo máximo entre sortear a partida e enviar a pontuação. */

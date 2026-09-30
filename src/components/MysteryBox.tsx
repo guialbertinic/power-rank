@@ -65,7 +65,7 @@ function ItemPreview({ itemId }: { itemId: string }) {
 }
 
 /**
- * Mystery Box (aba do cassino): paga a caixa, o servidor sorteia a raridade e o item. A caixa treme enquanto
+ * Mystery Box (aba do Arcade): paga a caixa, o servidor sorteia a raridade e o item. A caixa treme enquanto
  * espera, abre na cor da raridade e mostra o item (ou as moedas devolvidas, se já era seu).
  */
 export default function MysteryBox({ identity, profile, onProfileChange }: Props) {

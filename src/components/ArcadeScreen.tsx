@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { confirmAdult } from '../api';
 import type { Profile } from '../game/cosmetics';
+import type { FeatureId, Features } from '../game/features';
 import { serverText, useI18n } from '../i18n';
 import type { Identity } from '../nick';
 import { LegalLink } from './Legal';
@@ -10,27 +11,32 @@ import SlotMachine from './SlotMachine';
 interface Props {
   identity: Identity & { token: string };
   profile: Profile;
+  /** Chaves do banco: só os minigames ligados viram aba. */
+  features: Features;
   onProfileChange: (profile: Profile) => void;
 }
 
-type Game = 'slots' | 'box';
-
-const GAMES: { id: Game; label: string }[] = [
+/** Minigames na ordem das abas; cada um tem a sua chave (feature flag) no banco. */
+const GAMES: { id: FeatureId; label: string }[] = [
   { id: 'slots', label: 'Slots' },
-  { id: 'box', label: 'Mystery Box' },
+  { id: 'mystery_box', label: 'Mystery Box' },
 ];
 
 /**
- * Cassino (só contas): abas com os jogos. Cada jogo é uma "máquina" (gabinete .casino).
+ * Arcade (só contas): abas com os minigames ligados. Cada jogo é uma "máquina" (gabinete .casino).
  * Só para maiores de 18: a conta declara uma vez (o servidor também recusa giros e caixas sem a declaração).
  */
-export default function CasinoScreen(props: Props) {
-  const [game, setGame] = useState<Game>('slots');
+export default function ArcadeScreen(props: Props) {
+  const games = GAMES.filter((g) => props.features[g.id]);
+  const [selected, setGame] = useState<FeatureId | null>(null);
+  // A aba escolhida pode ter sido desligada: cai na primeira ligada.
+  const game = games.find((g) => g.id === selected)?.id ?? games[0]?.id;
   if (!props.profile.adult) return <AdultGate {...props} />;
+  if (!game) return <ArcadeClosed />;
   return (
-    <div className="casino-screen">
-      <div className="shop-tabs casino-tabs" role="tablist">
-        {GAMES.map((g) => (
+    <div className="arcade-screen">
+      <div className="shop-tabs arcade-tabs" role="tablist">
+        {games.map((g) => (
           <button
             key={g.id}
             role="tab"
@@ -44,6 +50,15 @@ export default function CasinoScreen(props: Props) {
       </div>
       {game === 'slots' ? <SlotMachine {...props} /> : <MysteryBox {...props} />}
     </div>
+  );
+}
+
+function ArcadeClosed() {
+  const { t } = useI18n();
+  return (
+    <section className="panel arcade-closed">
+      <p>{t('arcade.closed')}</p>
+    </section>
   );
 }
 

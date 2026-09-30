@@ -47,7 +47,7 @@ Exige migração (`ALTER TABLE players ADD COLUMN <coluna> TEXT`, sem risco para
   prêmio numa operação só (`env.DB.batch`) ou com a condição de saldo no próprio UPDATE. O cliente só anima.
 - Moedas nunca compráveis com dinheiro real.
 
-## Mystery Box e cassino
+## Mystery Box e caça-níquel (Arcade)
 
 Mexer na gacha ou no cassino (pesos, multiplicadores, itens exclusivos, ícones): leia `cassino-gacha.md`
 nesta pasta.

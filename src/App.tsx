@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
-import { ApiError, createGame, createParty, fetchDaily, fetchProfile, type DailyStatus } from './api';
+import { ApiError, createGame, createParty, fetchConfig, fetchDaily, fetchProfile, type DailyStatus } from './api';
 import type { Profile } from './game/cosmetics';
+import { FEATURES, NO_FEATURES } from './game/features';
 import { MODES, poolFor, type Mode } from './game/modes';
 import { isPartyCode } from './game/party';
 import { SLOTS } from './game/scoring';
@@ -16,7 +17,7 @@ import PartyScreen from './components/party/PartyScreen';
 import PlayingScreen from './components/PlayingScreen';
 import ResultScreen from './components/ResultScreen';
 import ShopScreen from './components/ShopScreen';
-import CasinoScreen from './components/CasinoScreen';
+import ArcadeScreen from './components/ArcadeScreen';
 import SettingsMenu from './components/SettingsMenu';
 import { LegalLink, LegalProvider } from './components/Legal';
 import { dailyLabel, I18nProvider, useI18n } from './i18n';
@@ -33,8 +34,8 @@ type State =
   | { phase: 'intro' }
   /** Loja e personalização do perfil. */
   | { phase: 'shop' }
-  /** Cassino (caça-níquel), só para contas. */
-  | { phase: 'casino' }
+  /** Arcade (minigames com moedas), só para contas. */
+  | { phase: 'arcade' }
   /** Na party, o estado do jogo vem da sala (PartyScreen); aqui só fica como entrar nela. */
   | { phase: 'party'; code: string; pid: string }
   | {
@@ -55,7 +56,7 @@ type Action =
   | { type: 'place'; slot: number }
   | { type: 'nick'; reason?: string }
   | { type: 'shop' }
-  | { type: 'casino' }
+  | { type: 'arcade' }
   | { type: 'home' };
 
 function reducer(state: State, action: Action): State {
@@ -86,8 +87,8 @@ function reducer(state: State, action: Action): State {
       return { phase: 'nick', reason: action.reason ?? null };
     case 'shop':
       return { phase: 'shop' };
-    case 'casino':
-      return { phase: 'casino' };
+    case 'arcade':
+      return { phase: 'arcade' };
     case 'home':
       return { phase: 'intro' };
   }
@@ -137,6 +138,7 @@ function Game() {
   const [soloError, setSoloError] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [daily, setDaily] = useState<DailyStatus | null>(null);
+  const [features, setFeatures] = useState(NO_FEATURES);
 
   /** Trocou o nick, criou a conta ou o nick da conta mudou em outro dispositivo. */
   const changeIdentity = (next: Identity) => {
@@ -166,7 +168,7 @@ function Game() {
   const token = identity?.token;
   const name = identity?.name;
   useEffect(() => {
-    if (!name || !token || (state.phase !== 'intro' && state.phase !== 'shop' && state.phase !== 'casino')) return;
+    if (!name || !token || (state.phase !== 'intro' && state.phase !== 'shop' && state.phase !== 'arcade')) return;
     let cancelled = false;
     fetchProfile({ name, token })
       .then((p) => {
@@ -179,6 +181,21 @@ function Game() {
       cancelled = true;
     };
   }, [name, token, state.phase]);
+
+  // Chaves dos minigames (ligadas/desligadas no banco): conferidas ao voltar para a home, onde fica o botão do Arcade.
+  // Só contas jogam. Sem conexão, fica como estava (no começo, tudo desligado).
+  useEffect(() => {
+    if (!token || state.phase !== 'intro') return;
+    let cancelled = false;
+    fetchConfig()
+      .then((c) => {
+        if (!cancelled) setFeatures(c.features ?? NO_FEATURES);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [token, state.phase]);
 
   // Desafio Diário da categoria: se o jogador ainda pode jogar hoje, conferido ao voltar para a home e ao trocar de
   // categoria (vale também para o convidado). Sem conexão, o botão não aparece.
@@ -279,8 +296,8 @@ function Game() {
       ? 'Party'
       : state.phase === 'shop'
         ? t('profile.shop')
-      : state.phase === 'casino'
-        ? t('profile.casino')
+      : state.phase === 'arcade'
+        ? t('profile.arcade')
       : MODES.find((m) => m.id === (state.phase === 'playing' || state.phase === 'result' ? state.mode : mode))?.label;
 
   return (
@@ -290,7 +307,7 @@ function Game() {
           identity={identity}
           profile={profile}
           onOpenShop={() => dispatch({ type: 'shop' })}
-          onOpenCasino={() => dispatch({ type: 'casino' })}
+          onOpenArcade={FEATURES.some((f) => features[f]) ? () => dispatch({ type: 'arcade' }) : undefined}
           onIdentityChange={changeIdentity}
           onLeave={leave}
           onRefresh={refreshProfile}
@@ -337,8 +354,13 @@ function Game() {
           soloError={soloError}
         />
       )}
-      {state.phase === 'casino' && identity?.token && profile && (
-        <CasinoScreen identity={{ ...identity, token: identity.token }} profile={profile} onProfileChange={setProfile} />
+      {state.phase === 'arcade' && identity?.token && profile && (
+        <ArcadeScreen
+          identity={{ ...identity, token: identity.token }}
+          profile={profile}
+          features={features}
+          onProfileChange={setProfile}
+        />
       )}
       {state.phase === 'shop' && identity?.token && profile && (
         <ShopScreen identity={{ ...identity, token: identity.token }} profile={profile} onProfileChange={setProfile} />

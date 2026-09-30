@@ -16,10 +16,10 @@ React 19 + TS + Vite 8 · Cloudflare Worker (`server/`) + D1 (`DB`) + Durable Ob
 Node 24. No PowerShell do usuário: `npm.cmd`/`npx.cmd`.
 
 ```bash
-npm run dev            # front + API + D1 local em http://localhost:5173 (revisão da base: /?review)
+npm run dev            # front + API + D1 local em http://localhost:5173 (revisão da base: /?review; admin: /admin)
 npm run build          # typecheck (front + server) + build
 npm test               # unitários (src/game)
-npm run e2e:api        # e2e sem navegador (precisa do dev rodando); -- cassino party = só essas seções
+npm run e2e:api        # e2e sem navegador (precisa do dev rodando); -- slots party = só essas seções
 npm run e2e:ui         # e2e com Edge headless (sem screenshots)
 npm run db -- "<SQL>"  # D1 local, saída compacta
 npm run db:migrate:local

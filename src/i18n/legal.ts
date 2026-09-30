@@ -39,7 +39,7 @@ const TERMS_PT: LegalText = {
     {
       title: 'Idade',
       body: [
-        'Para jogar, você precisa ter pelo menos 13 anos. O cassino (caça-níquel) e a Mystery Box são só para maiores de 18 anos: para entrar, a conta declara ter 18 anos ou mais. Declarar uma idade falsa viola estes termos.',
+        'Para jogar, você precisa ter pelo menos 13 anos. O caça-níquel e a Mystery Box (no Arcade) são só para maiores de 18 anos: para entrar, a conta declara ter 18 anos ou mais. Declarar uma idade falsa viola estes termos.',
       ],
     },
     {
@@ -63,7 +63,7 @@ const TERMS_PT: LegalText = {
       ],
     },
     {
-      title: 'Cassino e Mystery Box',
+      title: 'Arcade (caça-níquel e Mystery Box)',
       body: [
         'Usam apenas as moedas do jogo. Não há aposta com dinheiro real nem prêmio com valor real, e não é possível comprar moedas. Os sorteios são feitos no servidor.',
       ],
@@ -118,7 +118,7 @@ const TERMS_EN: LegalText = {
     {
       title: 'Age',
       body: [
-        'You must be at least 13 years old to play. The casino (slot machine) and the Mystery Box are for adults only (18+): to enter, the account declares being 18 or older. Declaring a false age violates these terms.',
+        'You must be at least 13 years old to play. The slot machine and the Mystery Box (in the Arcade) are for adults only (18+): to enter, the account declares being 18 or older. Declaring a false age violates these terms.',
       ],
     },
     {
@@ -142,7 +142,7 @@ const TERMS_EN: LegalText = {
       ],
     },
     {
-      title: 'Casino and Mystery Box',
+      title: 'Arcade (slot machine and Mystery Box)',
       body: [
         'They use only in-game coins. There is no real-money betting, no prize with real value, and coins cannot be purchased. Draws happen on the server.',
       ],
@@ -198,7 +198,7 @@ const PRIVACY_PT: LegalText = {
         [
           'Nick, e a senha da conta apenas em forma de hash (não dá para ler a senha).',
           'Partidas: personagens sorteados, suas posições, pontuação, tempo e data.',
-          'Moedas, itens, visual equipado e histórico do cassino e da Mystery Box.',
+          'Moedas, itens, visual equipado e histórico do caça-níquel e da Mystery Box.',
           'A data em que a conta declarou ter 18 anos ou mais.',
           'Registros de acesso: endereço IP, país aproximado e navegador (user agent), com data e hora, quando você cria a conta, entra nela (inclusive com senha errada), envia uma partida ou entra numa sala da party.',
         ],
@@ -251,7 +251,7 @@ const PRIVACY_PT: LegalText = {
     {
       title: 'Crianças e adolescentes',
       body: [
-        'O jogo é para maiores de 13 anos, e o cassino e a Mystery Box, para maiores de 18. Se soubermos que uma conta é de alguém com menos de 13 anos, ela será excluída.',
+        'O jogo é para maiores de 13 anos, e o caça-níquel e a Mystery Box, para maiores de 18. Se soubermos que uma conta é de alguém com menos de 13 anos, ela será excluída.',
       ],
     },
     {
@@ -282,7 +282,7 @@ const PRIVACY_EN: LegalText = {
         [
           'Nick, and the account password only as a hash (the password cannot be read).',
           'Games: characters drawn, your placements, score, time and date.',
-          'Coins, items, equipped look and casino and Mystery Box history.',
+          'Coins, items, equipped look and slot machine and Mystery Box history.',
           'The date the account declared being 18 or older.',
           'Access logs: IP address, approximate country and browser (user agent), with date and time, when you create an account, sign in (including wrong passwords), submit a game or join a party room.',
         ],
@@ -335,7 +335,7 @@ const PRIVACY_EN: LegalText = {
     {
       title: 'Children and teenagers',
       body: [
-        'The game is for ages 13 and up, and the casino and Mystery Box for 18 and up. If we learn that an account belongs to someone under 13, it will be deleted.',
+        'The game is for ages 13 and up, and the slot machine and Mystery Box for 18 and up. If we learn that an account belongs to someone under 13, it will be deleted.',
       ],
     },
     {

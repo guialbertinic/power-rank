@@ -26,7 +26,7 @@ export const nick = (name) => `E2e${name}`;
 
 // Saída curta por padrão (economiza tokens): só as falhas, com o nome da seção, e o resumo.
 // `--verbose` mostra também os ✓. Os outros argumentos filtram seções pelo nome (parte do nome, sem diferenciar
-// maiúsculas): `npm run e2e:api -- cassino party`. Só o e2e:api usa o filtro (seções independentes, `if (section())`).
+// maiúsculas): `npm run e2e:api -- slots party`. Só o e2e:api usa o filtro (seções independentes, `if (section())`).
 const args = process.argv.slice(2);
 const VERBOSE = args.includes('--verbose');
 const ONLY = args.filter((a) => !a.startsWith('--')).map((a) => a.toLowerCase());
@@ -107,7 +107,7 @@ export function cleanTestData() {
   const accounts = "(SELECT id FROM players WHERE name_key LIKE 'e2e%')";
   d1(
     `DELETE FROM player_items WHERE player_id IN ${accounts}; DELETE FROM player_tokens WHERE player_id IN ${accounts}; ` +
-      `DELETE FROM casino_spins WHERE player_id IN ${accounts}; DELETE FROM gacha_openings WHERE player_id IN ${accounts}; ` +
+      `DELETE FROM admin_actions WHERE player_id IN ${accounts}; DELETE FROM casino_spins WHERE player_id IN ${accounts}; DELETE FROM gacha_openings WHERE player_id IN ${accounts}; ` +
       `UPDATE casino_pot SET last_winner_id = NULL WHERE last_winner_id IN ${accounts}; ` +
       `DELETE FROM daily_attempts WHERE player_key LIKE 'g:e2e%' OR player_key IN (SELECT 'p:' || id FROM players WHERE name_key LIKE 'e2e%'); ` +
       `DELETE FROM access_log WHERE lower(name) LIKE 'e2e%' OR player_id IN ${accounts}; ` +

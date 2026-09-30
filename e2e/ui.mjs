@@ -226,7 +226,7 @@ try {
   await bruno.waitForSelector('.sync-panel ::-p-text(Conta pronta)');
   check('convidado cria a conta pelo menu', Boolean(await bruno.$('.profile-bar .coins')) && !(await bruno.$('.profile-guest')));
   await bruno.keyboard.press('Escape');
-  // Celular: a faixa tem só nick e saldo (sem sobrepor); Loja e Cassino abrem na sanfona.
+  // Celular: a faixa tem só nick e saldo (sem sobrepor); Loja e Arcade abrem na sanfona.
   const rect = (sel) => bruno.$eval(sel, (el) => el.getBoundingClientRect().toJSON());
   const me = await rect('.profile-bar-me');
   const coins = await rect('.profile-bar .coins');
@@ -234,7 +234,7 @@ try {
   check('celular: nick não fica atrás do saldo, Loja fora da faixa', me.right <= coins.left && shopHidden);
   await bruno.click('.profile-bar-me');
   await bruno.waitForSelector('.profile-menu-actions ::-p-text(Loja)', { visible: true });
-  check('celular: menu abre como sanfona, com Loja e Cassino', (await bruno.$eval('.profile-menu', (el) => getComputedStyle(el).position)) === 'static');
+  check('celular: menu abre como sanfona, com Loja e Arcade', (await bruno.$eval('.profile-menu', (el) => getComputedStyle(el).position)) === 'static');
   await bruno.keyboard.press('Escape');
 
   // Ana força a sincronização depois de uma mudança feita "em outro dispositivo".
@@ -350,19 +350,19 @@ try {
   check('Solo sem posição no ranking, com "Jogar de novo"', !(await ana.$('.ranking-status')) && Boolean(await ana.$('.score-actions .btn-primary')));
   await ana.click('.home-button');
 
-  // ---------- Cassino ----------
-  section('Cassino');
+  // ---------- Arcade ----------
+  section('Arcade');
   await ana.waitForSelector('.profile-bar .coins');
-  await (await ana.waitForSelector('.profile-bar ::-p-text(Cassino)')).click();
+  await (await ana.waitForSelector('.profile-bar ::-p-text(Arcade)')).click();
   await ana.waitForSelector('.adult-gate');
-  check('cassino pede 18+ antes de mostrar os jogos', !(await ana.$('.casino-machine')));
+  check('Arcade pede 18+ antes de mostrar os jogos', !(await ana.$('.casino-machine')));
   await ana.click('.adult-confirm');
   await ana.waitForSelector('.casino-machine');
   check('pote acumulado aparece', /\d/.test((await text(ana, '.casino-pot .coins')) ?? ''));
   await ana.waitForFunction(() => [...document.querySelectorAll('.casino-reel img')].every((i) => i.complete), { timeout: 5000 });
   const broken = await ana.$$eval('.casino-reel img', (imgs) => imgs.filter((i) => !i.naturalWidth).map((i) => i.src));
   check('imagens dos símbolos carregam', broken.length === 0, broken.join(', '));
-  const spinResponse = ana.waitForResponse((r) => r.url().includes('/api/casino/spin'));
+  const spinResponse = ana.waitForResponse((r) => r.url().includes('/api/slots/spin'));
   await ana.click('.casino-spin');
   check('rolos giram', Boolean(await ana.$('.casino-strip')));
   const { coins: serverCoins } = await (await spinResponse).json();
@@ -374,8 +374,8 @@ try {
   await ana.click('.casino-marquee .leaderboard-help-toggle');
   check('"?" mostra a tabela de prêmios', (await ana.$$('.casino-table tbody tr')).length === 6);
 
-  // Mystery Box (segunda aba do cassino).
-  await ana.click('.casino-tabs .mode-option:nth-child(2)');
+  // Mystery Box (segunda aba do Arcade).
+  await ana.click('.arcade-tabs .mode-option:nth-child(2)');
   await ana.waitForSelector('.gacha-box');
   const boxResponse = ana.waitForResponse((r) => r.url().includes('/api/gacha/open'));
   await ana.click('.gacha-open');
@@ -428,6 +428,26 @@ try {
   );
   check('botões de compartilhar cabem no celular', shareFits);
   check('resultado sem scroll horizontal', (await overflowX(bruno)) <= 0);
+
+  // ---------- Admin (no dev local, liberado sem o Cloudflare Access) ----------
+  section('Admin');
+  const admin = await b.page(PHONE);
+  await admin.goto('http://localhost:5173/admin', { waitUntil: 'networkidle0' });
+  await admin.waitForSelector('.admin-feature');
+  check('admin: chaves dos dois minigames', (await admin.$$('.admin-feature')).length === 2);
+  check('admin: não carrega o jogo', !(await admin.$('.app-header')));
+  check('admin: chaves sem scroll horizontal no celular', (await overflowX(admin)) <= 0);
+  await admin.click('.admin-tabs .mode-option:nth-child(2)');
+  await admin.waitForSelector('.admin-tile');
+  check('admin: economia mostra os blocos', (await admin.$$('.admin-tile')).length === 4);
+  check('admin: economia sem scroll horizontal no celular', (await overflowX(admin)) <= 0);
+  await admin.click('.admin-tabs .mode-option:nth-child(3)');
+  await admin.type('.admin-toolbar input', nick('bruno').toLowerCase());
+  await (await admin.waitForSelector('.admin-player-row')).click();
+  await admin.waitForSelector('.admin-facts');
+  check('admin: detalhe do jogador', (await text(admin, '.admin-player-title'))?.toLowerCase().startsWith(nick('bruno').toLowerCase()));
+  check('admin: jogador sem scroll horizontal no celular', (await overflowX(admin)) <= 0);
+  await admin.close();
 
   check('sem erros no console', b.errors.length === 0, b.errors.join(' | '));
 } catch (err) {
