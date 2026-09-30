@@ -17,9 +17,10 @@ Rode na pasta `games/anime-ranking`. Escolha só o necessário para a mudança:
 ## Pré-requisito dos e2e
 
 O dev server precisa estar rodando em http://localhost:5173. Confira com
-`curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/`. Se não estiver, suba em segundo plano
-(`npx vite --port 5173 --strictPort`, com `run_in_background`). Mudou `wrangler.jsonc` ou migração? Reinicie
-o servidor e rode `npm run db:migrate:local` antes.
+`curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/`. **Não suba o servidor por conta própria:** o
+usuário roda o `npm.cmd run dev` no terminal dele. Se não estiver no ar, peça para ele subir. Mudou
+`wrangler.jsonc`, `.dev.vars` ou migração? Rode `npm run db:migrate:local` e avise que ele precisa reiniciar o dev.
+O `e2e:csp` precisa de `npx vite preview --port 4173`: peça também (ou pergunte antes de rodar).
 
 ## Lendo o resultado
 
@@ -37,7 +38,7 @@ o servidor e rode `npm run db:migrate:local` antes.
 - Regras do servidor que os testes respeitam: partida solo leva ≥ 3 s (`playSolo` espera; `placeAll` posiciona em
   ritmo humano); conta nova precisa do token do anti-bot (`player()` manda `TURNSTILE_TEST_TOKEN`; na UI,
   `chooseNick` espera o botão liberar). Limite por IP só vale com `x-rate-limit-test: 1`.
-- Mudou `public/_headers` (CSP)? `npm run build`, `npx vite preview --port 4173` (em segundo plano) e `npm run e2e:csp`.
+- Mudou `public/_headers` (CSP)? `npm run build`, peça ao usuário para subir `npx vite preview --port 4173` e rode `npm run e2e:csp`.
 - Falha que se repete num texto: confira se o usuário não mudou a mensagem na tela (ele edita textos direto);
   ajuste o teste ao texto dele, não o contrário.
 
