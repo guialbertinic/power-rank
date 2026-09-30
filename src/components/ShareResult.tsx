@@ -12,6 +12,8 @@ interface Props {
   slots: CharacterInfo[];
   ranks: Record<string, number>;
   score: number;
+  /** Partida do Desafio Diário: aparece como "Desafio diário" no lugar da categoria. */
+  daily?: boolean;
 }
 
 type CopyState = 'idle' | 'copied' | 'failed';
@@ -22,13 +24,13 @@ type CopyState = 'idle' | 'copied' | 'failed';
  * A imagem é gerada assim que o resultado chega: o `navigator.share` precisa ser chamado logo no clique
  * (o navegador recusa se o clique ficou "velho" esperando o canvas).
  */
-export default function ShareResult({ mode, nick, slots, ranks, score }: Props) {
+export default function ShareResult({ mode, nick, slots, ranks, score, daily = false }: Props) {
   const { t, lang } = useI18n();
   const [file, setFile] = useState<File | null>(null);
   const [imageFailed, setImageFailed] = useState(false);
   const [copy, setCopy] = useState<CopyState>('idle');
 
-  const modeLabel = MODES.find((m) => m.id === mode)?.label ?? '';
+  const modeLabel = daily ? t('intro.daily') : (MODES.find((m) => m.id === mode)?.label ?? '');
   const rows = useMemo(() => {
     const { results } = scoreGame(withRanks(slots, ranks));
     return results.map((r) => ({

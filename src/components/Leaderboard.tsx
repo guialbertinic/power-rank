@@ -13,6 +13,8 @@ interface Props {
   /** Muda para forçar recarregar (ex: depois de enviar uma pontuação). */
   refreshKey?: number;
   highlight?: string;
+  /** Aba aberta ao montar (ex: "Desafio" no resultado do Desafio Diário). */
+  initialPeriod?: Period;
 }
 
 /** Degraus do pódio na ordem visual (2º, 1º, 3º), nas cores dos tiers, como no pódio da party. */
@@ -28,9 +30,10 @@ const MIN_POSITIONS = 10;
 const PERIODS: { id: Period; label: Key }[] = [
   { id: 'today', label: 'leaderboard.today' },
   { id: 'total', label: 'leaderboard.total' },
+  { id: 'daily', label: 'leaderboard.daily' },
 ];
 
-/** Embaixo da pontuação: o tempo da partida (Hoje, desempata) ou quantos dias somaram (Acumulado). */
+/** Embaixo da pontuação: o tempo da partida (Hoje e Desafio, desempata) ou quantos dias somaram (Acumulado). */
 function detail(s: LeaderboardEntry, t: (key: Key, params?: Record<string, number>) => string): string | null {
   if (s.durationMs !== undefined) return formatDuration(s.durationMs);
   if (s.days !== undefined) return s.days === 1 ? t('leaderboard.oneDay') : t('leaderboard.days', { n: s.days });
@@ -38,12 +41,13 @@ function detail(s: LeaderboardEntry, t: (key: Key, params?: Record<string, numbe
 }
 
 /**
- * Ranking de um modo (cada categoria tem o seu), em duas abas: Hoje (melhor partida do dia; empate = menor
- * tempo) e Acumulado (soma do melhor de cada dia). Os 3 primeiros num pódio, o resto em lista.
+ * Ranking de um modo (cada categoria tem o seu), em abas: Hoje (melhor partida do dia; empate = menor
+ * tempo), Acumulado (soma do melhor de cada dia) e Desafio (o Desafio Diário de hoje, igual em todas as
+ * categorias). Os 3 primeiros num pódio, o resto em lista.
  */
-export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) {
+export default function Leaderboard({ mode, refreshKey = 0, highlight, initialPeriod = 'today' }: Props) {
   const { t, lang } = useI18n();
-  const [period, setPeriod] = useState<Period>('today');
+  const [period, setPeriod] = useState<Period>(initialPeriod);
   const [helpOpen, setHelpOpen] = useState(false);
   const [scores, setScores] = useState<LeaderboardEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -105,7 +109,11 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
   return (
     <div className="panel leaderboard">
       <div className="leaderboard-header">
-        <h3 className="section-title">{t('leaderboard.title', { mode: MODES.find((m) => m.id === mode)?.label ?? '' })}</h3>
+        <h3 className="section-title">
+          {period === 'daily'
+            ? t('leaderboard.dailyTitle')
+            : t('leaderboard.title', { mode: MODES.find((m) => m.id === mode)?.label ?? '' })}
+        </h3>
         <div className="leaderboard-periods" role="tablist">
           {PERIODS.map((p) => (
             <button
@@ -136,11 +144,19 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
           <p>
             <strong>{t('leaderboard.total')}:</strong> {t('leaderboard.helpTotal')}
           </p>
+          <p>
+            <strong>{t('leaderboard.daily')}:</strong> {t('leaderboard.helpDaily')}
+          </p>
         </div>
       )}
       {scores?.length === 0 && (
         <p className="muted leaderboard-empty">
-          {period === 'today' ? t('leaderboard.emptyToday') : t('leaderboard.empty')} {t('leaderboard.beFirst')}
+          {period === 'today'
+            ? t('leaderboard.emptyToday')
+            : period === 'daily'
+              ? t('leaderboard.emptyDaily')
+              : t('leaderboard.empty')}{' '}
+          {t('leaderboard.beFirst')}
         </p>
       )}
       {/* Skeleton: pódio e posições aparecem sempre; pulsam enquanto carrega e ficam vazias se faltar jogador. */}

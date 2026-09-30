@@ -3,10 +3,10 @@ import { useI18n } from '../i18n';
 import { formatDuration } from '../ui/format';
 import Coins from './Coins';
 
-/** Depois do envio: tempo da partida, moedas ganhas e o recorde do dia (se bateu). */
+/** Depois do envio: tempo da partida, moedas ganhas e o recorde do dia (se bateu) ou a posição no desafio. */
 export default function RankingStatus({ result }: { result: SubmitResult }) {
   const { t } = useI18n();
-  const { isNewBest, rank, coinsEarned, coins, durationMs } = result;
+  const { isNewBest, rank, coinsEarned, coins, durationMs, daily } = result;
   return (
     <>
       <p className="muted ranking-time">{t('result.time', { time: formatDuration(durationMs) })}</p>
@@ -17,7 +17,10 @@ export default function RankingStatus({ result }: { result: SubmitResult }) {
             ? <Coins amount={coinsEarned} prefix="+" />
             : t('coins.min')}
       </p>
-      {isNewBest && (
+      {daily && rank !== null && (
+        <p className="ranking-status new-best">{t('result.dailyRank', { rank: `#${rank}` })}</p>
+      )}
+      {!daily && isNewBest && (
         <p className="ranking-status new-best">
           {t('result.newBestBefore')}
           <strong>#{rank}</strong>

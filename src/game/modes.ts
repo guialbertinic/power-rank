@@ -19,3 +19,6 @@ export function isMode(value: unknown): value is Mode {
 export function poolFor<T extends CharacterInfo>(mode: Mode, characters: readonly T[]): T[] {
   return characters.filter((c) => c.image && (mode === 'all' || c.category === mode));
 }
+
+/** Categoria do Desafio Diário (um desafio só por dia, com personagens de todas). */
+export const DAILY_MODE: Mode = 'all';

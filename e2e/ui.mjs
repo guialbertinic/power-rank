@@ -49,13 +49,14 @@ try {
     return { right: Math.round(document.documentElement.clientWidth - r.right), top: Math.round(r.top) };
   });
   check('barra de perfil no canto superior direito', bar.right <= 20 && bar.top <= 20, JSON.stringify(bar));
+  await ana.waitForSelector('.btn-daily:not([disabled])');
   const centers = await ana.evaluate(() =>
-    ['.play-buttons', '.leaderboard'].map((s) => {
+    ['.play-buttons', '.daily-entry', '.leaderboard'].map((s) => {
       const r = document.querySelector(s).getBoundingClientRect();
       return Math.round(r.left + r.width / 2 - document.documentElement.clientWidth / 2);
     }),
   );
-  check('SOLO/PARTY e ranking centralizados', centers.every((c) => Math.abs(c) <= 2), centers.join(', '));
+  check('SOLO/PARTY, desafio diário e ranking centralizados', centers.every((c) => Math.abs(c) <= 2), centers.join(', '));
 
   // ---------- Idioma ----------
   section('Idioma');
@@ -308,9 +309,24 @@ try {
   check('"?" explica o desempate e o acumulado', /menos tempo/.test((await text(ana, '.leaderboard-help')) ?? ''));
   await ana.click('.leaderboard-help-toggle');
 
+  // ---------- Desafio diário ----------
+  section('Desafio diário');
+  await ana.click('.home-button');
+  await (await ana.waitForSelector('.btn-daily:not([disabled])')).click();
+  await placeAll(ana);
+  await ana.waitForSelector('.coins-earned');
+  check('título mostra o desafio', (await text(ana, '.title-eyebrow')) === 'Desafio diário');
+  check('resultado do desafio sem "Jogar de novo"', !(await ana.$('.score-actions')));
+  check('resultado mostra a posição no desafio', /no Desafio Diário/.test((await text(ana, '.ranking-status')) ?? ''));
+  await ana.waitForSelector('.leaderboard .section-title ::-p-text(Desafio diário)');
+  check('ranking abre na aba Desafio', (await text(ana, '.leaderboard-periods [aria-selected="true"]')) === 'Desafio');
+  await ana.click('.home-button');
+  // Trava na hora; a pontuação chega com o status do servidor.
+  await ana.waitForSelector('.btn-daily[disabled] ::-p-text(pts)', { timeout: 5000 });
+  check('na home, o desafio fica travado com a pontuação', true);
+
   // ---------- Cassino ----------
   section('Cassino');
-  await ana.click('.home-button');
   await ana.waitForSelector('.profile-bar .coins');
   await (await ana.waitForSelector('.profile-bar ::-p-text(Cassino)')).click();
   await ana.waitForSelector('.adult-gate');

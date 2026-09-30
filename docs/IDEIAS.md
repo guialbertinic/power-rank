@@ -37,7 +37,7 @@ A home vira um seletor de **modos**; cada modo tem suas **categorias**, seu rank
 | Modo | Categorias | Status |
 |---|---|---|
 | **Blind Power Ranking** (o jogo de hoje) | Animes, Games, Free for All; + Filmes, Séries | ✅ (3 categorias) / 💡 (novas) |
-| **Desafio Diário** | uma partida igual para todos, por dia | 💡 |
+| **Desafio Diário** | uma partida igual para todos, por dia (Free for All) | ✅ |
 | **Blind Rating Ranking** | Filmes, Séries, Games, Animes (por nota) | 💡 |
 | **Size Comparison** | Games, Séries, Animes | 💡 |
 | **Build Your Pokémon Team** | Pokémon | 💡 |
@@ -51,20 +51,15 @@ Pontos de arquitetura que valem para todos (decidir uma vez) — `Arquitetura` �
 
 ## Modos de jogo
 
-### 💡 Desafio Diário · `Feature` 🟡
-Como o solo do Blind Power Ranking, mas com **os mesmos 10 personagens para todo mundo**, sorteados à meia-noite
-(horário de Brasília) e fixos o dia inteiro. Cada jogador tem **uma tentativa** por dia.
-
-- **Rankings:** o ranking "Hoje" atual perde o sentido e é substituído pelo **ranking do Desafio Diário**
-  (desempate por tempo, como hoje). Continua existindo o **Acumulado**.
-- Bom para trends: "todo mundo joga o mesmo desafio hoje" e compara nos comentários.
-- Depende de: personagens no banco (senão o gabarito fica visível no código do site).
-- **Perguntas em aberto:**
-  - Uma tentativa por dia ou várias (vale a primeira / a melhor)?
-  - De qual categoria é o desafio? Um por categoria (Animes, Games, FFA) ou um só (Free for All)?
-  - O Acumulado passa a somar só os desafios diários, ou continua somando o melhor do dia no modo livre?
-  - Convidado pode jogar o desafio (sem entrar no ranking)?
-  - Mostrar "desafio de ontem" com o gabarito e a distribuição de pontuações?
+### ✅ Desafio Diário · `Feature` 🟡
+**Os mesmos 10 personagens (na mesma ordem) para todo mundo**, fixos no dia (meia-noite de Brasília).
+- Um desafio só por dia, de **Free for All**. Botão próprio na home, centralizado embaixo de Solo/Party; trava
+  depois da tentativa (mostra a pontuação) até o dia seguinte.
+- **Uma tentativa** por jogador, gasta ao começar. Convidado joga (por nick), mas não entra no ranking.
+- Ranking próprio (aba **Desafio**, desempate por tempo). O "Hoje" continua existindo; o resultado do desafio também
+  vale para o Hoje e o Acumulado do Free for All (se for o melhor do dia do jogador).
+- 💡 Depois: "desafio de ontem" com o gabarito e a distribuição de pontuações; sequência de dias seguidos
+  (conquista); link de desafio na party. Convidado pode repetir trocando de nick (aceitável por ora).
 
 ### 💡 Blind Power Ranking — novas categorias
 - **Filmes** e **Séries** (power scaling de personagens) · `Manutenção` 🟡 — decidir se heróis de quadrinhos entram
@@ -258,6 +253,7 @@ o site — qualquer um que abra o código do site vê o `power` de todos. Migrar
 - Party (Durable Objects): sala por código/convite, espera ao vivo, pódio, revanche, reconexão.
 - Conta (nick + senha) ou convidado; jogador por id (trocar nick renomeia a conta); sincronizar dispositivo.
 - Rankings Hoje (desempate por tempo) e Acumulado (soma do melhor de cada dia), pódio dos 3 primeiros, skeleton.
+- Desafio Diário: os mesmos 10 (Free for All) para todos no dia, uma tentativa, ranking próprio (aba Desafio).
 - Moedas, loja de cosméticos (cores, molduras, títulos, avatares), cassino (caça-níquel + Mystery Box).
 - Design system "Dark Battle Interface"; testes e2e (`e2e:api`, `e2e:ui`); skills do projeto (`.claude/skills/`).
-- Produção: migrações 0001–0011; deploy automático pela `main`.
+- Produção: migrações 0001–0014; deploy automático pela `main`.

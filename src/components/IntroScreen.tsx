@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import type { DailyStatus } from '../api';
 import type { Mode } from '../game/modes';
 import { isPartyCode, normalizePartyCode, PARTY_CODE_LENGTH } from '../game/party';
 import { serverText, useI18n } from '../i18n';
@@ -13,6 +14,9 @@ interface Props {
   /** Algo em andamento (sorteando ou criando sala). */
   busy: boolean;
   onSolo: () => void;
+  /** Desafio Diário deste jogador (null enquanto carrega ou sem conexão: o botão não aparece). */
+  daily: DailyStatus | null;
+  onDaily: () => void;
   onCreateParty: () => void;
   onJoinParty: (code: string) => void;
   /** Erro ao criar/entrar em sala, vindo do App. */
@@ -21,9 +25,9 @@ interface Props {
   soloError?: string | null;
 }
 
-/** Home: SOLO / PARTY e o ranking da categoria escolhida no título (o perfil fica na ProfileBar, no canto). */
+/** Home: SOLO / PARTY, o Desafio Diário (centralizado, embaixo) e o ranking da categoria escolhida no título (o perfil fica na ProfileBar, no canto). */
 export default function IntroScreen(props: Props) {
-  const { identity, mode, canStart, busy, onSolo, onCreateParty, onJoinParty, partyError, soloError } = props;
+  const { identity, mode, canStart, busy, onSolo, daily, onDaily, onCreateParty, onJoinParty, partyError, soloError } = props;
   const { t, lang } = useI18n();
   const [partyOpen, setPartyOpen] = useState(false);
   const [code, setCode] = useState('');
@@ -53,6 +57,18 @@ export default function IntroScreen(props: Props) {
           Party
         </button>
       </div>
+      {daily && (
+        <div className="daily-entry">
+          {/* Uma tentativa por dia: depois de jogar, o botão fica travado até o próximo desafio. */}
+          <button className="btn btn-lg btn-daily" onClick={onDaily} disabled={busy || daily.done} aria-busy={busy && !partyOpen}>
+            {daily.done
+              ? daily.score === null
+                ? t('intro.dailyDone')
+                : t('intro.dailyDoneScore', { score: daily.score })
+              : t('intro.daily')}
+          </button>
+        </div>
+      )}
       {soloError && <p className="error">{serverText(soloError, lang)}</p>}
 
       {partyOpen && (

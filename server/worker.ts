@@ -1,5 +1,6 @@
 import { getCasino, spin } from './casino';
 import { getCharacters, getCharactersWithPower } from './catalog';
+import { dailyStatus } from './daily';
 import { createGame } from './games';
 import { openBox } from './gacha';
 import { json, type Env } from './lib';
@@ -43,6 +44,8 @@ export default {
           return await spin(request, env);
         case 'POST /api/gacha/open':
           return await openBox(request, env);
+        case 'POST /api/daily':
+          return await dailyStatus(request, env);
         case 'POST /api/games':
           return await createGame(request, env, ctx);
         case 'GET /api/scores':

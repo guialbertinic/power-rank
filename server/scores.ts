@@ -13,13 +13,15 @@ const BRT_OFFSET_MS = 3 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** Início do dia de hoje em Brasília, em epoch ms. */
 export const startOfToday = (now = Date.now()) => Math.floor((now - BRT_OFFSET_MS) / DAY_MS) * DAY_MS + BRT_OFFSET_MS;
+/** Dia de Brasília como texto (AAAA-MM-DD): chave do Desafio Diário. */
+export const dayKey = (now = Date.now()) => new Date(now - BRT_OFFSET_MS).toISOString().slice(0, 10);
 /** Mesmo dia em SQL (created_at em ms → data de Brasília). */
 const SQL_DAY = `date(created_at / 1000 - ${BRT_OFFSET_MS / 1000}, 'unixepoch')`;
 /** Partidas sem tempo (antigas) ficam atrás no desempate. */
 const SQL_DURATION = 'COALESCE(duration_ms, 9000000000000000)';
 
-export type Period = 'today' | 'total';
-const isPeriod = (value: unknown): value is Period => value === 'today' || value === 'total';
+export type Period = 'today' | 'total' | 'daily';
+const isPeriod = (value: unknown): value is Period => value === 'today' || value === 'total' || value === 'daily';
 
 /**
  * "Hoje": melhor partida de cada conta desde o início do dia (parâmetros: modo, início do dia).
@@ -46,6 +48,14 @@ const TOTAL = `
     GROUP BY player_id, ${SQL_DAY}
   ) GROUP BY player_id`;
 
+/**
+ * "Desafio": a partida de cada conta no desafio do dia (uma só por conta). Empate: menor tempo, depois quem fez
+ * primeiro. Parâmetro: dia (AAAA-MM-DD).
+ */
+const DAILY = `
+  SELECT player_id, score, duration_ms, created_at FROM scores
+  WHERE daily = ? AND player_id IS NOT NULL`;
+
 interface LeaderboardRow {
   name: string;
   score: number;
@@ -58,8 +68,9 @@ interface LeaderboardRow {
 }
 
 /**
- * GET /api/scores?mode=anime&period=today|total: top do ranking, uma linha por conta (com o nick atual e o
- * visual equipado). "today" traz o tempo da partida (`durationMs`); "total", quantos dias somaram (`days`).
+ * GET /api/scores?mode=anime&period=today|total|daily: top do ranking, uma linha por conta (com o nick atual e o
+ * visual equipado). "today" e "daily" trazem o tempo da partida (`durationMs`); "total", quantos dias somaram
+ * (`days`). "daily" é o Desafio Diário de hoje e ignora `mode`.
  */
 export async function getLeaderboard(request: Request, env: Env): Promise<Response> {
   const params = new URL(request.url).searchParams;
@@ -69,15 +80,17 @@ export async function getLeaderboard(request: Request, env: Env): Promise<Respon
   if (!isPeriod(period)) return badRequest('Período inválido');
 
   const look = 'p.name, p.avatar, p.name_color, p.frame, p.title';
+  const best = (source: string) =>
+    `SELECT ${look}, b.score, b.duration_ms, NULL AS days
+     FROM (${source}) b JOIN players p ON p.id = b.player_id
+     ORDER BY b.score DESC, ${SQL_DURATION.replace('duration_ms', 'b.duration_ms')} ASC, b.created_at ASC
+     LIMIT ?`;
   const query =
     period === 'today'
-      ? env.DB.prepare(
-          `SELECT ${look}, b.score, b.duration_ms, NULL AS days
-           FROM (${BEST_TODAY}) b JOIN players p ON p.id = b.player_id
-           ORDER BY b.score DESC, ${SQL_DURATION.replace('duration_ms', 'b.duration_ms')} ASC, b.created_at ASC
-           LIMIT ?`,
-        ).bind(mode, startOfToday(), LEADERBOARD_SIZE)
-      : env.DB.prepare(
+      ? env.DB.prepare(best(BEST_TODAY)).bind(mode, startOfToday(), LEADERBOARD_SIZE)
+      : period === 'daily'
+        ? env.DB.prepare(best(DAILY)).bind(dayKey(), LEADERBOARD_SIZE)
+        : env.DB.prepare(
           `SELECT ${look}, t.score, NULL AS duration_ms, t.days
            FROM (${TOTAL}) t JOIN players p ON p.id = t.player_id
            ORDER BY t.score DESC, t.days ASC, t.player_id ASC
@@ -99,7 +112,8 @@ export async function getLeaderboard(request: Request, env: Env): Promise<Respon
 /**
  * POST /api/scores: { gameId, placements } → { score, durationMs, best, isNewBest, rank, coinsEarned, coins }.
  * `placements` são os ids na ordem escolhida (posição 1 primeiro). Nick e modo vêm da partida
- * e a pontuação é recalculada aqui. `best`/`isNewBest`/`rank` são do ranking de hoje.
+ * e a pontuação é recalculada aqui. `best`/`isNewBest`/`rank` são do ranking de hoje; no Desafio Diário
+ * (`daily: true`), `rank` é a posição no ranking do desafio.
  */
 export async function submitScore(request: Request, env: Env): Promise<Response> {
   const body = (await request.json().catch(() => null)) as { gameId?: unknown; placements?: unknown } | null;
@@ -114,10 +128,17 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   const game = await env.DB.prepare(
     `UPDATE games SET submitted = 1
      WHERE id = ? AND submitted = 0 AND created_at > ? AND name IS NOT NULL
-     RETURNING character_ids, name, player_id, mode, created_at`,
+     RETURNING character_ids, name, player_id, mode, daily, created_at`,
   )
     .bind(body.gameId, Date.now() - GAME_TTL_MS)
-    .first<{ character_ids: string; name: string; player_id: number | null; mode: string; created_at: number }>();
+    .first<{
+      character_ids: string;
+      name: string;
+      player_id: number | null;
+      mode: string;
+      daily: string | null;
+      created_at: number;
+    }>();
   if (!game) return badRequest('Partida inexistente, expirada ou já enviada');
 
   const drawn: string[] = JSON.parse(game.character_ids);
@@ -145,16 +166,26 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   if (durationMs < MIN_GAME_MS) return json({ error: 'Partida rápida demais para valer.', code: 'too_fast' }, { status: 400 });
   const insert = (coins: number) =>
     env.DB.prepare(
-      `INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, duration_ms, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, duration_ms, daily, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-      .bind(body.gameId, game.name, key, playerId, game.mode, total, JSON.stringify(placements), coins, durationMs, now)
+      .bind(body.gameId, game.name, key, playerId, game.mode, total, JSON.stringify(placements), coins, durationMs, game.daily, now)
       .run();
 
   // Convidado (partida sem conta): a partida fica gravada, mas não entra no ranking nem rende moedas.
   if (playerId === null) {
     await insert(0);
-    return json({ score: total, ranks, durationMs, best: total, isNewBest: false, rank: null, coinsEarned: 0, coins: null });
+    return json({
+      score: total,
+      ranks,
+      durationMs,
+      best: total,
+      isNewBest: false,
+      rank: null,
+      daily: game.daily !== null,
+      coinsEarned: 0,
+      coins: null,
+    });
   }
 
   const today = startOfToday(now);
@@ -165,6 +196,26 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   const coinsEarned = coinsForScore(total);
   await insert(coinsEarned);
   const coins = await creditCoins(env, playerId, coinsEarned);
+
+  // Desafio Diário: a posição é a do ranking do desafio (uma partida por conta).
+  if (game.daily !== null) {
+    const ahead = await env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM (${DAILY}) WHERE score > ? OR (score = ? AND ${SQL_DURATION} < ?)`,
+    )
+      .bind(game.daily, total, total, durationMs)
+      .first<{ n: number }>();
+    return json({
+      score: total,
+      ranks,
+      durationMs,
+      best: total,
+      isNewBest: false,
+      rank: (ahead?.n ?? 0) + 1,
+      daily: true,
+      coinsEarned,
+      coins,
+    });
+  }
 
   // Posição no ranking de hoje: quem tem mais pontos, ou os mesmos pontos em menos tempo, fica na frente.
   const mine = await env.DB.prepare(`SELECT score, ${SQL_DURATION} AS duration FROM (${BEST_TODAY}) WHERE player_id = ?`)
@@ -184,6 +235,7 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
     best,
     isNewBest: previous?.best == null || total > previous.best,
     rank: (ahead?.n ?? 0) + 1,
+    daily: false,
     coinsEarned,
     coins,
   });

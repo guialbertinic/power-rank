@@ -14,6 +14,8 @@ interface Props {
   gameId: string;
   nick: string;
   slots: CharacterInfo[];
+  /** Partida do Desafio Diário: sem "Jogar de novo" (uma tentativa por dia) e com o ranking do desafio. */
+  daily?: boolean;
   starting: boolean;
   onRestart: () => void;
 }
@@ -24,7 +26,7 @@ type Status = { kind: 'sending' } | { kind: 'done'; result: SubmitResult } | { k
  * Resultado da partida solo. A pontuação e a ordem correta vêm do servidor (o site não sabe o `power`):
  * envia as posições ao montar e mostra tudo quando a resposta chega.
  */
-export default function ResultScreen({ mode, gameId, nick, slots, starting, onRestart }: Props) {
+export default function ResultScreen({ mode, gameId, nick, slots, daily = false, starting, onRestart }: Props) {
   const { t, lang } = useI18n();
   const [status, setStatus] = useState<Status>({ kind: 'sending' });
 
@@ -51,7 +53,9 @@ export default function ResultScreen({ mode, gameId, nick, slots, starting, onRe
   return (
     <section className="result">
       <div className="panel score-panel" aria-busy={!result}>
-        <p className="score-label">{t('result.scoreLabel', { mode: MODES.find((m) => m.id === mode)?.label ?? '' })}</p>
+        <p className="score-label">
+          {t('result.scoreLabel', { mode: daily ? t('intro.daily') : (MODES.find((m) => m.id === mode)?.label ?? '') })}
+        </p>
         {result ? (
           <>
             <p className="score-value">
@@ -66,19 +70,23 @@ export default function ResultScreen({ mode, gameId, nick, slots, starting, onRe
         ) : (
           <p className="muted score-pending">{t('result.calculating')}</p>
         )}
-        <div className="score-actions">
-          <button className="btn btn-primary" onClick={onRestart} disabled={starting} aria-busy={starting}>
-            {t('result.again')}
-          </button>
-        </div>
-        {result && <ShareResult mode={mode} nick={nick} slots={slots} ranks={result.ranks} score={result.score} />}
+        {!daily && (
+          <div className="score-actions">
+            <button className="btn btn-primary" onClick={onRestart} disabled={starting} aria-busy={starting}>
+              {t('result.again')}
+            </button>
+          </div>
+        )}
+        {result && (
+          <ShareResult mode={mode} nick={nick} slots={slots} ranks={result.ranks} score={result.score} daily={daily} />
+        )}
       </div>
 
       {result && <RankingComparison slots={slots} ranks={result.ranks} />}
 
       {result && (
         <div className="result-leaderboard">
-          <Leaderboard mode={mode} refreshKey={1} highlight={nick} />
+          <Leaderboard mode={mode} refreshKey={1} highlight={nick} initialPeriod={daily ? 'daily' : 'today'} />
         </div>
       )}
     </section>

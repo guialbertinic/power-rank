@@ -218,6 +218,44 @@ if (section('Ranking')) {
   check('período inválido é recusado', (await fetch(`${BASE}/api/scores?mode=anime&period=ano`)).status === 400);
 }
 
+// ---------- Desafio Diário ----------
+if (section('Desafio Diário')) {
+  const acc = await player('Diario');
+  const other = await player('Diario2');
+  const guest = { name: nick('DiarioConv') };
+  const before = (await post('/daily', acc)).data;
+  check('status: ainda não jogou, categoria Free for All', before.done === false && before.mode === 'all' && before.score === null);
+
+  const { status, data: game } = await post('/games', { ...acc, daily: true });
+  check('começa o desafio', status === 200 && game.characterIds.length === 10);
+  const again = await post('/games', { ...acc, daily: true });
+  check('segunda tentativa é recusada (409)', again.status === 409 && again.data.code === 'daily_done');
+  const started = (await post('/daily', acc)).data;
+  check('começou e não terminou: já conta como feito', started.done === true && started.score === null);
+  const otherGame = (await post('/games', { ...other, daily: true })).data;
+  const guestGame = (await post('/games', { ...guest, daily: true })).data;
+  const same = (g) => JSON.stringify(g?.characterIds) === JSON.stringify(game.characterIds);
+  check('mesmos 10, na mesma ordem, para todo mundo (inclusive convidado)', same(otherGame) && same(guestGame));
+  check('convidado também tem uma tentativa só', (await post('/games', { ...guest, daily: true })).status === 409);
+
+  await sleep(MIN_GAME_MS + 100);
+  const ids = perfectOrder(game.characterIds);
+  const done = (await post('/scores', { gameId: game.gameId, placements: ids })).data;
+  check('resultado do desafio: posição no ranking do desafio', done.daily === true && done.score === 1000 && done.rank === 1 && done.coinsEarned > 0);
+  const guestDone = (await post('/scores', { gameId: guestGame.gameId, placements: ids })).data;
+  check('convidado joga sem posição nem moedas', guestDone.daily === true && guestDone.rank === null && guestDone.coins === null);
+  await post('/scores', { gameId: otherGame.gameId, placements: [...ids].reverse() });
+  check('status depois: feito, com a pontuação', (await post('/daily', acc)).data.score === 1000);
+
+  const { scores: board } = await get('/scores?mode=anime&period=daily');
+  const pos = (p) => board.findIndex((s) => s.name === p.name);
+  check('ranking do desafio: contas em ordem, com tempo', pos(acc) >= 0 && pos(acc) < pos(other) && typeof board[pos(acc)].durationMs === 'number');
+  check('convidado fora do ranking do desafio', pos(guest) === -1);
+  const { scores: total } = await get('/scores?mode=all&period=total');
+  check('desafio soma no Acumulado do Free for All', total.find((s) => s.name === acc.name)?.score === 1000);
+  check('partida normal continua liberada', (await post('/games', { ...acc, mode: 'all' })).status === 200);
+}
+
 // ---------- Cassino ----------
 if (section('Cassino')) {
   const me = await player('Cassino');

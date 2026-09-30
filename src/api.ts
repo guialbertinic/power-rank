@@ -4,13 +4,16 @@ import type { Rarity } from './game/gacha';
 import type { Mode } from './game/modes';
 import type { CharacterInfo } from './game/types';
 
-/** "Hoje": melhor partida do dia (zera à meia-noite de Brasília). "Acumulado": soma do melhor de cada dia. */
-export type Period = 'today' | 'total';
+/**
+ * "Hoje": melhor partida do dia (zera à meia-noite de Brasília). "Acumulado": soma do melhor de cada dia.
+ * "Desafio": a partida de cada um no Desafio Diário de hoje (não depende da categoria).
+ */
+export type Period = 'today' | 'total' | 'daily';
 
 export interface LeaderboardEntry {
   name: string;
   score: number;
-  /** Tempo da partida (só em "Hoje"; desempata pontuações iguais). */
+  /** Tempo da partida (em "Hoje" e "Desafio"; desempata pontuações iguais). */
   durationMs?: number;
   /** Quantos dias somaram (só em "Acumulado"). */
   days?: number;
@@ -27,8 +30,10 @@ export interface SubmitResult {
   best: number;
   /** Bateu o próprio melhor de hoje. */
   isNewBest: boolean;
-  /** Posição do jogador no ranking de hoje (null para convidado, que não entra no ranking). */
+  /** Posição do jogador no ranking de hoje, ou no do desafio (null para convidado, que não entra no ranking). */
   rank: number | null;
+  /** Partida do Desafio Diário. */
+  daily: boolean;
   /** Moedas que esta partida rendeu e o saldo depois dela (null para convidado). */
   coinsEarned: number;
   coins: number | null;
@@ -113,15 +118,30 @@ export async function createGame(
   name: string,
   token: string | null,
   mode: Mode,
+  /** Desafio Diário: o servidor ignora `mode` e usa o desafio do dia. */
+  daily = false,
 ): Promise<{ gameId: string; characterIds: string[]; characters: CharacterInfo[] } | 'unauthorized' | { error: string } | null> {
   try {
-    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode }) });
+    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode, daily }) });
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) return 'unauthorized';
     // Recusa do servidor (ex: nick não permitido, muitas partidas seguidas): mostra o motivo.
     if (err instanceof ApiError) return { error: err.message };
     return null;
   }
+}
+
+export interface DailyStatus {
+  mode: Mode;
+  /** Já jogou (ou começou) o desafio de hoje. */
+  done: boolean;
+  /** Pontuação no desafio de hoje (null se não terminou). */
+  score: number | null;
+}
+
+/** Desafio Diário de hoje para este jogador: se ainda pode jogar. */
+export function fetchDaily(name: string, token: string | null): Promise<DailyStatus> {
+  return request('/api/daily', { method: 'POST', body: JSON.stringify({ name, token }) });
 }
 
 /** Configuração pública do servidor (ex: chave do anti-bot; null = desligado). */
