@@ -55,4 +55,6 @@ npm run db:migrate:local
 - Mudou `wrangler.jsonc` (bindings, Durable Objects)? Reinicie o `npm run dev`. Não nomeie método `connect` num
   `DurableObject`.
 - `puppeteer.launch` falha neste Windows: `e2e/lib.mjs` inicia o Edge com `--remote-debugging-port` e conecta.
+- Variável nova no `.dev.vars` que o servidor usa? Também no passo "Prepare local D1" do
+  `.github/workflows/deploy.yml` (valor de teste), senão o `e2e:api` do CI falha.
 - `npm audit` acusa `undici` do miniflare (só dev); não fazer o downgrade sugerido.

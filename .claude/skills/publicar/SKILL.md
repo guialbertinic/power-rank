@@ -1,6 +1,6 @@
 ---
 name: publicar
-description: Checklist para publicar mudanças do Power Rank — migrações de banco, commit e push para a main (que faz deploy automático na Cloudflare). Use quando o usuário pedir para commitar, publicar, subir ou fazer push, ou ao terminar uma mudança que altera o schema do D1.
+description: Checklist para publicar mudanças do Power Rank — migrações de banco, commit e push para a main (que roda os testes e faz o deploy na Cloudflare pelo GitHub Actions). Use quando o usuário pedir para commitar, publicar, subir ou fazer push, ou ao terminar uma mudança que altera o schema do D1.
 ---
 
 # Publicar
@@ -21,6 +21,10 @@ description: Checklist para publicar mudanças do Power Rank — migrações de 
 4. **Push só quando o usuário pedir.** O push em `main` dispara o GitHub Actions (testes → deploy só se passarem); **não acompanhe o deploy**
    (o usuário confere no painel). Informe o intervalo de commits enviado. Às vezes o usuário roda a migração e dá
    o push ele mesmo: nesse caso deixe tudo commitado e diga quantos commits estão pendentes e qual migração rodar.
+   - Se o usuário disser que o Action falhou: `gh run list --limit 3` e `gh run view <id> --log-failed | tail -40`.
+     Falha no job `test` = nada foi publicado (corrigir e novo push). Falha isolada da Party (corrida de `sleep`)
+     → "Re-run failed jobs". Falha só no `deploy` = token/secrets (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`).
+     No painel da Cloudflare, o deploy aparece como "manually deployed, wrangler" (é o normal).
 5. **Depois do push**, se a mudança alterou pontuação ou poderes: lembrar o `npm.cmd run rescore -- --remote`.
 6. Atualize `docs/IDEIAS.md` (status da ideia: 💡 → 🚧 → ✅; resumo em "Já feito") e, se a arquitetura mudou,
    a seção certa de `docs/ARQUITETURA.md`. Não leia os arquivos inteiros: `grep -n` pela ideia/seção e edite

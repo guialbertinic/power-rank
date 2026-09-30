@@ -61,6 +61,9 @@ Utilitários em `e2e/lib.mjs`: `player()`, `playSolo()`, `partyClient()`, `post(
 `chooseGuest()` (entra como convidado), `placeAll()`, `overflowX()`.
 Novo cenário: acrescente em `e2e/api.mjs` ou `e2e/ui.mjs` na seção certa, com `check('descrição', condição)`.
 Seção nova no e2e:api: `if (section('Nome')) { ... }` (bloco independente, para o filtro poder pular).
+**O e2e:api barra o deploy** (GitHub Actions, `.github/workflows/deploy.yml`): roda no Linux, num D1 zerado (só
+migrações + `characters:sync`). Teste novo cria o que precisa (contas, saldo via `d1()`), nunca depende de dados do
+banco local do usuário.
 Nicks sempre via `nick('Nome')` / `player('Nome')` (prefixo `E2e`; `player()` cria conta com senha).
 Na API, o token identifica a conta (o `name` enviado junto é ignorado); convidado = sem token.
 Precisa de saldo num teste de UI? `d1("UPDATE players SET coins = … WHERE name_key = '…'")` e recarregue a página.
