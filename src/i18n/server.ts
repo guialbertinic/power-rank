@@ -56,6 +56,7 @@ const EXACT_EN: Record<string, string> = {
   'Item inexistente': 'Item not found',
   'Esse item não vai nesse espaço': 'This item doesn’t go in that slot',
   'Aposta inválida': 'Invalid bet',
+  'Risco inválido': 'Invalid risk',
   'Erro interno': 'Internal error',
   // Senha (src/game/account.ts)
   'As senhas não são iguais': 'The passwords don’t match',

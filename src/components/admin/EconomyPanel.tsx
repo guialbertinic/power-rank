@@ -31,7 +31,7 @@ export default function EconomyPanel() {
 
   const num = (n: number) => numberText(n, lang);
   const signed = (n: number) => `${n > 0 ? '+' : ''}${num(n)}`;
-  const { slots, box } = economy;
+  const { slots, plinko, box } = economy;
   const rtp = (p: { bet: number; prize: number }) => (p.bet ? percentText(p.prize / p.bet, lang) : '—');
   // Fluxo do ponto de vista dos saldos: positivo = moedas que entraram nas contas.
   const flows: { label: Key; total: number; week: number }[] = [
@@ -41,6 +41,11 @@ export default function EconomyPanel() {
       label: 'admin.economy.slotsNet',
       total: slots.total.prize - slots.total.bet,
       week: slots.week.prize - slots.week.bet,
+    },
+    {
+      label: 'admin.economy.plinkoNet',
+      total: plinko.total.prize - plinko.total.bet,
+      week: plinko.week.prize - plinko.week.bet,
     },
     {
       label: 'admin.economy.boxNet',
@@ -124,6 +129,42 @@ export default function EconomyPanel() {
         <p className="admin-small">
           {t('admin.economy.pot')} <strong>{num(slots.pot)}</strong> · <span className="muted">{t('admin.economy.rtpHint')}</span>
         </p>
+      </section>
+
+      <section className="panel admin-section">
+        <h2 className="section-title">{t('admin.feature.plinko')}</h2>
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th />
+              <th>{t('admin.economy.total')}</th>
+              <th>{t('admin.economy.week')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{t('admin.economy.drops')}</td>
+              <td>{num(plinko.total.drops)}</td>
+              <td>{num(plinko.week.drops)}</td>
+            </tr>
+            <tr>
+              <td>{t('admin.economy.bet')}</td>
+              <td>{num(plinko.total.bet)}</td>
+              <td>{num(plinko.week.bet)}</td>
+            </tr>
+            <tr>
+              <td>{t('admin.economy.paid')}</td>
+              <td>{num(plinko.total.prize)}</td>
+              <td>{num(plinko.week.prize)}</td>
+            </tr>
+            <tr>
+              <td>{t('admin.economy.rtp')}</td>
+              <td>{rtp(plinko.total)}</td>
+              <td>{rtp(plinko.week)}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="muted admin-small">{t('admin.economy.plinkoRtpHint')}</p>
       </section>
 
       <section className="panel admin-section">

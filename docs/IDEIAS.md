@@ -125,8 +125,7 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
 
 - ✅ **Caça-níquel** com pote acumulado compartilhado (jackpot proporcional à aposta), ~95% de retorno.
 - ✅ **Mystery Box** (gacha): caixa de 100, 4 raridades, 10 itens exclusivos, avatar no comum.
-- 💡 **Plinko** · `Feature` 🟡: bolinha cai por pinos até casas com multiplicadores; matemática simples
-  (binomial), visual satisfatório, partida de 2 s.
+- ✅ **Plinko**: 12 fileiras, 3 riscos (baixo/médio/alto), ~95% de retorno em todos; várias bolinhas ao mesmo tempo.
 - 💡 **Pachinko** · `Feature` 🟡: bolinhas lançadas com força regulável, pinos e bolsos que liberam um
   mini-sorteio/jackpot; mais "evento" que o Plinko (definir o que diferencia os dois na prática).
 - 💡 Raspadinha · `Feature` 🟢 (ótima no celular).

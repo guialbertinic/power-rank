@@ -95,6 +95,10 @@ export default function PlayerDetail({ id, onBack }: { id: number; onBack: () =>
                 value={t('admin.player.slots', { spins: num(player.slots.spins), bet: num(player.slots.bet), prize: num(player.slots.prize) })}
               />
               <Fact
+                label={t('admin.feature.plinko')}
+                value={t('admin.player.plinko', { drops: num(player.plinko.drops), bet: num(player.plinko.bet), prize: num(player.plinko.prize) })}
+              />
+              <Fact
                 label={t('admin.feature.mystery_box')}
                 value={t('admin.player.box', { openings: num(player.box.openings), spent: num(player.box.spent), refunded: num(player.box.refunded) })}
               />

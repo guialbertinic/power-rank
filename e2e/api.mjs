@@ -315,13 +315,56 @@ if (section('Slots')) {
   check('todo giro fica registrado', /"n": 25/.test(logged));
 }
 
+// ---------- Plinko ----------
+if (section('Plinko')) {
+  const me = await player('Plinko');
+  check('convidado não joga (401)', (await post('/plinko/drop', { bet: 1, risk: 'low' })).status === 401);
+  const underage = await post('/plinko/drop', { ...me, bet: 1, risk: 'low' });
+  check('sem declarar 18+: 403', underage.status === 403 && underage.data.code === 'adult_required');
+  await post('/profile/adult', me);
+  check('aposta fora da regra é recusada', (await post('/plinko/drop', { ...me, bet: 11, risk: 'low' })).status === 400);
+  check('risco inexistente é recusado', (await post('/plinko/drop', { ...me, bet: 1, risk: 'extreme' })).status === 400);
+  check('sem saldo: 402', (await post('/plinko/drop', { ...me, bet: 1, risk: 'low' })).status === 402);
+
+  d1(`UPDATE players SET coins = 1000 WHERE name_key = '${me.name.toLowerCase()}'`);
+  // Tabela (em décimos, da ponta ao meio) igual à de src/game/plinko.ts.
+  const HALF = { low: [80, 30, 16, 14, 11, 9, 5], medium: [260, 90, 36, 20, 12, 5, 3], high: [1300, 220, 70, 22, 7, 2, 2] };
+  const risks = Object.keys(HALF);
+  let expectedCoins = 1000;
+  let ok = true;
+  let detail = '';
+  for (let i = 0; i < 24; i++) {
+    const bet = i % 2 ? 1 : 10;
+    const risk = risks[i % 3];
+    const { status, data } = await post('/plinko/drop', { ...me, bet, risk });
+    const multiplier = HALF[risk][6 - Math.abs(data?.slot - 6)];
+    const whole = Math.floor((bet * multiplier) / 10);
+    const valid =
+      status === 200 &&
+      data.path.length === 12 &&
+      data.path.every((s) => s === 0 || s === 1) &&
+      data.path.reduce((a, b) => a + b, 0) === data.slot &&
+      data.multiplier === multiplier &&
+      (data.prize === whole || data.prize === whole + ((bet * multiplier) % 10 ? 1 : 0));
+    expectedCoins += (data?.prize ?? 0) - bet;
+    if (!valid || data.coins !== expectedCoins) {
+      ok = false;
+      detail = JSON.stringify({ status, risk, bet, data, expectedCoins });
+      break;
+    }
+  }
+  check('caminho, casa e prêmio seguem a tabela; o saldo fecha bolinha a bolinha', ok, detail);
+  const logged = d1(`SELECT COUNT(*) AS n FROM plinko_drops WHERE player_id = (SELECT id FROM players WHERE name_key = '${me.name.toLowerCase()}')`);
+  check('toda bolinha fica registrada', /"n": 24/.test(logged));
+}
+
 // ---------- Chaves dos minigames (tabela features) ----------
 if (section('Chaves')) {
   const me = await player('Chaves');
   await post('/profile/adult', me);
   d1(`UPDATE players SET coins = 500 WHERE name_key = '${me.name.toLowerCase()}'`);
   const on = (await get('/config')).features;
-  check('config traz as chaves (ligadas por padrão)', on?.slots === true && on?.mystery_box === true, JSON.stringify(on));
+  check('config traz as chaves (ligadas por padrão)', on?.slots === true && on?.plinko === true && on?.mystery_box === true, JSON.stringify(on));
   const setFlag = (id, enabled) => d1(`UPDATE features SET enabled = ${enabled} WHERE id = '${id}'`);
   try {
     setFlag('slots', 0);
@@ -334,11 +377,15 @@ if (section('Chaves')) {
     setFlag('mystery_box', 0);
     const box = await post('/gacha/open', me);
     check('Mystery Box desligada: 403', box.status === 403 && box.data.code === 'feature_disabled');
+    setFlag('plinko', 0);
+    const dropped = await post('/plinko/drop', { ...me, bet: 1, risk: 'low' });
+    check('Plinko desligado: 403', dropped.status === 403 && dropped.data.code === 'feature_disabled');
     const coins = (await post('/profile', me)).data.coins;
     check('desligado não cobra moedas', coins === 400, String(coins));
   } finally {
     setFlag('slots', 1);
     setFlag('mystery_box', 1);
+    setFlag('plinko', 1);
   }
   check('religado: caça-níquel volta', (await post('/slots/spin', { ...me, bet: 1 })).status === 200);
 }

@@ -223,6 +223,24 @@ export const pt = {
   'slots.last': 'Último:',
   'slots.lastOn': 'em {date}',
 
+  // Arcade: Plinko
+  'plinko.helpAria': 'Como funciona o Plinko',
+  'plinko.helpRules':
+    'A bolinha quica em {rows} fileiras de pinos, para a esquerda ou a direita, e cai numa casa: o prêmio é a aposta vezes o número da casa. As do meio são as mais comuns; as das pontas, as mais raras. O risco muda os números.',
+  'plinko.chance': 'Chance',
+  'plinko.helpRound':
+    'Aposta de {min} a {max}. Prêmio com fração vira moeda inteira por sorteio: 1,6 dá 2 moedas em 60% das vezes e 1 no resto.',
+  'plinko.helpReturn': 'Em média, volta cerca de 95% do que é apostado, em qualquer risco. Moedas não valem dinheiro real.',
+  'plinko.risk': 'Risco',
+  'plinko.risk.low': 'Baixo',
+  'plinko.risk.medium': 'Médio',
+  'plinko.risk.high': 'Alto',
+  'plinko.drop': 'Soltar',
+  'plinko.falling': 'Caindo...',
+  'plinko.result': '+{prize}',
+  'plinko.history': 'Últimas bolinhas',
+  'plinko.boardAria': 'Tabuleiro do Plinko',
+
   // Arcade: Mystery Box
   'box.helpAria': 'Como funciona a Mystery Box',
   'box.rarity': 'Raridade',
@@ -263,6 +281,7 @@ export const pt = {
   'admin.tab.players': 'Jogadores',
   'admin.tab.actions': 'Registro',
   'admin.feature.slots': 'Caça-níquel',
+  'admin.feature.plinko': 'Plinko',
   'admin.feature.mystery_box': 'Mystery Box',
   'admin.features.hint': 'Desligado, o minigame some do Arcade e o servidor recusa jogadas. Vale na hora para o servidor; na tela, quando o jogador volta à home.',
   'admin.features.updated': 'Mudou em {date}',
@@ -281,6 +300,9 @@ export const pt = {
   'admin.economy.earned': 'Ganhas em partidas',
   'admin.economy.granted': 'Dadas pelo admin',
   'admin.economy.slotsNet': 'Caça-níquel (pago − apostado)',
+  'admin.economy.plinkoNet': 'Plinko (pago − apostado)',
+  'admin.economy.drops': 'Bolinhas',
+  'admin.economy.plinkoRtpHint': 'retorno esperado ≈ 95% em qualquer risco',
   'admin.economy.boxNet': 'Mystery Box (devolvido − gasto)',
   'admin.economy.spins': 'Giros',
   'admin.economy.bet': 'Apostado',
@@ -314,6 +336,7 @@ export const pt = {
   'admin.player.items': 'Itens',
   'admin.player.devices': 'Aparelhos conectados',
   'admin.player.slots': '{spins} giros · apostou {bet} · ganhou {prize}',
+  'admin.player.plinko': '{drops} bolinhas · apostou {bet} · ganhou {prize}',
   'admin.player.box': '{openings} caixas · gastou {spent} · recebeu {refunded} de volta',
   'admin.player.coinsTitle': 'Ajustar moedas',
   'admin.player.delta': 'Quantidade (negativo tira)',

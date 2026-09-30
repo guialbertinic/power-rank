@@ -375,8 +375,40 @@ try {
   await ana.click('.casino-marquee .leaderboard-help-toggle');
   check('"?" mostra a tabela de prêmios', (await ana.$$('.casino-table tbody tr')).length === 6);
 
-  // Mystery Box (segunda aba do Arcade).
+  // Plinko (segunda aba do Arcade).
   await ana.click('.arcade-tabs .mode-option:nth-child(2)');
+  await ana.waitForSelector('.plinko-board svg');
+  check('tabuleiro com 13 casas e os pinos', (await ana.$$('.plinko-bucket')).length === 13 && (await ana.$$('.plinko-peg')).length > 50);
+  const dropResponse = ana.waitForResponse((r) => r.url().includes('/api/plinko/drop'));
+  await ana.click('.plinko-drop');
+  const drop = await (await dropResponse).json();
+  await ana.waitForSelector('.plinko-ball', { timeout: 3000 });
+  check('bolinha cai e o risco trava enquanto cai', Boolean(await ana.$('.plinko-risks button:disabled')));
+  await ana.waitForFunction(() => !document.querySelector('.plinko-ball') && document.querySelector('.plinko-history li'), { timeout: 8000 });
+  // As casas são os únicos <g> do SVG: nth-of-type conta só elas.
+  check('casa sorteada acende', Boolean(await ana.$(`.plinko-bucket.hit:nth-of-type(${drop.slot + 1})`)), String(drop.slot));
+  const plinkoBalance = Number((await text(ana, '.casino-balance .coins'))?.replace(/D/g, ''));
+  check('saldo na tela = saldo do servidor depois da bolinha', plinkoBalance === drop.coins, `${plinkoBalance} / ${drop.coins}`);
+  // Cliques rápidos seguidos: várias bolinhas ao mesmo tempo, sem erro na página.
+  const burst = [];
+  const burstDone = new Promise((resolve) => ana.on('response', (r) => r.url().includes('/api/plinko/drop') && burst.push(r) === 3 && resolve()));
+  for (let i = 0; i < 3; i++) await ana.click('.plinko-drop');
+  await burstDone;
+  const lastCoins = (await burst.at(-1).json()).coins;
+  check('várias bolinhas caem juntas', (await ana.$$('.plinko-ball')).length >= 2);
+  await ana.waitForFunction(() => !document.querySelector('.plinko-ball'), { timeout: 8000 });
+  const burstBalance = Number((await text(ana, '.casino-balance .coins'))?.replace(/\D/g, ''));
+  check('cliques rápidos: página inteira e saldo certo', Boolean(await ana.$('.plinko-board svg')) && burstBalance === lastCoins, `${burstBalance} / ${lastCoins}`);
+  await ana.click('.casino-marquee .leaderboard-help-toggle');
+  check('"?" mostra a tabela por risco', (await ana.$$('.plinko-table tbody tr')).length === 7);
+  await ana.setViewport({ width: 390, height: 844 });
+  await sleep(300);
+  const board = await ana.$eval('.plinko-board svg', (el) => el.getBoundingClientRect().width);
+  check('Plinko no celular: sem scroll horizontal e tabuleiro legível', (await overflowX(ana)) <= 0 && board >= 300, String(board));
+  await ana.setViewport({ width: 1280, height: 860 });
+
+  // Mystery Box (terceira aba do Arcade).
+  await ana.click('.arcade-tabs .mode-option:nth-child(3)');
   await ana.waitForSelector('.gacha-box');
   const boxResponse = ana.waitForResponse((r) => r.url().includes('/api/gacha/open'));
   await ana.click('.gacha-open');
@@ -435,7 +467,7 @@ try {
   const admin = await b.page(PHONE);
   await admin.goto('http://localhost:5173/admin', { waitUntil: 'networkidle0' });
   await admin.waitForSelector('.admin-feature');
-  check('admin: chaves dos dois minigames', (await admin.$$('.admin-feature')).length === 2);
+  check('admin: uma chave por minigame', (await admin.$$('.admin-feature')).length === 3);
   check('admin: não carrega o jogo', !(await admin.$('.app-header')));
   check('admin: chaves sem scroll horizontal no celular', (await overflowX(admin)) <= 0);
   await admin.click('.admin-tabs .mode-option:nth-child(2)');

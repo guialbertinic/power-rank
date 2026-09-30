@@ -7,7 +7,7 @@ export const isLocalRequest = (request: Request) => ['localhost', '127.0.0.1'].i
 
 // ---------- Limite de requisições ----------
 
-type Limiter = 'RL_AUTH' | 'RL_PLAY' | 'RL_CASINO';
+type Limiter = 'RL_AUTH' | 'RL_PLAY' | 'RL_CASINO' | 'RL_PLINKO';
 
 /** Rotas limitadas por IP e qual limite usam (valores em wrangler.jsonc → ratelimits). */
 const RATE_LIMITED: Record<string, Limiter> = {
@@ -18,6 +18,7 @@ const RATE_LIMITED: Record<string, Limiter> = {
   'POST /api/scores': 'RL_PLAY',
   'POST /api/party': 'RL_PLAY',
   'POST /api/slots/spin': 'RL_CASINO',
+  'POST /api/plinko/drop': 'RL_PLINKO',
   'POST /api/gacha/open': 'RL_CASINO',
   'POST /api/shop/buy': 'RL_CASINO',
 };

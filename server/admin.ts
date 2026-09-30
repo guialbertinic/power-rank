@@ -127,7 +127,7 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 async function loadEconomy(env: Env): Promise<Economy> {
   const since = Date.now() - WEEK_MS;
   // Cada soma em duas colunas: tudo e só os últimos 7 dias (?1).
-  const [players, earned, granted, slots, pot, box, rarities, items] = await env.DB.batch<Record<string, number | string>>([
+  const [players, earned, granted, slots, pot, plinko, box, rarities, items] = await env.DB.batch<Record<string, number | string>>([
     env.DB.prepare(
       'SELECT COUNT(*) AS accounts, COALESCE(SUM(coins), 0) AS circulating, COALESCE(MAX(coins), 0) AS max, COALESCE(AVG(coins), 0) AS avg FROM players',
     ),
@@ -149,6 +149,13 @@ async function loadEconomy(env: Env): Promise<Economy> {
     ).bind(since),
     env.DB.prepare('SELECT amount_cents FROM casino_pot WHERE id = 1'),
     env.DB.prepare(
+      `SELECT COUNT(*) AS drops, COALESCE(SUM(bet), 0) AS bet, COALESCE(SUM(prize), 0) AS prize,
+              COALESCE(SUM(created_at >= ?1), 0) AS w_drops,
+              COALESCE(SUM(CASE WHEN created_at >= ?1 THEN bet END), 0) AS w_bet,
+              COALESCE(SUM(CASE WHEN created_at >= ?1 THEN prize END), 0) AS w_prize
+       FROM plinko_drops`,
+    ).bind(since),
+    env.DB.prepare(
       `SELECT COUNT(*) AS openings, COALESCE(SUM(price), 0) AS spent, COALESCE(SUM(refund), 0) AS refunded,
               COALESCE(SUM(created_at >= ?1), 0) AS w_openings,
               COALESCE(SUM(CASE WHEN created_at >= ?1 THEN price END), 0) AS w_spent,
@@ -162,6 +169,7 @@ async function loadEconomy(env: Env): Promise<Economy> {
   const n = (v: unknown) => Number(v ?? 0);
   const p = one(players);
   const s = one(slots);
+  const pl = one(plinko);
   const b = one(box);
   const rarityCount = new Map(rarities.results.map((r) => [r.rarity, n(r.count)]));
   return {
@@ -175,6 +183,10 @@ async function loadEconomy(env: Env): Promise<Economy> {
       total: { spins: n(s.spins), bet: n(s.bet), prize: n(s.prize), jackpots: n(s.jackpots) },
       week: { spins: n(s.w_spins), bet: n(s.w_bet), prize: n(s.w_prize), jackpots: n(s.w_jackpots) },
       pot: Math.floor(n(one(pot).amount_cents) / POT_CENTS),
+    },
+    plinko: {
+      total: { drops: n(pl.drops), bet: n(pl.bet), prize: n(pl.prize) },
+      week: { drops: n(pl.w_drops), bet: n(pl.w_bet), prize: n(pl.w_prize) },
     },
     box: {
       total: { openings: n(b.openings), spent: n(b.spent), refunded: n(b.refunded) },
@@ -236,6 +248,9 @@ async function loadAdminPlayer(env: Env, id: number): Promise<AdminPlayer | null
          (SELECT COUNT(*) FROM casino_spins WHERE player_id = ?1) AS spins,
          (SELECT COALESCE(SUM(bet), 0) FROM casino_spins WHERE player_id = ?1) AS bet,
          (SELECT COALESCE(SUM(prize), 0) FROM casino_spins WHERE player_id = ?1) AS prize,
+         (SELECT COUNT(*) FROM plinko_drops WHERE player_id = ?1) AS drops,
+         (SELECT COALESCE(SUM(bet), 0) FROM plinko_drops WHERE player_id = ?1) AS plinko_bet,
+         (SELECT COALESCE(SUM(prize), 0) FROM plinko_drops WHERE player_id = ?1) AS plinko_prize,
          (SELECT COUNT(*) FROM gacha_openings WHERE player_id = ?1) AS openings,
          (SELECT COALESCE(SUM(price), 0) FROM gacha_openings WHERE player_id = ?1) AS spent,
          (SELECT COALESCE(SUM(refund), 0) FROM gacha_openings WHERE player_id = ?1) AS refunded`,
@@ -257,6 +272,7 @@ async function loadAdminPlayer(env: Env, id: number): Promise<AdminPlayer | null
     games: c.games,
     earned: c.earned,
     slots: { spins: c.spins, bet: c.bet, prize: c.prize },
+    plinko: { drops: c.drops, bet: c.plinko_bet, prize: c.plinko_prize },
     box: { openings: c.openings, spent: c.spent, refunded: c.refunded },
     recentScores: scores.results.map((s) => ({
       mode: String(s.mode),

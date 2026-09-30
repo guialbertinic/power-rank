@@ -1,4 +1,4 @@
-# Arcade: caça-níquel e Mystery Box
+# Arcade: caça-níquel, Plinko e Mystery Box
 
 Parte da skill `loja`. As regras de moedas (débito/crédito seguros) estão no SKILL.md.
 
@@ -17,3 +17,9 @@ Símbolos: os tiers SS … D, desenhados em CSS pelo `CasinoIcon` (cores dos tok
 arte de franquia aqui, por direitos autorais). Mudou o número de símbolos? Recalibre pesos e multiplicadores (o teste de retorno
 enumera todas as combinações). O pote é compartilhado: em teste, não assuma que só o
 teste está jogando.
+
+## Plinko
+
+Tabela em `src/game/plinko.ts` (`HALF_TENTHS`, décimos, da ponta ao meio) + `plinko.test.ts` (retorno exato de
+cada risco, 93–96%). Mexeu na tabela? Rode `npm test` e atualize a cópia em `e2e/api.mjs` (seção Plinko).
+Detalhes em `docs/ARQUITETURA.md` → "Plinko".

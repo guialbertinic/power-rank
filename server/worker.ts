@@ -7,6 +7,7 @@ import { openBox } from './gacha';
 import { json, type Env } from './lib';
 import { connectParty, createParty } from './party';
 import { claimPlayer, playerStatus, renamePlayer, setPassword } from './players';
+import { drop } from './plinko';
 import { buyItem, confirmAdult, equipItem, getProfile } from './profile';
 import { getLeaderboard, submitScore } from './scores';
 import { getConfig, rateLimit } from './security';
@@ -44,6 +45,8 @@ export default {
           return await getCasino(env);
         case 'POST /api/slots/spin':
           return await spin(request, env);
+        case 'POST /api/plinko/drop':
+          return await drop(request, env);
         case 'POST /api/gacha/open':
           return await openBox(request, env);
         case 'POST /api/games':

@@ -6,6 +6,7 @@ import { serverText, useI18n } from '../i18n';
 import type { Identity } from '../nick';
 import { LegalLink } from './Legal';
 import MysteryBox from './MysteryBox';
+import PlinkoBoard from './PlinkoBoard';
 import SlotMachine from './SlotMachine';
 
 interface Props {
@@ -19,12 +20,13 @@ interface Props {
 /** Minigames na ordem das abas; cada um tem a sua chave (feature flag) no banco. */
 const GAMES: { id: FeatureId; label: string }[] = [
   { id: 'slots', label: 'Slots' },
+  { id: 'plinko', label: 'Plinko' },
   { id: 'mystery_box', label: 'Mystery Box' },
 ];
 
 /**
  * Arcade (só contas): abas com os minigames ligados. Cada jogo é uma "máquina" (gabinete .casino).
- * Só para maiores de 18: a conta declara uma vez (o servidor também recusa giros e caixas sem a declaração).
+ * Só para maiores de 18: a conta declara uma vez (o servidor também recusa giros, bolinhas e caixas sem a declaração).
  */
 export default function ArcadeScreen(props: Props) {
   const games = GAMES.filter((g) => props.features[g.id]);
@@ -48,7 +50,13 @@ export default function ArcadeScreen(props: Props) {
           </button>
         ))}
       </div>
-      {game === 'slots' ? <SlotMachine {...props} /> : <MysteryBox {...props} />}
+      {game === 'slots' ? (
+        <SlotMachine {...props} />
+      ) : game === 'plinko' ? (
+        <PlinkoBoard {...props} />
+      ) : (
+        <MysteryBox {...props} />
+      )}
     </div>
   );
 }

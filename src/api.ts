@@ -2,6 +2,7 @@ import type { Outcome, SymbolId } from './game/casino';
 import type { CosmeticSlot, Look, Profile } from './game/cosmetics';
 import type { Features } from './game/features';
 import type { Rarity } from './game/gacha';
+import type { Risk } from './game/plinko';
 import type { Mode } from './game/modes';
 import type { CharacterInfo } from './game/types';
 
@@ -235,6 +236,22 @@ export function fetchCasino(): Promise<CasinoState> {
 /** Gira o caça-níquel: o servidor debita a aposta, sorteia e credita o prêmio. */
 export function spinCasino(token: string, bet: number): Promise<SpinResult> {
   return request('/api/slots/spin', { method: 'POST', body: JSON.stringify({ token, bet }) });
+}
+
+export interface PlinkoDrop {
+  /** Uma direção por fileira (0 = esquerda, 1 = direita). */
+  path: (0 | 1)[];
+  slot: number;
+  /** Em décimos (16 = 1,6×). */
+  multiplier: number;
+  prize: number;
+  /** Saldo depois da bolinha (aposta e prêmio já contados). */
+  coins: number;
+}
+
+/** Solta uma bolinha do Plinko: o servidor debita a aposta, sorteia o caminho e credita o prêmio. */
+export function dropPlinko(token: string, bet: number, risk: Risk): Promise<PlinkoDrop> {
+  return request('/api/plinko/drop', { method: 'POST', body: JSON.stringify({ token, bet, risk }) });
 }
 
 export async function fetchLeaderboard(mode: Mode, period: Period): Promise<LeaderboardEntry[]> {

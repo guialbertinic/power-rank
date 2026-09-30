@@ -222,6 +222,24 @@ export const en: Record<Key, string> = {
   'slots.last': 'Last:',
   'slots.lastOn': 'on {date}',
 
+  // Arcade: Plinko
+  'plinko.helpAria': 'How Plinko works',
+  'plinko.helpRules':
+    'The ball bounces through {rows} rows of pegs, left or right, and lands in a slot: the prize is your bet times the slot’s number. The middle slots are the most common; the edges, the rarest. Risk changes the numbers.',
+  'plinko.chance': 'Chance',
+  'plinko.helpRound':
+    'Bet from {min} to {max}. Fractional prizes become whole coins by a draw: 1.6 pays 2 coins 60% of the time and 1 otherwise.',
+  'plinko.helpReturn': 'On average, about 95% of what is bet comes back, at any risk. Coins have no real-money value.',
+  'plinko.risk': 'Risk',
+  'plinko.risk.low': 'Low',
+  'plinko.risk.medium': 'Medium',
+  'plinko.risk.high': 'High',
+  'plinko.drop': 'Drop',
+  'plinko.falling': 'Falling...',
+  'plinko.result': '+{prize}',
+  'plinko.history': 'Last balls',
+  'plinko.boardAria': 'Plinko board',
+
   // Arcade: Mystery Box
   'box.helpAria': 'How the Mystery Box works',
   'box.rarity': 'Rarity',
@@ -262,6 +280,7 @@ export const en: Record<Key, string> = {
   'admin.tab.players': 'Players',
   'admin.tab.actions': 'Log',
   'admin.feature.slots': 'Slot machine',
+  'admin.feature.plinko': 'Plinko',
   'admin.feature.mystery_box': 'Mystery Box',
   'admin.features.hint': 'When off, the minigame disappears from the Arcade and the server refuses plays. The server applies it right away; the screen, when the player returns home.',
   'admin.features.updated': 'Changed on {date}',
@@ -280,6 +299,9 @@ export const en: Record<Key, string> = {
   'admin.economy.earned': 'Earned in matches',
   'admin.economy.granted': 'Given by admins',
   'admin.economy.slotsNet': 'Slot machine (paid − bet)',
+  'admin.economy.plinkoNet': 'Plinko (paid − bet)',
+  'admin.economy.drops': 'Balls',
+  'admin.economy.plinkoRtpHint': 'expected return ≈ 95% at any risk',
   'admin.economy.boxNet': 'Mystery Box (refunded − spent)',
   'admin.economy.spins': 'Spins',
   'admin.economy.bet': 'Bet',
@@ -313,6 +335,7 @@ export const en: Record<Key, string> = {
   'admin.player.items': 'Items',
   'admin.player.devices': 'Signed-in devices',
   'admin.player.slots': '{spins} spins · bet {bet} · won {prize}',
+  'admin.player.plinko': '{drops} balls · bet {bet} · won {prize}',
   'admin.player.box': '{openings} boxes · spent {spent} · got {refunded} back',
   'admin.player.coinsTitle': 'Adjust coins',
   'admin.player.delta': 'Amount (negative removes)',

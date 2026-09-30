@@ -7,6 +7,8 @@ export interface Env {
   RL_AUTH?: RateLimit;
   RL_PLAY?: RateLimit;
   RL_CASINO?: RateLimit;
+  /** Plinko: bolinhas em sequência rápida, limite próprio (maior que o do caça-níquel). */
+  RL_PLINKO?: RateLimit;
   /** Cloudflare Turnstile (anti-bot na criação de conta). Sem as duas, fica desligado. */
   TURNSTILE_SITE_KEY?: string;
   TURNSTILE_SECRET?: string;

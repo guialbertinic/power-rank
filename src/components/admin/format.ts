@@ -19,6 +19,7 @@ export const errorText = (err: unknown, lang: Lang) => serverText(err instanceof
 
 export const FEATURE_LABEL: Record<FeatureId, Key> = {
   slots: 'admin.feature.slots',
+  plinko: 'admin.feature.plinko',
   mystery_box: 'admin.feature.mystery_box',
 };
 
