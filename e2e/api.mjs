@@ -25,8 +25,7 @@ await ensureServer();
 cleanTestData();
 
 // ---------- Catálogo sem power ----------
-section('Catálogo');
-{
+if (section('Catálogo')) {
   const catalog = await get('/characters');
   check('catálogo público tem os personagens', Array.isArray(catalog) && catalog.length >= 100, `${catalog.length}`);
   check('catálogo público não tem power', !catalog.some((c) => 'power' in c));
@@ -42,8 +41,7 @@ section('Catálogo');
 }
 
 // ---------- Segurança ----------
-section('Segurança');
-{
+if (section('Segurança')) {
   const noBot = await post('/players', { name: nick('SemTurnstile'), password: PASSWORD });
   check('conta nova sem anti-bot é recusada (403)', noBot.status === 403 && noBot.data.code === 'turnstile');
   const rude = await post('/players', { name: 'E2eFuck', password: PASSWORD, turnstile: TURNSTILE_TEST_TOKEN });
@@ -76,8 +74,7 @@ section('Segurança');
 }
 
 // ---------- Conta e convidado ----------
-section('Conta e convidado');
-{
+if (section('Conta e convidado')) {
   const guest = nick('Convidado');
   check('nick livre: não existe', (await get(`/players/status?name=${guest}`)).exists === false);
   const guestResult = await playSolo({ name: guest }, 'perfect');
@@ -129,8 +126,7 @@ section('Conta e convidado');
 }
 
 // ---------- Trocar nick ----------
-section('Trocar nick');
-{
+if (section('Trocar nick')) {
   const acc = await player('Renome');
   await playSolo(acc, 'perfect');
   const other = await player('Ocupado');
@@ -153,8 +149,7 @@ section('Trocar nick');
 }
 
 // ---------- Economia e loja ----------
-section('Economia e loja');
-{
+if (section('Economia e loja')) {
   const me = await player('Loja');
   const bad = await playSolo(me, 'reversed');
   check('abaixo de 500 não paga', bad.coinsEarned === 0, `${bad.score} pts`);
@@ -192,8 +187,7 @@ section('Economia e loja');
 }
 
 // ---------- Ranking: Hoje e Acumulado ----------
-section('Ranking');
-{
+if (section('Ranking')) {
   const slow = await player('Lento');
   const fast = await player('Rapido');
   const first = await playSolo(slow, 'perfect');
@@ -225,8 +219,7 @@ section('Ranking');
 }
 
 // ---------- Cassino ----------
-section('Cassino');
-{
+if (section('Cassino')) {
   const me = await player('Cassino');
   check('convidado não joga (401)', (await post('/casino/spin', { bet: 1 })).status === 401);
   const underage = await post('/casino/spin', { ...me, bet: 1 });
@@ -271,8 +264,7 @@ section('Cassino');
 }
 
 // ---------- Mystery Box ----------
-section('Mystery Box');
-{
+if (section('Mystery Box')) {
   const me = await player('Gacha');
   check('convidado não abre caixa (401)', (await post('/gacha/open', {})).status === 401);
   check('sem declarar 18+: 403', (await post('/gacha/open', me)).status === 403);
@@ -302,8 +294,7 @@ section('Mystery Box');
 }
 
 // ---------- Party ----------
-section('Party');
-{
+if (section('Party')) {
   const host = await player('Host');
   const guest = await player('Guest');
   const { data: created } = await post('/party', { mode: 'anime', pid: 'e2e-host-pid-01' });

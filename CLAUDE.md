@@ -25,7 +25,7 @@ Node 24. No PowerShell do usuário: `npm.cmd`/`npx.cmd`.
 npm run dev            # front + API + D1 local em http://localhost:5173 (revisão da base: /?review)
 npm run build          # typecheck (front + server) + build
 npm test               # unitários (src/game)
-npm run e2e:api        # e2e sem navegador (precisa do dev rodando)
+npm run e2e:api        # e2e sem navegador (precisa do dev rodando); -- cassino party = só essas seções
 npm run e2e:ui         # e2e com Edge headless (sem screenshots)
 npm run e2e:csp        # CSP no build de produção (precisa de: npm run build + npx vite preview --port 4173)
 npm run validate       # valida data/characters.json

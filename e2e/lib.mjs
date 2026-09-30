@@ -24,21 +24,48 @@ export const nick = (name) => `E2e${name}`;
 
 // ---------- Resultado ----------
 
-let failures = 0;
+// Saída curta por padrão (economiza tokens): só as falhas, com o nome da seção, e o resumo.
+// `--verbose` mostra também os ✓. Os outros argumentos filtram seções pelo nome (parte do nome, sem diferenciar
+// maiúsculas): `npm run e2e:api -- cassino party`. Só o e2e:api usa o filtro (seções independentes, `if (section())`).
+const args = process.argv.slice(2);
+const VERBOSE = args.includes('--verbose');
+const ONLY = args.filter((a) => !a.startsWith('--')).map((a) => a.toLowerCase());
 
+let failures = 0;
+let passed = 0;
+let current = '';
+let headerShown = false;
+
+function showHeader() {
+  if (headerShown || !current) return;
+  console.log(`\n— ${current}`);
+  headerShown = true;
+}
+
+/** Começa uma seção. Devolve false se ela ficou de fora do filtro (use `if (section('X')) { ... }`). */
 export function section(title) {
-  console.log(`\n— ${title}`);
+  current = title;
+  headerShown = false;
+  const selected = !ONLY.length || ONLY.some((term) => title.toLowerCase().includes(term));
+  if (selected && VERBOSE) showHeader();
+  return selected;
 }
 
 export function check(label, ok, extra = '') {
-  if (!ok) failures++;
+  if (ok) passed++;
+  else failures++;
+  if (ok && !VERBOSE) return;
+  showHeader();
   console.log(`${ok ? '✓' : '✗'} ${label}${extra ? ` — ${extra}` : ''}`);
 }
 
 /** Limpa o banco de teste e sai com código 1 se algo falhou. */
 export function finish() {
   cleanTestData();
-  console.log(failures ? `\n${failures} falha(s)` : '\nTudo certo');
+  const filter = ONLY.length ? ` (só: ${ONLY.join(', ')})` : '';
+  console.log(
+    failures ? `\n${failures} falha(s), ${passed} ok${filter}` : `\nTudo certo: ${passed} checagens${filter}`,
+  );
   process.exit(failures ? 1 : 0);
 }
 
