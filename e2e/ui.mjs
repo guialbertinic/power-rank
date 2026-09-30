@@ -49,14 +49,20 @@ try {
     return { right: Math.round(document.documentElement.clientWidth - r.right), top: Math.round(r.top) };
   });
   check('barra de perfil no canto superior direito', bar.right <= 20 && bar.top <= 20, JSON.stringify(bar));
-  await ana.waitForSelector('.btn-daily:not([disabled])');
   const centers = await ana.evaluate(() =>
-    ['.play-buttons', '.daily-entry', '.leaderboard'].map((s) => {
+    ['.play-setup', '.leaderboard'].map((s) => {
       const r = document.querySelector(s).getBoundingClientRect();
       return Math.round(r.left + r.width / 2 - document.documentElement.clientWidth / 2);
     }),
   );
-  check('SOLO/PARTY, desafio diário e ranking centralizados', centers.every((c) => Math.abs(c) <= 2), centers.join(', '));
+  const [title, categories, modes] = await ana.evaluate(() =>
+    ['.app-header h1', '.mode-picker', '.play-buttons'].map((s) => {
+      const r = document.querySelector(s).getBoundingClientRect();
+      return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
+    }),
+  );
+  check('título, categorias e SOLO/PARTY nessa ordem', title.bottom <= categories.top && categories.bottom <= modes.top);
+  check('modos, SOLO/PARTY e ranking centralizados', centers.every((c) => Math.abs(c) <= 2), centers.join(', '));
 
   // ---------- Idioma ----------
   section('Idioma');
@@ -211,13 +217,23 @@ try {
   await bruno.waitForSelector('.sync-panel ::-p-text(Conta pronta)');
   check('convidado cria a conta pelo menu', Boolean(await bruno.$('.profile-bar .coins')) && !(await bruno.$('.profile-guest')));
   await bruno.keyboard.press('Escape');
+  // Celular: a faixa tem só nick e saldo (sem sobrepor); Loja e Cassino abrem na sanfona.
+  const rect = (sel) => bruno.$eval(sel, (el) => el.getBoundingClientRect().toJSON());
+  const me = await rect('.profile-bar-me');
+  const coins = await rect('.profile-bar .coins');
+  const shopHidden = !(await bruno.$eval('.profile-bar-actions .btn', (el) => el.offsetParent));
+  check('celular: nick não fica atrás do saldo, Loja fora da faixa', me.right <= coins.left && shopHidden);
+  await bruno.click('.profile-bar-me');
+  await bruno.waitForSelector('.profile-menu-actions ::-p-text(Loja)', { visible: true });
+  check('celular: menu abre como sanfona, com Loja e Cassino', (await bruno.$eval('.profile-menu', (el) => getComputedStyle(el).position)) === 'static');
+  await bruno.keyboard.press('Escape');
 
   // Ana força a sincronização depois de uma mudança feita "em outro dispositivo".
   d1(`UPDATE players SET coins = 777 WHERE name_key = '${nick('ana').toLowerCase()}'`);
   await ana.click('.profile-bar-me');
   await (await ana.waitForSelector('.profile-menu ::-p-text(Sincronizar dispositivo)')).click();
   await ana.click('.sync-force .btn');
-  await ana.waitForSelector('.sync-force ::-p-text(Pronto)');
+  await ana.waitForSelector('.sync-force ::-p-text(Sincronizado)');
   check('forçar sincronização traz o saldo do servidor', (await text(ana, '.profile-bar .coins')) === '777');
   await ana.keyboard.press('Escape');
 
@@ -246,6 +262,11 @@ try {
   await ana.click('.play-buttons .btn-primary');
   await placeAll(ana);
   await ana.waitForSelector('.coins-earned');
+  // A primeira partida do dia na categoria é o Desafio Diário.
+  check('1ª partida do dia é o desafio', (await text(ana, '.title-eyebrow')) === 'Desafio diário · Animes');
+  check('resultado mostra a posição no desafio', /^Desafio diário · #\d+$/.test((await text(ana, '.ranking-status')) ?? ''));
+  check('ranking abre na aba Desafio', (await text(ana, '.leaderboard-periods [aria-selected="true"]')) === 'Desafio');
+  check('desafio tem "Jogar de novo"', Boolean(await ana.$('.score-actions .btn-primary')));
   await sleep(1000);
   check('resultado mostra moedas (ou o aviso de 500+)', /^\+\d+$|500\+/.test((await text(ana, '.coins-earned')) ?? ''));
   check('resultado solo sem valores de poder', !(await ana.$('.row-power')));
@@ -306,24 +327,16 @@ try {
   check('aba Acumulado mostra os dias', true);
   await ana.click('.leaderboard-periods button:nth-child(1)');
   await ana.click('.leaderboard-help-toggle');
-  check('"?" explica o desempate e o acumulado', /menos tempo/.test((await text(ana, '.leaderboard-help')) ?? ''));
+  check('"?" explica o desempate e o acumulado', /mais rápido/.test((await text(ana, '.leaderboard-help')) ?? ''));
   await ana.click('.leaderboard-help-toggle');
 
   // ---------- Desafio diário ----------
   section('Desafio diário');
   await ana.click('.home-button');
-  await (await ana.waitForSelector('.btn-daily:not([disabled])')).click();
-  await placeAll(ana);
-  await ana.waitForSelector('.coins-earned');
-  check('título mostra o desafio', (await text(ana, '.title-eyebrow')) === 'Desafio diário');
-  check('resultado do desafio sem "Jogar de novo"', !(await ana.$('.score-actions')));
-  check('resultado mostra a posição no desafio', /no Desafio Diário/.test((await text(ana, '.ranking-status')) ?? ''));
-  await ana.waitForSelector('.leaderboard .section-title ::-p-text(Desafio diário)');
-  check('ranking abre na aba Desafio', (await text(ana, '.leaderboard-periods [aria-selected="true"]')) === 'Desafio');
+  await (await ana.waitForSelector('.play-buttons .btn-primary:not([disabled])')).click();
+  await ana.waitForSelector('.title-eyebrow');
+  check('2ª partida do dia já é normal', (await text(ana, '.title-eyebrow')) === 'Animes');
   await ana.click('.home-button');
-  // Trava na hora; a pontuação chega com o status do servidor.
-  await ana.waitForSelector('.btn-daily[disabled] ::-p-text(pts)', { timeout: 5000 });
-  check('na home, o desafio fica travado com a pontuação', true);
 
   // ---------- Cassino ----------
   section('Cassino');

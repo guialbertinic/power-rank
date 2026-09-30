@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
-import { ApiError, createGame, createParty, fetchDaily, fetchProfile, type DailyStatus } from './api';
+import { ApiError, createGame, createParty, fetchProfile } from './api';
 import type { Profile } from './game/cosmetics';
 import { MODES, poolFor, type Mode } from './game/modes';
 import { isPartyCode } from './game/party';
@@ -10,7 +10,6 @@ import { clearIdentity, forgetToken, loadIdentity, loadMode, saveIdentity, saveM
 import { clearCodeFromUrl, codeFromUrl, newPid, partyPid, rememberPartyPid } from './party/session';
 import { preloadImages } from './ui/fallback';
 import IntroScreen from './components/IntroScreen';
-import ModePicker from './components/ModePicker';
 import ProfileBar from './components/ProfileBar';
 import NickScreen from './components/NickScreen';
 import PartyScreen from './components/party/PartyScreen';
@@ -20,7 +19,7 @@ import ShopScreen from './components/ShopScreen';
 import CasinoScreen from './components/CasinoScreen';
 import SettingsMenu from './components/SettingsMenu';
 import { LegalLink, LegalProvider } from './components/Legal';
-import { I18nProvider, useI18n } from './i18n';
+import { dailyLabel, I18nProvider, useI18n } from './i18n';
 
 // Tela de revisão da base (http://localhost:5173/?review). Só existe em dev: sai do build de produção.
 const ReviewScreen = import.meta.env.DEV ? lazy(() => import('./components/ReviewScreen')) : null;
@@ -41,7 +40,7 @@ type State =
   | {
       phase: 'playing';
       mode: Mode;
-      /** Partida do Desafio Diário. */
+      /** Partida do Desafio Diário (a primeira do dia na categoria). */
       daily: boolean;
       gameId: string;
       drawn: CharacterInfo[];
@@ -111,15 +110,14 @@ function initialState(identity: Identity | null): State {
 async function newGame(
   identity: Identity,
   mode: Mode,
-  daily = false,
-): Promise<{ gameId: string; drawn: CharacterInfo[] } | 'unauthorized' | { error: string }> {
-  const game = await createGame(identity.name, identity.token, mode, daily);
+): Promise<{ gameId: string; drawn: CharacterInfo[]; daily: boolean } | 'unauthorized' | { error: string }> {
+  const game = await createGame(identity.name, identity.token, mode);
   if (game === 'unauthorized') return game;
   if (!game) return { error: 'Sem conexão com o servidor. Tente de novo.' }; // traduzido na tela (serverText)
   if ('error' in game) return game;
   rememberCharacters(game.characters);
   await preloadImages(game.characters);
-  return { gameId: game.gameId, drawn: game.characters };
+  return { gameId: game.gameId, drawn: game.characters, daily: game.daily };
 }
 
 const isModeAvailable = (mode: Mode) => poolFor(mode, POOL).length >= SLOTS;
@@ -137,7 +135,6 @@ function Game() {
   const [partyError, setPartyError] = useState<string | null>(null);
   const [soloError, setSoloError] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [daily, setDaily] = useState<DailyStatus | null>(null);
 
   /** Trocou o nick, criou a conta ou o nick da conta mudou em outro dispositivo. */
   const changeIdentity = (next: Identity) => {
@@ -181,23 +178,6 @@ function Game() {
     };
   }, [name, token, state.phase]);
 
-  // Desafio Diário: se o jogador ainda pode jogar hoje, conferido ao voltar para a home (vale também para o
-  // convidado). Sem conexão, o botão não aparece.
-  useEffect(() => {
-    if (!name || state.phase !== 'intro') return;
-    let cancelled = false;
-    fetchDaily(name, token ?? null)
-      .then((d) => {
-        if (!cancelled) setDaily(d);
-      })
-      .catch(() => {
-        if (!cancelled) setDaily(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [name, token, state.phase]);
-
   /** Forçar sincronização: busca de novo o perfil (ex: o jogador comprou algo em outro dispositivo). */
   const refreshProfile = async () => {
     if (!name || !token) return;
@@ -228,24 +208,20 @@ function Game() {
     }
   };
 
-  const start = async (asDaily = false) => {
+  const start = async () => {
     if (!identity) return dispatch({ type: 'nick' });
-    const gameMode = asDaily && daily ? daily.mode : mode;
     setStarting(true);
     try {
-      const game = await newGame(identity, gameMode, asDaily);
+      const game = await newGame(identity, mode);
       if (game === 'unauthorized') {
         // Convidado cujo nick virou conta de outra pessoa, ou token que deixou de valer.
         const reason = identity.token ? t('app.confirmNick') : t('app.nickNowAccount');
         dispatch({ type: 'nick', reason });
       } else if ('error' in game) {
         setSoloError(game.error);
-        // Já jogou o desafio (ex: em outra aba): trava o botão.
-        if (asDaily && daily) setDaily({ ...daily, done: true });
       } else {
         setSoloError(null);
-        if (asDaily && daily) setDaily({ ...daily, done: true, score: null });
-        dispatch({ type: 'start', mode: gameMode, daily: asDaily, ...game });
+        dispatch({ type: 'start', mode, ...game });
       }
     } finally {
       setStarting(false);
@@ -275,7 +251,7 @@ function Game() {
   const isHome = state.phase === 'intro' || state.phase === 'nick';
   const eyebrow =
     (state.phase === 'playing' || state.phase === 'result') && state.daily
-      ? t('intro.daily')
+      ? dailyLabel(t, state.mode, true)
       : state.phase === 'party'
       ? 'Party'
       : state.phase === 'shop'
@@ -300,10 +276,7 @@ function Game() {
       )}
       <SettingsMenu />
       <header className={`app-header${isHome && !showReview ? ' hero' : ''}`}>
-        {/* Na home o seletor de categoria fica no título; nas outras telas, só o nome da categoria/modo. */}
-        {state.phase === 'intro' && !showReview && (
-          <ModePicker mode={mode} onChange={changeMode} isAvailable={isModeAvailable} disabled={starting} />
-        )}
+        {/* Fora da home, o nome da categoria/modo acima do título (na home, o seletor fica na IntroScreen). */}
         {!isHome && <span className="title-eyebrow">{eyebrow}</span>}
         <h1>
           <span className="title-main">
@@ -329,11 +302,10 @@ function Game() {
         <IntroScreen
           identity={identity}
           mode={mode}
-          canStart={isModeAvailable(mode)}
+          onModeChange={changeMode}
+          isModeAvailable={isModeAvailable}
           busy={starting}
           onSolo={() => start()}
-          daily={daily}
-          onDaily={() => start(true)}
           onCreateParty={createRoom}
           onJoinParty={joinRoom}
           partyError={partyError}

@@ -25,7 +25,6 @@ const EXACT_EN: Record<string, string> = {
   'Partida inexistente, expirada ou já enviada': 'Game not found, expired or already submitted',
   'Partida rápida demais para valer.': 'Game too fast to count.',
   'Personagem desconhecido': 'Unknown character',
-  'Você já jogou o desafio de hoje.': 'You already played today’s challenge.',
   'Desafio de hoje indisponível': 'Today’s challenge is unavailable',
   'Sem conexão com o servidor. Tente de novo.': 'No connection to the server. Try again.',
   // Party

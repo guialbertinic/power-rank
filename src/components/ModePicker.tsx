@@ -9,7 +9,7 @@ interface Props {
   disabled?: boolean;
 }
 
-/** Seletor de categoria (Animes / Games / Free for All), exibido no título da tela inicial. */
+/** Seletor de categoria (Animes / Games / Free for All), exibido na home, acima de Solo/Party (na tela, "Modo"). */
 export default function ModePicker({ mode, onChange, isAvailable, disabled }: Props) {
   const { t } = useI18n();
   return (

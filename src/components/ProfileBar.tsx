@@ -26,6 +26,7 @@ interface Props {
 /**
  * Canto superior direito da home: quem está jogando, saldo e loja. "Trocar nick", "Sincronizar dispositivo" e
  * sair/entrar numa conta ficam num menu que abre ao tocar no nick (são usados raramente).
+ * No celular a faixa mostra só o nick e o saldo; Loja e Cassino vão para o menu, que abre como sanfona.
  */
 export default function ProfileBar({ identity, profile, onOpenShop, onOpenCasino, onIdentityChange, onLeave, onRefresh, disabled }: Props) {
   const { t } = useI18n();
@@ -47,6 +48,17 @@ export default function ProfileBar({ identity, profile, onOpenShop, onOpenCasino
     };
   }, [menuOpen]);
 
+  const actions = (
+    <>
+      <button className="btn btn-secondary btn-sm" onClick={onOpenShop} disabled={disabled}>
+        {t('profile.shop')}
+      </button>
+      <button className="btn btn-secondary btn-sm" onClick={onOpenCasino} disabled={disabled}>
+        {t('profile.casino')}
+      </button>
+    </>
+  );
+
   return (
     <div className="profile-bar" ref={ref}>
       <button
@@ -65,17 +77,13 @@ export default function ProfileBar({ identity, profile, onOpenShop, onOpenCasino
       {profile && (
         <>
           <Coins amount={profile.coins} />
-          <button className="btn btn-secondary btn-sm" onClick={onOpenShop} disabled={disabled}>
-            {t('profile.shop')}
-          </button>
-          <button className="btn btn-secondary btn-sm" onClick={onOpenCasino} disabled={disabled}>
-            {t('profile.casino')}
-          </button>
+          <div className="profile-bar-actions">{actions}</div>
         </>
       )}
 
       {menuOpen && (
         <div className="panel profile-menu" role="menu">
+          {profile && <div className="profile-menu-actions">{actions}</div>}
           <ChangeNick identity={identity} onChanged={onIdentityChange} />
           <SyncDevice identity={identity} profile={profile} onRefresh={onRefresh} onAccountCreated={onIdentityChange} />
           {profile && !profile.hasPassword && profile.coins > 0 && (

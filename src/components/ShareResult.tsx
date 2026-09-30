@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MODES, type Mode } from '../game/modes';
+import type { Mode } from '../game/modes';
 import { MAX_SCORE, rankLevel, scoreGame, withRanks } from '../game/scoring';
 import type { CharacterInfo } from '../game/types';
-import { useI18n } from '../i18n';
+import { dailyLabel, useI18n } from '../i18n';
 import { HIT_EMOJI, hitLevel } from '../ui/hits';
 import { renderShareImage } from '../ui/shareImage';
 
@@ -12,7 +12,7 @@ interface Props {
   slots: CharacterInfo[];
   ranks: Record<string, number>;
   score: number;
-  /** Partida do Desafio Diário: aparece como "Desafio diário" no lugar da categoria. */
+  /** Partida do Desafio Diário: aparece como "Desafio diário · <categoria>". */
   daily?: boolean;
 }
 
@@ -30,7 +30,7 @@ export default function ShareResult({ mode, nick, slots, ranks, score, daily = f
   const [imageFailed, setImageFailed] = useState(false);
   const [copy, setCopy] = useState<CopyState>('idle');
 
-  const modeLabel = daily ? t('intro.daily') : (MODES.find((m) => m.id === mode)?.label ?? '');
+  const modeLabel = dailyLabel(t, mode, daily);
   const rows = useMemo(() => {
     const { results } = scoreGame(withRanks(slots, ranks));
     return results.map((r) => ({

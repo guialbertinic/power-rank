@@ -164,13 +164,9 @@ export default function SyncDevice({ identity, profile, onRefresh, onAccountCrea
           >
             {t('sync.force')}
           </button>
-          <p className="muted sync-note">
-            {sync === 'done'
-              ? t('sync.done')
-              : sync === 'error'
-                ? t('sync.error')
-                : t('sync.hint')}
-          </p>
+          {(sync === 'done' || sync === 'error') && (
+            <p className="muted sync-note">{sync === 'done' ? t('sync.done') : t('sync.error')}</p>
+          )}
         </div>
       )}
 

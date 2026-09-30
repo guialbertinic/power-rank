@@ -49,12 +49,12 @@ const TOTAL = `
   ) GROUP BY player_id`;
 
 /**
- * "Desafio": a partida de cada conta no desafio do dia (uma só por conta). Empate: menor tempo, depois quem fez
- * primeiro. Parâmetro: dia (AAAA-MM-DD).
+ * "Desafio": a partida de cada conta no desafio do dia da categoria (uma só por conta). Empate: menor tempo, depois
+ * quem fez primeiro. Parâmetros: dia (AAAA-MM-DD), modo.
  */
 const DAILY = `
   SELECT player_id, score, duration_ms, created_at FROM scores
-  WHERE daily = ? AND player_id IS NOT NULL`;
+  WHERE daily = ? AND mode = ? AND player_id IS NOT NULL`;
 
 interface LeaderboardRow {
   name: string;
@@ -70,7 +70,7 @@ interface LeaderboardRow {
 /**
  * GET /api/scores?mode=anime&period=today|total|daily: top do ranking, uma linha por conta (com o nick atual e o
  * visual equipado). "today" e "daily" trazem o tempo da partida (`durationMs`); "total", quantos dias somaram
- * (`days`). "daily" é o Desafio Diário de hoje e ignora `mode`.
+ * (`days`). "daily" é o Desafio Diário de hoje da categoria.
  */
 export async function getLeaderboard(request: Request, env: Env): Promise<Response> {
   const params = new URL(request.url).searchParams;
@@ -89,7 +89,7 @@ export async function getLeaderboard(request: Request, env: Env): Promise<Respon
     period === 'today'
       ? env.DB.prepare(best(BEST_TODAY)).bind(mode, startOfToday(), LEADERBOARD_SIZE)
       : period === 'daily'
-        ? env.DB.prepare(best(DAILY)).bind(dayKey(), LEADERBOARD_SIZE)
+        ? env.DB.prepare(best(DAILY)).bind(dayKey(), mode, LEADERBOARD_SIZE)
         : env.DB.prepare(
           `SELECT ${look}, t.score, NULL AS duration_ms, t.days
            FROM (${TOTAL}) t JOIN players p ON p.id = t.player_id
@@ -202,7 +202,7 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
     const ahead = await env.DB.prepare(
       `SELECT COUNT(*) AS n FROM (${DAILY}) WHERE score > ? OR (score = ? AND ${SQL_DURATION} < ?)`,
     )
-      .bind(game.daily, total, total, durationMs)
+      .bind(game.daily, game.mode, total, total, durationMs)
       .first<{ n: number }>();
     return json({
       score: total,

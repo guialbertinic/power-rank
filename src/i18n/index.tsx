@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { en } from './en';
 import { pt, type Key } from './pt';
+import { MODES, type Mode } from '../game/modes';
 
 /**
  * Tradução da interface (português e inglês). O português (`pt.ts`) é a base; `en.ts` precisa ter todas as
@@ -37,6 +38,12 @@ export interface I18n {
   lang: Lang;
   setLang: (lang: Lang) => void;
   t: (key: Key, params?: Params) => string;
+}
+
+/** Nome da categoria; no Desafio Diário, "Desafio diário · <categoria>". */
+export function dailyLabel(t: I18n['t'], mode: Mode, daily: boolean): string {
+  const label = MODES.find((m) => m.id === mode)?.label ?? '';
+  return daily ? `${t('daily.label')} · ${label}` : label;
 }
 
 const I18nContext = createContext<I18n>({

@@ -21,11 +21,7 @@ export default function RankingStatus({ result }: { result: SubmitResult }) {
         <p className="ranking-status new-best">{t('result.dailyRank', { rank: `#${rank}` })}</p>
       )}
       {!daily && isNewBest && (
-        <p className="ranking-status new-best">
-          {t('result.newBestBefore')}
-          <strong>#{rank}</strong>
-          {t('result.newBestAfter')}
-        </p>
+        <p className="ranking-status new-best">{t('result.newBest', { rank: `#${rank}` })}</p>
       )}
     </>
   );

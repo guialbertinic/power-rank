@@ -4,20 +4,19 @@ import { badRequest, GAME_TTL_MS, json, sanitizeName, type Env } from './lib';
 import { playerAccess } from './players';
 import { nickProblem } from './security';
 import { drawCharacters } from '../src/game/draw';
-import { DEFAULT_MODE, isMode, poolFor, type Mode } from '../src/game/modes';
+import { DEFAULT_MODE, isMode, poolFor } from '../src/game/modes';
 import { SLOTS } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
 /**
- * POST /api/games: { name, token?, mode?, daily? } → sorteia uma partida para esse nick e devolve
- * { gameId, characterIds, characters } (characters = dados públicos dos sorteados, sem `power`).
+ * POST /api/games: { name, token?, mode? } → sorteia uma partida para esse nick e devolve
+ * { gameId, characterIds, characters, daily } (characters = dados públicos dos sorteados, sem `power`).
  * Nick de conta exige o token do dono; nick livre joga como convidado.
- * `daily: true`: o Desafio Diário (personagens do dia, categoria dele); uma tentativa por jogador (409 depois).
+ * A primeira partida do dia do jogador em cada categoria é o Desafio Diário dela (`daily: true`): os mesmos
+ * personagens para todos. As seguintes são sorteadas normalmente.
  */
 export async function createGame(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  const body = (await request.json().catch(() => null)) as
-    | { name?: unknown; token?: unknown; mode?: unknown; daily?: unknown }
-    | null;
+  const body = (await request.json().catch(() => null)) as { name?: unknown; token?: unknown; mode?: unknown } | null;
   const name = sanitizeName(body?.name);
   if (!name) return badRequest('Nick inválido');
   const access = await playerAccess(env, name, body?.token);
@@ -25,31 +24,23 @@ export async function createGame(request: Request, env: Env, ctx: ExecutionConte
   // Contas antigas mantêm o nick; convidado com nick ofensivo não joga.
   const problem = access.kind === 'guest' ? nickProblem(name) : null;
   if (problem) return badRequest(problem);
+  const mode = body?.mode ?? DEFAULT_MODE;
+  if (!isMode(mode)) return badRequest('Categoria inválida');
+  const { active, byId } = await loadCatalog(env);
+  const pool = poolFor(mode, active);
+  if (pool.length < SLOTS) return badRequest('Categoria ainda sem personagens suficientes');
   const gameId = crypto.randomUUID();
-  let mode: Mode;
-  let drawn: Character[];
+
+  // A tentativa do desafio é gasta ao começar: sair no meio não dá outra chance (a próxima partida é normal).
+  let drawn: Character[] | null = null;
   let daily: string | null = null;
-  if (body?.daily === true) {
-    const challenge = await dailyChallenge(env);
-    if (!challenge || !isMode(challenge.mode)) return badRequest('Desafio de hoje indisponível');
-    const { byId } = await loadCatalog(env);
-    const characters = challenge.characterIds.map((id) => byId.get(id));
-    if (characters.some((c) => !c)) return badRequest('Desafio de hoje indisponível');
-    // A tentativa é gasta ao começar: sair no meio e pedir de novo não dá uma segunda chance.
-    if (!(await claimDailyAttempt(env, challenge.day, access, gameId))) {
-      return json({ error: 'Você já jogou o desafio de hoje.', code: 'daily_done' }, { status: 409 });
-    }
-    mode = challenge.mode;
-    drawn = characters as Character[];
+  const challenge = await dailyChallenge(env, mode, active);
+  const challengeCharacters = challenge?.characterIds.map((id) => byId.get(id)) ?? [];
+  if (challenge && challengeCharacters.every(Boolean) && (await claimDailyAttempt(env, challenge.day, mode, access, gameId))) {
+    drawn = challengeCharacters as Character[];
     daily = challenge.day;
-  } else {
-    const requested = body?.mode ?? DEFAULT_MODE;
-    if (!isMode(requested)) return badRequest('Categoria inválida');
-    const pool = poolFor(requested, (await loadCatalog(env)).active);
-    if (pool.length < SLOTS) return badRequest('Categoria ainda sem personagens suficientes');
-    mode = requested;
-    drawn = drawCharacters(pool, SLOTS);
   }
+  drawn ??= drawCharacters(pool, SLOTS);
   const characterIds = drawn.map((c) => c.id);
   const now = Date.now();
 
@@ -67,5 +58,5 @@ export async function createGame(request: Request, env: Env, ctx: ExecutionConte
     );
   }
 
-  return json({ gameId, characterIds, characters: drawn.map(publicInfo) });
+  return json({ gameId, characterIds, characters: drawn.map(publicInfo), daily: daily !== null });
 }

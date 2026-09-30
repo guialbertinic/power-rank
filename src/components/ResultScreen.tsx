@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { submitScoreOnce, type SubmitResult } from '../api';
-import { MODES, type Mode } from '../game/modes';
+import type { Mode } from '../game/modes';
 import { MAX_SCORE, rankLevel } from '../game/scoring';
-import { serverText, useI18n } from '../i18n';
+import { dailyLabel, serverText, useI18n } from '../i18n';
 import type { CharacterInfo } from '../game/types';
 import Leaderboard from './Leaderboard';
 import RankingComparison from './RankingComparison';
@@ -14,7 +14,7 @@ interface Props {
   gameId: string;
   nick: string;
   slots: CharacterInfo[];
-  /** Partida do Desafio Diário: sem "Jogar de novo" (uma tentativa por dia) e com o ranking do desafio. */
+  /** Partida do Desafio Diário: abre o ranking do desafio (a próxima partida já é normal). */
   daily?: boolean;
   starting: boolean;
   onRestart: () => void;
@@ -54,7 +54,7 @@ export default function ResultScreen({ mode, gameId, nick, slots, daily = false,
     <section className="result">
       <div className="panel score-panel" aria-busy={!result}>
         <p className="score-label">
-          {t('result.scoreLabel', { mode: daily ? t('intro.daily') : (MODES.find((m) => m.id === mode)?.label ?? '') })}
+          {t('result.scoreLabel', { mode: dailyLabel(t, mode, daily) })}
         </p>
         {result ? (
           <>
@@ -70,13 +70,11 @@ export default function ResultScreen({ mode, gameId, nick, slots, daily = false,
         ) : (
           <p className="muted score-pending">{t('result.calculating')}</p>
         )}
-        {!daily && (
-          <div className="score-actions">
-            <button className="btn btn-primary" onClick={onRestart} disabled={starting} aria-busy={starting}>
-              {t('result.again')}
-            </button>
-          </div>
-        )}
+        <div className="score-actions">
+          <button className="btn btn-primary" onClick={onRestart} disabled={starting} aria-busy={starting}>
+            {t('result.again')}
+          </button>
+        </div>
         {result && (
           <ShareResult mode={mode} nick={nick} slots={slots} ranks={result.ranks} score={result.score} daily={daily} />
         )}

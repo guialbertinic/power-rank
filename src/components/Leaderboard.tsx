@@ -42,8 +42,8 @@ function detail(s: LeaderboardEntry, t: (key: Key, params?: Record<string, numbe
 
 /**
  * Ranking de um modo (cada categoria tem o seu), em abas: Hoje (melhor partida do dia; empate = menor
- * tempo), Acumulado (soma do melhor de cada dia) e Desafio (o Desafio Diário de hoje, igual em todas as
- * categorias). Os 3 primeiros num pódio, o resto em lista.
+ * tempo), Acumulado (soma do melhor de cada dia) e Desafio (o Desafio Diário de hoje da categoria).
+ * Os 3 primeiros num pódio, o resto em lista.
  */
 export default function Leaderboard({ mode, refreshKey = 0, highlight, initialPeriod = 'today' }: Props) {
   const { t, lang } = useI18n();
@@ -110,9 +110,7 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight, initialPe
     <div className="panel leaderboard">
       <div className="leaderboard-header">
         <h3 className="section-title">
-          {period === 'daily'
-            ? t('leaderboard.dailyTitle')
-            : t('leaderboard.title', { mode: MODES.find((m) => m.id === mode)?.label ?? '' })}
+          {t('leaderboard.title', { mode: MODES.find((m) => m.id === mode)?.label ?? '' })}
         </h3>
         <div className="leaderboard-periods" role="tablist">
           {PERIODS.map((p) => (
@@ -149,16 +147,7 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight, initialPe
           </p>
         </div>
       )}
-      {scores?.length === 0 && (
-        <p className="muted leaderboard-empty">
-          {period === 'today'
-            ? t('leaderboard.emptyToday')
-            : period === 'daily'
-              ? t('leaderboard.emptyDaily')
-              : t('leaderboard.empty')}{' '}
-          {t('leaderboard.beFirst')}
-        </p>
-      )}
+      {scores?.length === 0 && <p className="muted leaderboard-empty">{t('leaderboard.empty')}</p>}
       {/* Skeleton: pódio e posições aparecem sempre; pulsam enquanto carrega e ficam vazias se faltar jogador. */}
       <div className={loading ? 'leaderboard-loading' : undefined} aria-busy={loading}>
         <div className="podium leaderboard-podium" role="list" aria-label={t('podium.aria')}>

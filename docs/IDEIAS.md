@@ -37,7 +37,7 @@ A home vira um seletor de **modos**; cada modo tem suas **categorias**, seu rank
 | Modo | Categorias | Status |
 |---|---|---|
 | **Blind Power Ranking** (o jogo de hoje) | Animes, Games, Free for All; + Filmes, Séries | ✅ (3 categorias) / 💡 (novas) |
-| **Desafio Diário** | uma partida igual para todos, por dia (Free for All) | ✅ |
+| **Desafio Diário** | uma partida igual para todos, por dia e categoria | ✅ |
 | **Blind Rating Ranking** | Filmes, Séries, Games, Animes (por nota) | 💡 |
 | **Size Comparison** | Games, Séries, Animes | 💡 |
 | **Build Your Pokémon Team** | Pokémon | 💡 |
@@ -53,11 +53,10 @@ Pontos de arquitetura que valem para todos (decidir uma vez) — `Arquitetura` �
 
 ### ✅ Desafio Diário · `Feature` 🟡
 **Os mesmos 10 personagens (na mesma ordem) para todo mundo**, fixos no dia (meia-noite de Brasília).
-- Um desafio só por dia, de **Free for All**. Botão próprio na home, centralizado embaixo de Solo/Party; trava
-  depois da tentativa (mostra a pontuação) até o dia seguinte.
-- **Uma tentativa** por jogador, gasta ao começar. Convidado joga (por nick), mas não entra no ranking.
-- Ranking próprio (aba **Desafio**, desempate por tempo). O "Hoje" continua existindo; o resultado do desafio também
-  vale para o Hoje e o Acumulado do Free for All (se for o melhor do dia do jogador).
+- Um desafio por categoria, **implícito**: a primeira partida solo do dia na categoria é o desafio (sem botão).
+- **Uma tentativa** por jogador e categoria, gasta ao começar. Convidado joga (por nick), mas não entra no ranking.
+- Ranking próprio por categoria (aba **Desafio**, desempate por tempo). O resultado também vale para o Hoje e o
+  Acumulado da categoria (se for o melhor do dia do jogador).
 - 💡 Depois: "desafio de ontem" com o gabarito e a distribuição de pontuações; sequência de dias seguidos
   (conquista); link de desafio na party. Convidado pode repetir trocando de nick (aceitável por ora).
 

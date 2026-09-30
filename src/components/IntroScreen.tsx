@@ -1,22 +1,21 @@
 import { useState, type FormEvent } from 'react';
-import type { DailyStatus } from '../api';
 import type { Mode } from '../game/modes';
 import { isPartyCode, normalizePartyCode, PARTY_CODE_LENGTH } from '../game/party';
 import { serverText, useI18n } from '../i18n';
 import type { Identity } from '../nick';
 import Leaderboard from './Leaderboard';
+import ModePicker from './ModePicker';
 
 interface Props {
   identity: Identity;
-  /** Categoria escolhida no seletor do título; o ranking abaixo acompanha. */
+  /** Categoria escolhida; o ranking abaixo acompanha. */
   mode: Mode;
-  canStart: boolean;
+  onModeChange: (mode: Mode) => void;
+  /** Categorias sem personagens suficientes aparecem como "em breve". */
+  isModeAvailable: (mode: Mode) => boolean;
   /** Algo em andamento (sorteando ou criando sala). */
   busy: boolean;
   onSolo: () => void;
-  /** Desafio Diário deste jogador (null enquanto carrega ou sem conexão: o botão não aparece). */
-  daily: DailyStatus | null;
-  onDaily: () => void;
   onCreateParty: () => void;
   onJoinParty: (code: string) => void;
   /** Erro ao criar/entrar em sala, vindo do App. */
@@ -25,12 +24,13 @@ interface Props {
   soloError?: string | null;
 }
 
-/** Home: SOLO / PARTY, o Desafio Diário (centralizado, embaixo) e o ranking da categoria escolhida no título (o perfil fica na ProfileBar, no canto). */
+/** Home: categoria (rótulo "Modo"), SOLO / PARTY embaixo dela e o ranking da categoria escolhida no título (o perfil fica na ProfileBar, no canto). */
 export default function IntroScreen(props: Props) {
-  const { identity, mode, canStart, busy, onSolo, daily, onDaily, onCreateParty, onJoinParty, partyError, soloError } = props;
+  const { identity, mode, onModeChange, isModeAvailable, busy, onSolo, onCreateParty, onJoinParty, partyError, soloError } = props;
   const { t, lang } = useI18n();
   const [partyOpen, setPartyOpen] = useState(false);
   const [code, setCode] = useState('');
+  const canStart = isModeAvailable(mode);
 
   const onJoin = (e: FormEvent) => {
     e.preventDefault();
@@ -39,36 +39,28 @@ export default function IntroScreen(props: Props) {
 
   return (
     <div className="intro">
-      <div className="play-buttons">
-        <button
-          className="btn btn-primary btn-lg"
-          onClick={onSolo}
-          disabled={busy || !canStart}
-          aria-busy={busy && !partyOpen}
-        >
-          Solo
-        </button>
-        <button
-          className={`btn btn-lg btn-party${partyOpen ? ' active' : ''}`}
-          onClick={() => setPartyOpen((open) => !open)}
-          aria-expanded={partyOpen}
-          disabled={busy}
-        >
-          Party
-        </button>
-      </div>
-      {daily && (
-        <div className="daily-entry">
-          {/* Uma tentativa por dia: depois de jogar, o botão fica travado até o próximo desafio. */}
-          <button className="btn btn-lg btn-daily" onClick={onDaily} disabled={busy || daily.done} aria-busy={busy && !partyOpen}>
-            {daily.done
-              ? daily.score === null
-                ? t('intro.dailyDone')
-                : t('intro.dailyDoneScore', { score: daily.score })
-              : t('intro.daily')}
+      <div className="play-setup">
+        <p className="setup-label">{t('mode.category')}</p>
+        <ModePicker mode={mode} onChange={onModeChange} isAvailable={isModeAvailable} disabled={busy} />
+        <div className="play-buttons">
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={onSolo}
+            disabled={busy || !canStart}
+            aria-busy={busy && !partyOpen}
+          >
+            Solo
+          </button>
+          <button
+            className={`btn btn-lg btn-party${partyOpen ? ' active' : ''}`}
+            onClick={() => setPartyOpen((open) => !open)}
+            aria-expanded={partyOpen}
+            disabled={busy}
+          >
+            Party
           </button>
         </div>
-      )}
+      </div>
       {soloError && <p className="error">{serverText(soloError, lang)}</p>}
 
       {partyOpen && (

@@ -34,7 +34,7 @@ p {
 
 /* ---------- Header ---------- */
 
-/* Durante a partida: "CATEGORIA  POWER RANK" em linha. Na tela inicial (.hero): seletor acima do título grande. */
+/* Durante a partida: "CATEGORIA  POWER RANK" em linha. Na tela inicial (.hero): só o título grande. */
 .app-header {
   display: flex;
   align-items: baseline;
@@ -1256,10 +1256,28 @@ input:focus {
 
 /* ---------- Party (multiplayer) ---------- */
 
+/* Home: rótulo "Modo", as categorias e, embaixo, SOLO / PARTY. */
+.play-setup {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.setup-label {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
 .play-buttons {
   display: flex;
   justify-content: center;
   gap: 10px;
+  margin-top: 14px;
 }
 
 .btn-party {
@@ -1271,30 +1289,6 @@ input:focus {
 .btn-party.active {
   color: var(--bg);
   background: var(--tier-a);
-}
-
-/* Desafio Diário: centralizado embaixo de Solo/Party; travado (neutro) depois da tentativa do dia. */
-.daily-entry {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  margin-top: -12px;
-  text-align: center;
-}
-
-.btn-daily {
-  --spinner-color: var(--bg);
-  max-width: 100%;
-  padding: 14px 36px;
-  font-size: 1.15rem;
-  color: var(--bg);
-  background: var(--tier-ss-fill);
-}
-
-.btn-daily:disabled {
-  color: var(--text-2);
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--border);
 }
 
 .party-entry {
@@ -3117,6 +3111,15 @@ input:focus {
   font-size: 1rem;
 }
 
+/* Loja e Cassino: na faixa no desktop; dentro do menu (sanfona) no celular. */
+.profile-bar-actions {
+  display: contents;
+}
+
+.profile-menu-actions {
+  display: none;
+}
+
 .profile-guest {
   font-size: 0.75rem;
   font-weight: 600;
@@ -3158,15 +3161,52 @@ input:focus {
     margin-bottom: 8px;
   }
 
-  .profile-bar-me {
-    margin-right: auto;
-    max-width: 50vw;
+  .profile-bar {
+    flex-wrap: wrap;
+    gap: 0 12px;
   }
 
+  /* O nick fica com o espaço que sobra ao lado do saldo. */
+  .profile-bar-me {
+    flex: 1 1 0;
+    max-width: none;
+  }
+
+  .profile-bar .coins,
+  .profile-guest {
+    flex-shrink: 0;
+  }
+
+  .profile-bar-actions {
+    display: none;
+  }
+
+  /* Sanfona: abre dentro da faixa, empurrando a página para baixo. */
   .profile-menu {
-    left: 0;
-    right: 0;
+    position: static;
+    flex-basis: 100%;
     width: auto;
+    margin-top: 8px;
+    padding: 14px 4px 6px;
+    border: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .profile-menu::before {
+    display: none;
+  }
+
+  .profile-menu-actions {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .profile-menu-actions .btn {
+    flex: 1 1 0;
   }
 
 }

@@ -118,30 +118,20 @@ export async function createGame(
   name: string,
   token: string | null,
   mode: Mode,
-  /** Desafio Diário: o servidor ignora `mode` e usa o desafio do dia. */
-  daily = false,
-): Promise<{ gameId: string; characterIds: string[]; characters: CharacterInfo[] } | 'unauthorized' | { error: string } | null> {
+): Promise<
+  | { gameId: string; characterIds: string[]; characters: CharacterInfo[]; daily: boolean }
+  | 'unauthorized'
+  | { error: string }
+  | null
+> {
   try {
-    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode, daily }) });
+    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode }) });
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) return 'unauthorized';
     // Recusa do servidor (ex: nick não permitido, muitas partidas seguidas): mostra o motivo.
     if (err instanceof ApiError) return { error: err.message };
     return null;
   }
-}
-
-export interface DailyStatus {
-  mode: Mode;
-  /** Já jogou (ou começou) o desafio de hoje. */
-  done: boolean;
-  /** Pontuação no desafio de hoje (null se não terminou). */
-  score: number | null;
-}
-
-/** Desafio Diário de hoje para este jogador: se ainda pode jogar. */
-export function fetchDaily(name: string, token: string | null): Promise<DailyStatus> {
-  return request('/api/daily', { method: 'POST', body: JSON.stringify({ name, token }) });
 }
 
 /** Configuração pública do servidor (ex: chave do anti-bot; null = desligado). */
