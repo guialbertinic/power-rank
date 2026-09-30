@@ -15,6 +15,7 @@ import {
   TURNSTILE_TEST_TOKEN,
   perfectOrder,
   player,
+  playDaily,
   playSolo,
   post,
   section,
@@ -128,7 +129,7 @@ if (section('Conta e convidado')) {
 // ---------- Trocar nick ----------
 if (section('Trocar nick')) {
   const acc = await player('Renome');
-  await playSolo(acc, 'perfect');
+  await playDaily(acc, 'perfect');
   const other = await player('Ocupado');
   const newName = nick('Renomeado');
   check('não troca para nick de outra conta (409)', (await post('/players/rename', { token: acc.token, name: other.name.toUpperCase() })).status === 409);
@@ -140,8 +141,8 @@ if (section('Trocar nick')) {
   check('mesma conta: perfil com o nick novo e as moedas', prof.name === newName && prof.coins === 60, `${prof.name} ${prof.coins}`);
   const { scores } = await get('/scores?mode=anime');
   check('ranking mostra o nick novo', scores.some((s) => s.name === newName) && !scores.some((s) => s.name === acc.name));
-  const again = await playSolo({ name: newName, token: acc.token }, 'reversed');
-  check('recorde segue a conta depois de trocar o nick', again.isNewBest === false && again.best === 1000);
+  const { scores: renamedTotal } = await get('/scores?mode=anime&period=total');
+  check('Acumulado segue a conta depois de trocar o nick', renamedTotal.find((s) => s.name === newName)?.score === 1000);
   const guestOld = await playSolo({ name: acc.name }, 'reversed');
   check('convidado pode usar o nick antigo', typeof guestOld.score === 'number' && guestOld.coins === null);
   check('mudar só maiúsculas vale', (await post('/players/rename', { token: acc.token, name: newName.toUpperCase() })).status === 200);
@@ -153,7 +154,7 @@ if (section('Economia e loja')) {
   const me = await player('Loja');
   const bad = await playSolo(me, 'reversed');
   check('abaixo de 500 não paga', bad.coinsEarned === 0, `${bad.score} pts`);
-  const good = await playSolo(me, 'perfect');
+  const good = await playDaily(me, 'perfect');
   check('partida perfeita paga 60', good.coinsEarned === 60 && good.coins === 60);
 
   const noMoney = await post('/shop/buy', { ...me, itemId: 'frame-neon' });
@@ -190,32 +191,36 @@ if (section('Economia e loja')) {
 if (section('Ranking')) {
   const slow = await player('Lento');
   const fast = await player('Rapido');
-  const first = await playSolo(slow, 'perfect');
+  const first = await playDaily(slow, 'perfect');
   check('envio traz o tempo da partida', typeof first.durationMs === 'number' && first.durationMs >= 0);
-  await playSolo(fast, 'perfect');
+  await playDaily(fast, 'perfect');
   // Tempos controlados: os dois fizeram 1000, o "Rapido" em menos tempo.
   d1(`UPDATE scores SET duration_ms = 90000 WHERE player_id = (SELECT id FROM players WHERE name_key = '${slow.name.toLowerCase()}')`);
   d1(`UPDATE scores SET duration_ms = 30000 WHERE player_id = (SELECT id FROM players WHERE name_key = '${fast.name.toLowerCase()}')`);
-  const { scores: today } = await get('/scores?mode=anime&period=today');
+  const { scores: daily } = await get('/scores?mode=anime');
   const pos = (list, p) => list.findIndex((s) => s.name === p.name);
-  check('empate em 1000: menor tempo na frente', pos(today, fast) >= 0 && pos(today, fast) < pos(today, slow));
-  check('Hoje mostra o tempo', today[pos(today, fast)]?.durationMs === 30000);
+  check('padrão é o desafio: empate em 1000, menor tempo na frente', pos(daily, fast) >= 0 && pos(daily, fast) < pos(daily, slow));
+  check('Desafio mostra o tempo', daily[pos(daily, fast)]?.durationMs === 30000);
 
-  // Mais uma partida hoje e uma de ontem para o "Lento".
+  // Partida solo não conta; desafio de ontem soma no Acumulado.
   await playSolo(slow, 'perfect');
+  const soloOnly = await player('SoSolo');
+  await playSolo(soloOnly, 'perfect');
   const yesterday = Date.now() - 26 * 60 * 60 * 1000;
+  const yesterdayKey = new Date(yesterday - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const slowId = `(SELECT id FROM players WHERE name_key = '${slow.name.toLowerCase()}')`;
   d1(
-    `INSERT INTO games (id, character_ids, created_at, submitted, name, player_id, mode) VALUES ('e2e-ontem', '[]', ${yesterday}, 1, '${slow.name}', ${slowId}, 'anime');` +
-      `INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, created_at) VALUES ('e2e-ontem', '${slow.name}', '${slow.name.toLowerCase()}', ${slowId}, 'anime', 700, '[]', 0, ${yesterday});`,
+    `INSERT INTO games (id, character_ids, created_at, submitted, name, player_id, mode, daily) VALUES ('e2e-ontem', '[]', ${yesterday}, 1, '${slow.name}', ${slowId}, 'anime', '${yesterdayKey}');` +
+      `INSERT INTO scores (game_id, name, name_key, player_id, mode, score, placements, coins, daily, created_at) VALUES ('e2e-ontem', '${slow.name}', '${slow.name.toLowerCase()}', ${slowId}, 'anime', 700, '[]', 0, '${yesterdayKey}', ${yesterday});`,
   );
   const { scores: total } = await get('/scores?mode=anime&period=total');
   const slowTotal = total.find((s) => s.name === slow.name);
-  check('Acumulado soma o melhor de cada dia (1000 hoje + 700 ontem)', slowTotal?.score === 1700 && slowTotal.days === 2, JSON.stringify(slowTotal));
-  check('Acumulado não soma 2 partidas do mesmo dia', total.find((s) => s.name === fast.name)?.score === 1000);
-  const { scores: todayAgain } = await get('/scores?mode=anime&period=today');
-  check('Hoje ignora partidas de ontem', todayAgain.find((s) => s.name === slow.name)?.score === 1000);
-  check('período inválido é recusado', (await fetch(`${BASE}/api/scores?mode=anime&period=ano`)).status === 400);
+  check('Acumulado soma só os desafios (1000 hoje + 700 ontem)', slowTotal?.score === 1700 && slowTotal.days === 2, JSON.stringify(slowTotal));
+  check('Acumulado ignora partida solo', total.find((s) => s.name === fast.name)?.score === 1000);
+  const { scores: dailyAgain } = await get('/scores?mode=anime');
+  check('só solo: fora do ranking', !dailyAgain.some((s) => s.name === soloOnly.name) && !total.some((s) => s.name === soloOnly.name));
+  check('Desafio ignora o de ontem', dailyAgain.find((s) => s.name === slow.name)?.score === 1000);
+  check('período "today" não existe mais', (await fetch(`${BASE}/api/scores?mode=anime&period=today`)).status === 400);
 }
 
 // ---------- Desafio Diário ----------
@@ -223,16 +228,25 @@ if (section('Desafio Diário')) {
   const acc = await player('Diario');
   const other = await player('Diario2');
   const guest = { name: nick('DiarioConv') };
-  const { status, data: game } = await post('/games', { ...acc, mode: 'anime' });
-  check('1ª partida do dia na categoria é o desafio', status === 200 && game.daily === true && game.characterIds.length === 10);
-  const second = (await post('/games', { ...acc, mode: 'anime' })).data;
-  check('a 2ª já é partida normal', second.daily === false);
-  const otherGame = (await post('/games', { ...other, mode: 'anime' })).data;
-  const guestGame = (await post('/games', { ...guest, mode: 'anime' })).data;
+  const status = async (p, mode = 'anime') => (await post('/daily', { ...p, mode })).data;
+  const before = await status(acc);
+  check('status: ainda não jogou', before.done === false && before.score === null);
+
+  const solo = (await post('/games', { ...acc, mode: 'anime' })).data;
+  check('partida solo não é o desafio', solo.daily === false);
+  const { status: code, data: game } = await post('/games', { ...acc, mode: 'anime', daily: true });
+  check('começa o desafio', code === 200 && game.daily === true && game.characterIds.length === 10);
+  const again = await post('/games', { ...acc, mode: 'anime', daily: true });
+  check('segunda tentativa é recusada (409)', again.status === 409 && again.data.code === 'daily_done');
+  const started = await status(acc);
+  check('começou e não terminou: já conta como feito', started.done === true && started.score === null);
+  const otherGame = (await post('/games', { ...other, mode: 'anime', daily: true })).data;
+  const guestGame = (await post('/games', { ...guest, mode: 'anime', daily: true })).data;
   const same = (g) => JSON.stringify(g?.characterIds) === JSON.stringify(game.characterIds);
-  check('mesmos 10, na mesma ordem, para todo mundo (inclusive convidado)', same(otherGame) && same(guestGame) && guestGame.daily);
-  check('convidado também tem uma tentativa só', (await post('/games', { ...guest, mode: 'anime' })).data.daily === false);
-  const gamesGame = (await post('/games', { ...acc, mode: 'games' })).data;
+  check('mesmos 10, na mesma ordem, para todo mundo (inclusive convidado)', same(otherGame) && same(guestGame));
+  check('convidado também tem uma tentativa só', (await post('/games', { ...guest, mode: 'anime', daily: true })).status === 409);
+  check('outra categoria: desafio ainda livre', (await status(acc, 'games')).done === false);
+  const gamesGame = (await post('/games', { ...acc, mode: 'games', daily: true })).data;
   check('cada categoria tem o seu desafio', gamesGame.daily === true && !same(gamesGame));
 
   await sleep(MIN_GAME_MS + 100);
@@ -243,6 +257,7 @@ if (section('Desafio Diário')) {
   check('convidado joga sem posição nem moedas', guestDone.daily === true && guestDone.rank === null && guestDone.coins === null);
   await post('/scores', { gameId: otherGame.gameId, placements: [...ids].reverse() });
   await post('/scores', { gameId: gamesGame.gameId, placements: perfectOrder(gamesGame.characterIds) });
+  check('status depois: feito, com a pontuação', (await status(acc)).score === 1000);
 
   const { scores: board } = await get('/scores?mode=anime&period=daily');
   const pos = (p) => board.findIndex((s) => s.name === p.name);
@@ -430,7 +445,7 @@ if (section('Party')) {
   for (const c of [g2, dup, missing, intruder]) c.ws.close();
 
   const { scores } = await get('/scores?mode=anime');
-  check('resultado da party entra no ranking', scores.some((s) => s.name === host.name && s.score === 1000));
+  check('resultado da party não entra no ranking (só desafio)', !scores.some((s) => s.name === host.name));
 }
 
 finish();

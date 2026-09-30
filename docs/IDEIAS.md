@@ -53,10 +53,10 @@ Pontos de arquitetura que valem para todos (decidir uma vez) — `Arquitetura` �
 
 ### ✅ Desafio Diário · `Feature` 🟡
 **Os mesmos 10 personagens (na mesma ordem) para todo mundo**, fixos no dia (meia-noite de Brasília).
-- Um desafio por categoria, **implícito**: a primeira partida solo do dia na categoria é o desafio (sem botão).
+- Um desafio por categoria, com botão próprio embaixo de Solo/Party; trava depois da tentativa (mostra a pontuação).
 - **Uma tentativa** por jogador e categoria, gasta ao começar. Convidado joga (por nick), mas não entra no ranking.
-- Ranking próprio por categoria (aba **Desafio**, desempate por tempo). O resultado também vale para o Hoje e o
-  Acumulado da categoria (se for o melhor do dia do jogador).
+- É o **ranking principal**: abas Desafio (o de hoje, desempate por tempo) e Acumulado (soma dos desafios). Solo e
+  party rendem moedas, mas não entram no ranking.
 - 💡 Depois: "desafio de ontem" com o gabarito e a distribuição de pontuações; sequência de dias seguidos
   (conquista); link de desafio na party. Convidado pode repetir trocando de nick (aceitável por ora).
 
@@ -250,7 +250,7 @@ o site — qualquer um que abra o código do site vê o `power` de todos. Migrar
   categorias Animes / Games / Free for All; resultado sem valores de poder.
 - Party (Durable Objects): sala por código/convite, espera ao vivo, pódio, revanche, reconexão.
 - Conta (nick + senha) ou convidado; jogador por id (trocar nick renomeia a conta); sincronizar dispositivo.
-- Rankings Hoje (desempate por tempo) e Acumulado (soma do melhor de cada dia), pódio dos 3 primeiros, skeleton.
+- Rankings do Desafio Diário (o de hoje, desempate por tempo) e Acumulado (soma dos desafios), pódio dos 3 primeiros, skeleton.
 - Desafio Diário: os mesmos 10 (Free for All) para todos no dia, uma tentativa, ranking próprio (aba Desafio).
 - Moedas, loja de cosméticos (cores, molduras, títulos, avatares), cassino (caça-níquel + Mystery Box).
 - Design system "Dark Battle Interface"; testes e2e (`e2e:api`, `e2e:ui`); skills do projeto (`.claude/skills/`).

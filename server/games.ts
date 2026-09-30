@@ -9,14 +9,16 @@ import { SLOTS } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
 /**
- * POST /api/games: { name, token?, mode? } → sorteia uma partida para esse nick e devolve
+ * POST /api/games: { name, token?, mode?, daily? } → sorteia uma partida para esse nick e devolve
  * { gameId, characterIds, characters, daily } (characters = dados públicos dos sorteados, sem `power`).
  * Nick de conta exige o token do dono; nick livre joga como convidado.
- * A primeira partida do dia do jogador em cada categoria é o Desafio Diário dela (`daily: true`): os mesmos
- * personagens para todos. As seguintes são sorteadas normalmente.
+ * `daily: true`: o Desafio Diário da categoria (os mesmos personagens para todos); uma tentativa por jogador e
+ * categoria (409 `daily_done` depois).
  */
 export async function createGame(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  const body = (await request.json().catch(() => null)) as { name?: unknown; token?: unknown; mode?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as
+    | { name?: unknown; token?: unknown; mode?: unknown; daily?: unknown }
+    | null;
   const name = sanitizeName(body?.name);
   if (!name) return badRequest('Nick inválido');
   const access = await playerAccess(env, name, body?.token);
@@ -31,16 +33,21 @@ export async function createGame(request: Request, env: Env, ctx: ExecutionConte
   if (pool.length < SLOTS) return badRequest('Categoria ainda sem personagens suficientes');
   const gameId = crypto.randomUUID();
 
-  // A tentativa do desafio é gasta ao começar: sair no meio não dá outra chance (a próxima partida é normal).
-  let drawn: Character[] | null = null;
+  let drawn: Character[];
   let daily: string | null = null;
-  const challenge = await dailyChallenge(env, mode, active);
-  const challengeCharacters = challenge?.characterIds.map((id) => byId.get(id)) ?? [];
-  if (challenge && challengeCharacters.every(Boolean) && (await claimDailyAttempt(env, challenge.day, mode, access, gameId))) {
-    drawn = challengeCharacters as Character[];
+  if (body?.daily === true) {
+    const challenge = await dailyChallenge(env, mode, active);
+    const characters = challenge?.characterIds.map((id) => byId.get(id)) ?? [];
+    if (!challenge || !characters.every(Boolean)) return badRequest('Desafio de hoje indisponível');
+    // A tentativa é gasta ao começar: sair no meio e pedir de novo não dá uma segunda chance.
+    if (!(await claimDailyAttempt(env, challenge.day, mode, access, gameId))) {
+      return json({ error: 'Você já jogou o desafio de hoje.', code: 'daily_done' }, { status: 409 });
+    }
+    drawn = characters as Character[];
     daily = challenge.day;
+  } else {
+    drawn = drawCharacters(pool, SLOTS);
   }
-  drawn ??= drawCharacters(pool, SLOTS);
   const characterIds = drawn.map((c) => c.id);
   const now = Date.now();
 

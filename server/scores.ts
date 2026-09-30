@@ -8,49 +8,29 @@ import { DEFAULT_MODE, isMode } from '../src/game/modes';
 import { scoreGame, strengthRanks } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
-/** Dia do ranking "Hoje": horário de Brasília (UTC−3, sem horário de verão). */
+/** Dia do Desafio Diário: horário de Brasília (UTC−3, sem horário de verão). */
 const BRT_OFFSET_MS = 3 * 60 * 60 * 1000;
-const DAY_MS = 24 * 60 * 60 * 1000;
-/** Início do dia de hoje em Brasília, em epoch ms. */
-export const startOfToday = (now = Date.now()) => Math.floor((now - BRT_OFFSET_MS) / DAY_MS) * DAY_MS + BRT_OFFSET_MS;
 /** Dia de Brasília como texto (AAAA-MM-DD): chave do Desafio Diário. */
 export const dayKey = (now = Date.now()) => new Date(now - BRT_OFFSET_MS).toISOString().slice(0, 10);
-/** Mesmo dia em SQL (created_at em ms → data de Brasília). */
-const SQL_DAY = `date(created_at / 1000 - ${BRT_OFFSET_MS / 1000}, 'unixepoch')`;
 /** Partidas sem tempo (antigas) ficam atrás no desempate. */
 const SQL_DURATION = 'COALESCE(duration_ms, 9000000000000000)';
 
-export type Period = 'today' | 'total' | 'daily';
-const isPeriod = (value: unknown): value is Period => value === 'today' || value === 'total' || value === 'daily';
+/** O ranking é só do Desafio Diário: o de hoje ("daily") e a soma de todos ("total"). Partida solo não entra. */
+export type Period = 'daily' | 'total';
+const isPeriod = (value: unknown): value is Period => value === 'daily' || value === 'total';
 
 /**
- * "Hoje": melhor partida de cada conta desde o início do dia (parâmetros: modo, início do dia).
- * Empate: menor tempo, depois quem fez primeiro. Só contas: partidas de convidados (player_id NULL) ficam
- * gravadas, mas não entram no ranking. A conta segue a mesma depois de trocar de nick.
- */
-const BEST_TODAY = `
-  SELECT player_id, score, duration_ms, created_at FROM (
-    SELECT player_id, score, duration_ms, created_at,
-           ROW_NUMBER() OVER (
-             PARTITION BY player_id ORDER BY score DESC, ${SQL_DURATION} ASC, created_at ASC
-           ) AS rn
-    FROM scores WHERE mode = ? AND player_id IS NOT NULL AND created_at >= ?
-  ) WHERE rn = 1`;
-
-/**
- * "Acumulado": soma do melhor resultado de cada dia (máx. 1000 por dia: premia constância, não volume).
- * Empate: quem precisou de menos dias. Parâmetro: modo.
+ * "Acumulado": soma dos desafios diários da categoria (um por dia: premia constância). Empate: quem precisou de
+ * menos dias. Só contas: convidados jogam, mas não entram no ranking. Parâmetro: modo.
  */
 const TOTAL = `
-  SELECT player_id, SUM(best) AS score, COUNT(*) AS days FROM (
-    SELECT player_id, MAX(score) AS best FROM scores
-    WHERE mode = ? AND player_id IS NOT NULL
-    GROUP BY player_id, ${SQL_DAY}
-  ) GROUP BY player_id`;
+  SELECT player_id, SUM(score) AS score, COUNT(*) AS days FROM scores
+  WHERE mode = ? AND daily IS NOT NULL AND player_id IS NOT NULL
+  GROUP BY player_id`;
 
 /**
  * "Desafio": a partida de cada conta no desafio do dia da categoria (uma só por conta). Empate: menor tempo, depois
- * quem fez primeiro. Parâmetros: dia (AAAA-MM-DD), modo.
+ * quem fez primeiro. A conta segue a mesma depois de trocar de nick. Parâmetros: dia (AAAA-MM-DD), modo.
  */
 const DAILY = `
   SELECT player_id, score, duration_ms, created_at FROM scores
@@ -68,29 +48,27 @@ interface LeaderboardRow {
 }
 
 /**
- * GET /api/scores?mode=anime&period=today|total|daily: top do ranking, uma linha por conta (com o nick atual e o
- * visual equipado). "today" e "daily" trazem o tempo da partida (`durationMs`); "total", quantos dias somaram
- * (`days`). "daily" é o Desafio Diário de hoje da categoria.
+ * GET /api/scores?mode=anime&period=daily|total: top do ranking, uma linha por conta (com o nick atual e o
+ * visual equipado). "daily" (padrão): o Desafio Diário de hoje da categoria, com o tempo (`durationMs`);
+ * "total": a soma dos desafios, com quantos dias somaram (`days`).
  */
 export async function getLeaderboard(request: Request, env: Env): Promise<Response> {
   const params = new URL(request.url).searchParams;
   const mode = params.get('mode') ?? DEFAULT_MODE;
   if (!isMode(mode)) return badRequest('Categoria inválida');
-  const period = params.get('period') ?? 'today';
+  const period = params.get('period') ?? 'daily';
   if (!isPeriod(period)) return badRequest('Período inválido');
 
   const look = 'p.name, p.avatar, p.name_color, p.frame, p.title';
-  const best = (source: string) =>
-    `SELECT ${look}, b.score, b.duration_ms, NULL AS days
-     FROM (${source}) b JOIN players p ON p.id = b.player_id
-     ORDER BY b.score DESC, ${SQL_DURATION.replace('duration_ms', 'b.duration_ms')} ASC, b.created_at ASC
-     LIMIT ?`;
   const query =
-    period === 'today'
-      ? env.DB.prepare(best(BEST_TODAY)).bind(mode, startOfToday(), LEADERBOARD_SIZE)
-      : period === 'daily'
-        ? env.DB.prepare(best(DAILY)).bind(dayKey(), mode, LEADERBOARD_SIZE)
-        : env.DB.prepare(
+    period === 'daily'
+      ? env.DB.prepare(
+          `SELECT ${look}, b.score, b.duration_ms, NULL AS days
+           FROM (${DAILY}) b JOIN players p ON p.id = b.player_id
+           ORDER BY b.score DESC, ${SQL_DURATION.replace('duration_ms', 'b.duration_ms')} ASC, b.created_at ASC
+           LIMIT ?`,
+        ).bind(dayKey(), mode, LEADERBOARD_SIZE)
+      : env.DB.prepare(
           `SELECT ${look}, t.score, NULL AS duration_ms, t.days
            FROM (${TOTAL}) t JOIN players p ON p.id = t.player_id
            ORDER BY t.score DESC, t.days ASC, t.player_id ASC
@@ -110,10 +88,10 @@ export async function getLeaderboard(request: Request, env: Env): Promise<Respon
 }
 
 /**
- * POST /api/scores: { gameId, placements } → { score, durationMs, best, isNewBest, rank, coinsEarned, coins }.
+ * POST /api/scores: { gameId, placements } → { score, ranks, durationMs, rank, daily, coinsEarned, coins }.
  * `placements` são os ids na ordem escolhida (posição 1 primeiro). Nick e modo vêm da partida
- * e a pontuação é recalculada aqui. `best`/`isNewBest`/`rank` são do ranking de hoje; no Desafio Diário
- * (`daily: true`), `rank` é a posição no ranking do desafio.
+ * e a pontuação é recalculada aqui. `rank` = posição no ranking do Desafio Diário (null em partida solo ou
+ * de convidado, que não entram no ranking).
  */
 export async function submitScore(request: Request, env: Env): Promise<Response> {
   const body = (await request.json().catch(() => null)) as { gameId?: unknown; placements?: unknown } | null;
@@ -175,68 +153,23 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   // Convidado (partida sem conta): a partida fica gravada, mas não entra no ranking nem rende moedas.
   if (playerId === null) {
     await insert(0);
-    return json({
-      score: total,
-      ranks,
-      durationMs,
-      best: total,
-      isNewBest: false,
-      rank: null,
-      daily: game.daily !== null,
-      coinsEarned: 0,
-      coins: null,
-    });
+    return json({ score: total, ranks, durationMs, rank: null, daily: game.daily !== null, coinsEarned: 0, coins: null });
   }
-
-  const today = startOfToday(now);
-  const previous = await env.DB.prepare('SELECT MAX(score) AS best FROM scores WHERE mode = ? AND player_id = ? AND created_at >= ?')
-    .bind(game.mode, playerId, today)
-    .first<{ best: number | null }>();
 
   const coinsEarned = coinsForScore(total);
   await insert(coinsEarned);
   const coins = await creditCoins(env, playerId, coinsEarned);
 
-  // Desafio Diário: a posição é a do ranking do desafio (uma partida por conta).
+  // Desafio Diário: posição no ranking do desafio (quem tem mais pontos, ou os mesmos em menos tempo, fica na frente).
+  let rank: number | null = null;
   if (game.daily !== null) {
     const ahead = await env.DB.prepare(
       `SELECT COUNT(*) AS n FROM (${DAILY}) WHERE score > ? OR (score = ? AND ${SQL_DURATION} < ?)`,
     )
       .bind(game.daily, game.mode, total, total, durationMs)
       .first<{ n: number }>();
-    return json({
-      score: total,
-      ranks,
-      durationMs,
-      best: total,
-      isNewBest: false,
-      rank: (ahead?.n ?? 0) + 1,
-      daily: true,
-      coinsEarned,
-      coins,
-    });
+    rank = (ahead?.n ?? 0) + 1;
   }
 
-  // Posição no ranking de hoje: quem tem mais pontos, ou os mesmos pontos em menos tempo, fica na frente.
-  const mine = await env.DB.prepare(`SELECT score, ${SQL_DURATION} AS duration FROM (${BEST_TODAY}) WHERE player_id = ?`)
-    .bind(game.mode, today, playerId)
-    .first<{ score: number; duration: number }>();
-  const best = mine?.score ?? total;
-  const ahead = await env.DB.prepare(
-    `SELECT COUNT(*) AS n FROM (${BEST_TODAY}) WHERE score > ? OR (score = ? AND ${SQL_DURATION} < ?)`,
-  )
-    .bind(game.mode, today, best, best, mine?.duration ?? durationMs)
-    .first<{ n: number }>();
-
-  return json({
-    score: total,
-    ranks,
-    durationMs,
-    best,
-    isNewBest: previous?.best == null || total > previous.best,
-    rank: (ahead?.n ?? 0) + 1,
-    daily: false,
-    coinsEarned,
-    coins,
-  });
+  return json({ score: total, ranks, durationMs, rank, daily: game.daily !== null, coinsEarned, coins });
 }

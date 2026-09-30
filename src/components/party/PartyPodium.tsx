@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { podiumOrder, type PartyPlayer, type PartyState } from '../../game/party';
 import { MAX_SCORE, rankLevel } from '../../game/scoring';
 import { useI18n } from '../../i18n';
@@ -23,14 +24,28 @@ const STEPS = [
   { place: 3, className: 'third tier-a' },
 ];
 
-/** Resultado da rodada: pódio, classificação completa e a comparação do próprio ranking. */
+/**
+ * Resultado da rodada: pódio, classificação completa e a comparação de um ranking com o correto. Tocar num jogador
+ * da classificação mostra a lista dele no lugar da sua (uma lista por vez, para não lotar a tela).
+ */
 export default function PartyPodium({ state, you, charactersById, onRestart, onLeave }: Props) {
   const { t } = useI18n();
   const [restarting, restart] = usePendingClick();
   const ranking = podiumOrder(state.players);
   const unfinished = state.players.filter((p) => !p.finished);
   const me = state.players.find((p) => p.id === you);
-  const mySlots = me?.placements?.map((id) => charactersById.get(id)).filter((c): c is CharacterInfo => Boolean(c));
+  // Jogador cuja lista aparece embaixo: você, até escolher outro (quem não terminou não tem lista).
+  const [viewingId, setViewingId] = useState(you);
+  const viewing = ranking.find((p) => p.id === viewingId) ?? (me?.finished ? me : ranking[0]);
+  const viewingSlots = viewing?.placements
+    ?.map((id) => charactersById.get(id))
+    .filter((c): c is CharacterInfo => Boolean(c));
+  const comparisonRef = useRef<HTMLDivElement>(null);
+  const view = (id: string) => {
+    setViewingId(id);
+    // No celular a lista fica bem abaixo da classificação: rola até ela.
+    requestAnimationFrame(() => comparisonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
   const isHost = state.hostId === you;
   const myPlace = ranking.findIndex((p) => p.id === you) + 1;
 
@@ -56,12 +71,25 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
       </div>
 
       <div className="panel">
-        <h3 className="section-title">{t('podium.standings', { n: state.round })}</h3>
+        <h3 className="section-title">
+          {t('podium.standings', { n: state.round })}
+          {ranking.length > 1 && <small className="section-hint">{t('podium.tapToView')}</small>}
+        </h3>
         <ol className="row-list">
           {ranking.map((p, i) => (
             <li
               key={p.id}
-              className={`row row-leader${p.id === you ? ' highlight' : ''}${p.connected ? '' : ' party-player offline'}`}
+              className={`row row-leader row-selectable${p.id === you ? ' highlight' : ''}${p.id === viewing?.id ? ' selected' : ''}${p.connected ? '' : ' party-player offline'}`}
+              role="button"
+              tabIndex={0}
+              aria-pressed={p.id === viewing?.id}
+              onClick={() => view(p.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  view(p.id);
+                }
+              }}
             >
               <RankBadge position={i + 1} small />
               <span className="row-name">
@@ -117,7 +145,15 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
         </button>
       </div>
 
-      {mySlots && mySlots.length > 0 && state.ranks && <RankingComparison slots={mySlots} ranks={state.ranks} />}
+      {viewing && viewingSlots && viewingSlots.length > 0 && state.ranks && (
+        <div ref={comparisonRef} className="party-comparison">
+          <RankingComparison
+            slots={viewingSlots}
+            ranks={state.ranks}
+            title={viewing.id === you ? undefined : t('podium.rankingOf', { name: viewing.name })}
+          />
+        </div>
+      )}
     </section>
   );
 }

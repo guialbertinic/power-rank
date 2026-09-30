@@ -19,6 +19,7 @@ const EXACT_EN: Record<string, string> = {
   'Confirme que você não é um robô.': 'Confirm you are not a robot.',
   'Só para maiores de 18 anos.': 'Adults only (18+).',
   // Partida
+  'Você já jogou o desafio de hoje.': 'You already played today’s challenge.',
   'Categoria inválida': 'Invalid category',
   'Categoria ainda sem personagens suficientes': 'This category doesn’t have enough characters yet',
   'Categoria sem personagens suficientes': 'This category doesn’t have enough characters',

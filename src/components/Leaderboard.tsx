@@ -13,8 +13,6 @@ interface Props {
   /** Muda para forçar recarregar (ex: depois de enviar uma pontuação). */
   refreshKey?: number;
   highlight?: string;
-  /** Aba aberta ao montar (ex: "Desafio" no resultado do Desafio Diário). */
-  initialPeriod?: Period;
 }
 
 /** Degraus do pódio na ordem visual (2º, 1º, 3º), nas cores dos tiers, como no pódio da party. */
@@ -28,12 +26,11 @@ const STEPS = [
 const MIN_POSITIONS = 10;
 
 const PERIODS: { id: Period; label: Key }[] = [
-  { id: 'today', label: 'leaderboard.today' },
-  { id: 'total', label: 'leaderboard.total' },
   { id: 'daily', label: 'leaderboard.daily' },
+  { id: 'total', label: 'leaderboard.total' },
 ];
 
-/** Embaixo da pontuação: o tempo da partida (Hoje e Desafio, desempata) ou quantos dias somaram (Acumulado). */
+/** Embaixo da pontuação: o tempo da partida (Desafio, desempata) ou quantos dias somaram (Acumulado). */
 function detail(s: LeaderboardEntry, t: (key: Key, params?: Record<string, number>) => string): string | null {
   if (s.durationMs !== undefined) return formatDuration(s.durationMs);
   if (s.days !== undefined) return s.days === 1 ? t('leaderboard.oneDay') : t('leaderboard.days', { n: s.days });
@@ -41,13 +38,12 @@ function detail(s: LeaderboardEntry, t: (key: Key, params?: Record<string, numbe
 }
 
 /**
- * Ranking de um modo (cada categoria tem o seu), em abas: Hoje (melhor partida do dia; empate = menor
- * tempo), Acumulado (soma do melhor de cada dia) e Desafio (o Desafio Diário de hoje da categoria).
- * Os 3 primeiros num pódio, o resto em lista.
+ * Ranking de uma categoria, só do Desafio Diário, em abas: Desafio (o de hoje; empate = menor tempo) e
+ * Acumulado (soma de todos os desafios). Partida solo não entra. Os 3 primeiros num pódio, o resto em lista.
  */
-export default function Leaderboard({ mode, refreshKey = 0, highlight, initialPeriod = 'today' }: Props) {
+export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) {
   const { t, lang } = useI18n();
-  const [period, setPeriod] = useState<Period>(initialPeriod);
+  const [period, setPeriod] = useState<Period>('daily');
   const [helpOpen, setHelpOpen] = useState(false);
   const [scores, setScores] = useState<LeaderboardEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -137,13 +133,10 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight, initialPe
       {helpOpen && (
         <div className="leaderboard-help">
           <p>
-            <strong>{t('leaderboard.today')}:</strong> {t('leaderboard.helpToday')}
+            <strong>{t('leaderboard.daily')}:</strong> {t('leaderboard.helpDaily')}
           </p>
           <p>
             <strong>{t('leaderboard.total')}:</strong> {t('leaderboard.helpTotal')}
-          </p>
-          <p>
-            <strong>{t('leaderboard.daily')}:</strong> {t('leaderboard.helpDaily')}
           </p>
         </div>
       )}

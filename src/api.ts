@@ -5,15 +5,15 @@ import type { Mode } from './game/modes';
 import type { CharacterInfo } from './game/types';
 
 /**
- * "Hoje": melhor partida do dia (zera à meia-noite de Brasília). "Acumulado": soma do melhor de cada dia.
- * "Desafio": a partida de cada um no Desafio Diário de hoje (não depende da categoria).
+ * Ranking da categoria, só do Desafio Diário. "Desafio": a partida de cada um no desafio de hoje.
+ * "Acumulado": soma de todos os desafios.
  */
-export type Period = 'today' | 'total' | 'daily';
+export type Period = 'daily' | 'total';
 
 export interface LeaderboardEntry {
   name: string;
   score: number;
-  /** Tempo da partida (em "Hoje" e "Desafio"; desempata pontuações iguais). */
+  /** Tempo da partida (só em "Desafio"; desempata pontuações iguais). */
   durationMs?: number;
   /** Quantos dias somaram (só em "Acumulado"). */
   days?: number;
@@ -26,11 +26,7 @@ export interface SubmitResult {
   ranks: Record<string, number>;
   /** Tempo da partida medido no servidor. */
   durationMs: number;
-  /** Melhor pontuação do jogador hoje, contando esta partida. */
-  best: number;
-  /** Bateu o próprio melhor de hoje. */
-  isNewBest: boolean;
-  /** Posição do jogador no ranking de hoje, ou no do desafio (null para convidado, que não entra no ranking). */
+  /** Posição no ranking do desafio (null em partida solo e para convidado, que não entram no ranking). */
   rank: number | null;
   /** Partida do Desafio Diário. */
   daily: boolean;
@@ -118,6 +114,8 @@ export async function createGame(
   name: string,
   token: string | null,
   mode: Mode,
+  /** Desafio Diário da categoria (uma tentativa por dia; recusado se já jogou). */
+  daily = false,
 ): Promise<
   | { gameId: string; characterIds: string[]; characters: CharacterInfo[]; daily: boolean }
   | 'unauthorized'
@@ -125,13 +123,25 @@ export async function createGame(
   | null
 > {
   try {
-    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode }) });
+    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode, daily }) });
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) return 'unauthorized';
     // Recusa do servidor (ex: nick não permitido, muitas partidas seguidas): mostra o motivo.
     if (err instanceof ApiError) return { error: err.message };
     return null;
   }
+}
+
+export interface DailyStatus {
+  /** Já jogou (ou começou) o desafio de hoje desta categoria. */
+  done: boolean;
+  /** Pontuação no desafio de hoje (null se não terminou). */
+  score: number | null;
+}
+
+/** Desafio Diário de hoje da categoria para este jogador: se ainda pode jogar. */
+export function fetchDaily(name: string, token: string | null, mode: Mode): Promise<DailyStatus> {
+  return request('/api/daily', { method: 'POST', body: JSON.stringify({ name, token, mode }) });
 }
 
 /** Configuração pública do servidor (ex: chave do anti-bot; null = desligado). */

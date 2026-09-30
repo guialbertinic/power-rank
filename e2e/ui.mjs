@@ -69,7 +69,7 @@ try {
   await ana.click('.settings-toggle');
   await (await ana.waitForSelector('.settings-langs ::-p-text(English)')).click();
   await ana.waitForSelector('.profile-bar ::-p-text(Shop)');
-  check('menu de configurações troca para inglês', (await text(ana, '.leaderboard .section-title'))?.startsWith('Ranking') && Boolean(await ana.$('.leaderboard-periods ::-p-text(Today)')));
+  check('menu de configurações troca para inglês', (await text(ana, '.leaderboard .section-title'))?.startsWith('Ranking') && Boolean(await ana.$('.leaderboard-periods ::-p-text(Challenge)')));
   check('html lang acompanha o idioma', (await ana.evaluate(() => document.documentElement.lang)) === 'en');
   await ana.reload({ waitUntil: 'networkidle0' });
   await ana.waitForSelector('.profile-bar');
@@ -123,6 +123,15 @@ try {
   await ana.waitForSelector('.podium');
   await sleep(1200);
   check('resultado sem valores de poder', !(await ana.$('.row-power')) && !(await ana.$('.result-columns .power-meter')));
+  // Lista dos outros: uma por vez, a sua por padrão; tocar no jogador troca.
+  const listTitle = () => text(ana, '.party-comparison .result-columns .section-title');
+  check('pódio mostra a sua lista por padrão', (await listTitle()) === 'Seu ranking', await listTitle());
+  await ana.click(`.party-podium .row-selectable ::-p-text(${nick('Bruno')})`);
+  await sleep(300);
+  const brunoList = await ana.$$eval('.party-comparison .row-yours', (els) => els.length);
+  check('tocar no jogador mostra a lista dele', (await listTitle()) === `Ranking de ${nick('Bruno')}` && brunoList === 10, await listTitle());
+  check('uma lista por vez', (await ana.$$('.party-comparison .result-columns')).length === 1);
+  check('pódio da party sem scroll horizontal no celular', (await overflowX(bruno)) <= 0);
   await bruno.click('.home-button');
   await bruno.waitForSelector('.play-buttons');
   await sleep(500);
@@ -255,18 +264,17 @@ try {
   check('entra com nick + senha em outro dispositivo', (await text(celular, '.profile-bar .coins')) === '777');
   await celular.close();
 
-  // ---------- Solo ----------
-  section('Solo');
+  // ---------- Desafio diário e resultado ----------
+  section('Desafio diário e resultado');
   // O Edge no Windows tem Web Share de arquivos (abriria o menu do sistema): testa o caminho de baixar o PNG.
   await ana.evaluate(() => Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true }));
-  await ana.click('.play-buttons .btn-primary');
+  await (await ana.waitForSelector('.btn-daily:not([disabled])')).click();
   await placeAll(ana);
   await ana.waitForSelector('.coins-earned');
-  // A primeira partida do dia na categoria é o Desafio Diário.
-  check('1ª partida do dia é o desafio', (await text(ana, '.title-eyebrow')) === 'Desafio diário · Animes');
+  check('título mostra o desafio', (await text(ana, '.title-eyebrow')) === 'Desafio diário · Animes');
   check('resultado mostra a posição no desafio', /^Desafio diário · #\d+$/.test((await text(ana, '.ranking-status')) ?? ''));
   check('ranking abre na aba Desafio', (await text(ana, '.leaderboard-periods [aria-selected="true"]')) === 'Desafio');
-  check('desafio tem "Jogar de novo"', Boolean(await ana.$('.score-actions .btn-primary')));
+  check('desafio sem "Jogar de novo"', !(await ana.$('.score-actions')));
   await sleep(1000);
   check('resultado mostra moedas (ou o aviso de 500+)', /^\+\d+$|500\+/.test((await text(ana, '.coins-earned')) ?? ''));
   check('resultado solo sem valores de poder', !(await ana.$('.row-power')));
@@ -321,7 +329,7 @@ try {
     podium === 3 && firstRow === '4' && positions >= 7,
     `${podium} / ${firstRow} / ${positions}`,
   );
-  check('Hoje mostra o tempo no pódio', /^\d+s$|^\d+:\d\d$/.test((await text(ana, '.leaderboard-podium .podium-detail')) ?? ''));
+  check('Desafio mostra o tempo no pódio', /^\d+s$|^\d+:\d\d$/.test((await text(ana, '.leaderboard-podium .podium-detail')) ?? ''));
   await ana.click('.leaderboard-periods button:nth-child(2)');
   await ana.waitForSelector('.leaderboard-podium .podium-detail ::-p-text(dia)');
   check('aba Acumulado mostra os dias', true);
@@ -333,9 +341,13 @@ try {
   // ---------- Desafio diário ----------
   section('Desafio diário');
   await ana.click('.home-button');
-  await (await ana.waitForSelector('.play-buttons .btn-primary:not([disabled])')).click();
-  await ana.waitForSelector('.title-eyebrow');
-  check('2ª partida do dia já é normal', (await text(ana, '.title-eyebrow')) === 'Animes');
+  await ana.waitForSelector('.btn-daily[disabled] ::-p-text(pts)', { timeout: 5000 });
+  check('na home, o desafio fica travado com a pontuação', true);
+  await ana.click('.play-buttons .btn-primary');
+  await placeAll(ana);
+  await ana.waitForSelector('.coins-earned');
+  check('Solo é partida normal', (await text(ana, '.title-eyebrow')) === 'Animes');
+  check('Solo sem posição no ranking, com "Jogar de novo"', !(await ana.$('.ranking-status')) && Boolean(await ana.$('.score-actions .btn-primary')));
   await ana.click('.home-button');
 
   // ---------- Cassino ----------

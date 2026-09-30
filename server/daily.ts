@@ -1,8 +1,8 @@
-import { nameKey, type Env } from './lib';
-import type { Access } from './players';
+import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
+import { playerAccess, type Access } from './players';
 import { dayKey } from './scores';
 import { drawCharacters } from '../src/game/draw';
-import { poolFor, type Mode } from '../src/game/modes';
+import { isMode, poolFor, type Mode } from '../src/game/modes';
 import { SLOTS } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
@@ -53,4 +53,26 @@ export async function claimDailyAttempt(env: Env, day: string, mode: Mode, acces
     .bind(day, mode, dailyPlayerKey(access), gameId, Date.now())
     .run();
   return meta.changes > 0;
+}
+
+/**
+ * POST /api/daily { name, token?, mode } → { day, done, score }: se o jogador já jogou o desafio de hoje da
+ * categoria (`score` = pontuação dele, ou null se começou e não terminou).
+ */
+export async function dailyStatus(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => null)) as { name?: unknown; token?: unknown; mode?: unknown } | null;
+  const name = sanitizeName(body?.name);
+  if (!name) return badRequest('Nick inválido');
+  const mode = body?.mode;
+  if (!isMode(mode)) return badRequest('Categoria inválida');
+  const access = await playerAccess(env, name, body?.token);
+  if (!access) return json({ error: 'Nick não verificado' }, { status: 401 });
+  const day = dayKey();
+  const attempt = await env.DB.prepare(
+    `SELECT s.score FROM daily_attempts a LEFT JOIN scores s ON s.game_id = a.game_id
+     WHERE a.day = ? AND a.mode = ? AND a.player_key = ?`,
+  )
+    .bind(day, mode, dailyPlayerKey(access))
+    .first<{ score: number | null }>();
+  return json({ day, done: attempt !== null, score: attempt?.score ?? null });
 }

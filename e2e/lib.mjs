@@ -84,13 +84,22 @@ export async function ensureServer() {
  * SQL no D1 local (o mesmo arquivo SQLite que o `npm run dev` usa). Escrever por aqui enquanto o dev server lê
  * pode, raramente, gerar "D1_ERROR: internal error" numa requisição concorrente (dois processos no mesmo
  * SQLite). É só do ambiente local: se um teste falhar com HTTP 500 em /api/scores logo após um d1(), rode de novo.
+ * O contrário (o dev server com o banco ocupado: SQLITE_BUSY) é tratado aqui, tentando de novo.
  */
 export function d1(sql) {
-  return execFileSync(
-    process.execPath,
-    [join(ROOT, 'node_modules/wrangler/bin/wrangler.js'), 'd1', 'execute', 'power-rank', '--local', '--command', sql],
-    { cwd: ROOT, encoding: 'utf8' },
-  );
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return execFileSync(
+        process.execPath,
+        [join(ROOT, 'node_modules/wrangler/bin/wrangler.js'), 'd1', 'execute', 'power-rank', '--local', '--command', sql],
+        { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+      );
+    } catch (err) {
+      const busy = /SQLITE_BUSY|database is locked/.test(`${err.stdout ?? ''}${err.stderr ?? ''}`);
+      if (!busy || attempt >= 5) throw err;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 300 * attempt); // espera síncrona curta
+    }
+  }
 }
 
 /** Apaga tudo dos nicks de teste (prefixo e2e): contas e o que aponta para elas, e partidas de convidados. */
@@ -140,12 +149,15 @@ export async function player(name) {
 }
 
 /** Joga uma partida solo com a ordem dada ('perfect' ou 'reversed') e devolve a resposta do /scores. */
-export async function playSolo(auth, order = 'perfect', mode = 'anime') {
-  const { data: game } = await post('/games', { ...auth, mode });
+export async function playSolo(auth, order = 'perfect', mode = 'anime', daily = false) {
+  const { data: game } = await post('/games', { ...auth, mode, daily });
   await sleep(MIN_GAME_MS + 100); // o servidor recusa partidas rápidas demais
   const ids = perfectOrder(game.characterIds);
   return (await post('/scores', { gameId: game.gameId, placements: order === 'perfect' ? ids : ids.reverse() })).data;
 }
+
+/** Joga o Desafio Diário da categoria (uma vez por dia por jogador). */
+export const playDaily = (auth, order = 'perfect', mode = 'anime') => playSolo(auth, order, mode, true);
 
 /** Cliente WebSocket da party que guarda o último estado e os erros recebidos. */
 export function partyClient(code, pid, name, token = '') {

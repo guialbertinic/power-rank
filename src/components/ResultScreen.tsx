@@ -14,7 +14,7 @@ interface Props {
   gameId: string;
   nick: string;
   slots: CharacterInfo[];
-  /** Partida do Desafio Diário: abre o ranking do desafio (a próxima partida já é normal). */
+  /** Partida do Desafio Diário: sem "Jogar de novo" (uma tentativa por dia) e com a posição no desafio. */
   daily?: boolean;
   starting: boolean;
   onRestart: () => void;
@@ -70,11 +70,13 @@ export default function ResultScreen({ mode, gameId, nick, slots, daily = false,
         ) : (
           <p className="muted score-pending">{t('result.calculating')}</p>
         )}
-        <div className="score-actions">
-          <button className="btn btn-primary" onClick={onRestart} disabled={starting} aria-busy={starting}>
-            {t('result.again')}
-          </button>
-        </div>
+        {!daily && (
+          <div className="score-actions">
+            <button className="btn btn-primary" onClick={onRestart} disabled={starting} aria-busy={starting}>
+              {t('result.again')}
+            </button>
+          </div>
+        )}
         {result && (
           <ShareResult mode={mode} nick={nick} slots={slots} ranks={result.ranks} score={result.score} daily={daily} />
         )}
@@ -84,7 +86,7 @@ export default function ResultScreen({ mode, gameId, nick, slots, daily = false,
 
       {result && (
         <div className="result-leaderboard">
-          <Leaderboard mode={mode} refreshKey={1} highlight={nick} initialPeriod={daily ? 'daily' : 'today'} />
+          <Leaderboard mode={mode} refreshKey={1} highlight={nick} />
         </div>
       )}
     </section>

@@ -859,6 +859,39 @@ input:focus {
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 
+/* Pódio da party: tocar num jogador mostra a lista dele embaixo. */
+.row-selectable {
+  cursor: pointer;
+}
+
+.row-selectable:hover,
+.row-selectable:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, var(--tier-a) 8%, var(--surface-2));
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.row-selectable.selected {
+  box-shadow: inset 0 0 0 1px var(--tier-a);
+}
+
+.section-title:has(.section-hint) {
+  flex-wrap: wrap;
+}
+
+.section-hint {
+  margin-left: auto;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.party-comparison {
+  scroll-margin-top: 16px;
+}
+
 /* Ranking: 3 primeiros no pódio, do 4º em diante linhas maiores para ler nome e avatar. */
 /* Título do ranking à esquerda, abas Hoje/Acumulado à direita (quebra embaixo no celular). */
 .leaderboard-header {
@@ -1278,6 +1311,22 @@ input:focus {
   justify-content: center;
   gap: 10px;
   margin-top: 14px;
+}
+
+/* Desafio Diário: embaixo de Solo/Party; travado (neutro) depois da tentativa do dia. */
+.btn-daily {
+  --spinner-color: var(--bg);
+  max-width: 100%;
+  padding: 14px 36px;
+  font-size: 1.15rem;
+  color: var(--bg);
+  background: var(--tier-ss-fill);
+}
+
+.btn-daily:disabled {
+  color: var(--text-2);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
 .btn-party {

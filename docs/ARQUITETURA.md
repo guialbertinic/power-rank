@@ -117,11 +117,12 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/players` `{ name, token?, password? }` | Conta. Nick livre + senha: cria (`{ token }`); sem senha, 400. Seu (token): confirma. De outra pessoa: senha certa dá token novo; errada 403; 5 erradas seguidas bloqueiam 5 min (429); sem senha: 409 `{ taken, hasPassword }`. |
 | `POST /api/players/password` `{ token, password }` | Cria a senha de uma conta que ainda não tem (409 se já tem). 6 a 72 caracteres (`src/game/account.ts`). |
 | `POST /api/players/rename` `{ token, name }` | Troca o nick da conta, se não for de outra conta (409). Tudo segue a conta (id). |
-| `POST /api/games` `{ name, token?, mode }` | Com token: a conta dele (token inválido, 401). Sem token: convidado, se o nick não for de uma conta (401). Sorteia no servidor e grava a partida (com `player_id` da conta). A 1ª partida do dia do jogador na categoria é o Desafio Diário dela (resposta com `daily: true`). |
-| `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Recalcula a pontuação, mede o tempo (sorteio → envio), credita moedas. Devolve `durationMs`, `daily` e `best`/`isNewBest`/`rank` do ranking de hoje (no desafio, `rank` é a posição no ranking do desafio). Uma vez por partida, TTL 1h. |
+| `POST /api/games` `{ name, token?, mode, daily? }` | Com token: a conta dele (token inválido, 401). Sem token: convidado, se o nick não for de uma conta (401). Sorteia no servidor e grava a partida (com `player_id` da conta). `daily: true`: Desafio Diário da categoria; 409 `daily_done` se já começou o de hoje. |
+| `POST /api/daily` `{ name, token?, mode }` | `{ day, done, score }`: se o jogador (conta ou convidado) já jogou o desafio de hoje da categoria. |
+| `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Recalcula a pontuação, mede o tempo (sorteio → envio), credita moedas. Devolve `durationMs`, `daily` e `rank` (posição no ranking do desafio; null em partida solo e de convidado). Uma vez por partida, TTL 1h. |
 | `GET /api/characters` | Catálogo público (sem `power`), ordem alfabética, cache 5 min. |
 | `GET /api/dev/characters` | Com `power`, só em localhost (tela `/?review`). |
-| `GET /api/scores?mode=&period=today\|total\|daily` | Top 20 do modo, só contas (nick atual + visual). `today` (padrão): melhor do dia, com `durationMs`; `total`: soma do melhor de cada dia, com `days`; `daily`: Desafio Diário de hoje da categoria, com `durationMs`. |
+| `GET /api/scores?mode=&period=daily\|total` | Top 20 da categoria, só contas (nick atual + visual), só Desafio Diário. `daily` (padrão): o de hoje, com `durationMs`; `total`: soma de todos os desafios, com `days`. |
 | `POST /api/party` `{ mode, pid }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
 | `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |
 | `GET /api/casino` | `{ pot, lastWinner }`: pote acumulado e último ganhador do jackpot. |
@@ -132,18 +133,14 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/profile/equip` `{ token, slot, itemId \| null }` | Equipa (ou tira) um item que o jogador tem. |
 
 `scores` guarda todas as partidas (inclusive de convidados, com `player_id` NULL, que não entram no ranking).
-**Rankings** (`server/scores.ts`), uma linha por conta mesmo depois de trocar o nick:
-- **Hoje**: melhor partida desde a meia-noite de Brasília (UTC−3, `startOfToday`). Empate: menor `duration_ms`
-  (solo: do sorteio ao envio; party: do início da rodada ao fim do jogador), depois quem fez primeiro. Partidas
-  antigas sem tempo ficam atrás no empate.
-- **Acumulado**: soma do melhor resultado de cada dia (máx. 1000/dia: premia constância, não volume). Empate:
-  menos dias.
-- **Desafio** (Desafio Diário, `server/daily.ts`): um por categoria. A **primeira partida solo do dia** do jogador
-  na categoria é o desafio (sem botão próprio): os mesmos 10 personagens, na mesma ordem, para todos
-  (`daily_challenges`, chave dia + modo, sorteado no primeiro pedido). A tentativa é gasta ao **começar**
-  (`daily_attempts`, chave dia + modo + `p:<id>` da conta ou `g:<nick>` do convidado); as partidas seguintes são
-  normais. `games.daily`/`scores.daily` = dia (AAAA-MM-DD de Brasília); a pontuação também entra no Hoje e no
-  Acumulado da categoria. Convidado joga, mas não entra no ranking. Empate: menor tempo.
+**Rankings** (`server/scores.ts`): só o **Desafio Diário** conta (solo e party rendem moedas, mas não entram).
+Uma linha por conta mesmo depois de trocar o nick; convidado joga, mas não entra.
+- **Desafio Diário** (`server/daily.ts`, botão próprio na home): um por categoria, os mesmos 10 personagens, na
+  mesma ordem, para todos (`daily_challenges`, chave dia + modo, sorteado no primeiro pedido). Uma tentativa por
+  jogador e categoria, gasta ao **começar** (`daily_attempts`, chave dia + modo + `p:<id>` da conta ou `g:<nick>`
+  do convidado). `games.daily`/`scores.daily` = dia (AAAA-MM-DD de Brasília, UTC−3).
+- Aba **Desafio** (padrão): o de hoje. Empate: menor `duration_ms` (do sorteio ao envio), depois quem fez primeiro.
+- Aba **Acumulado**: soma de todos os desafios da categoria (um por dia: premia constância). Empate: menos dias.
 
 **Identidade:** o jogador é `players.id`. `player_tokens`, `player_items`, `games.player_id` e `scores.player_id`
 apontam para ele (NULL em games/scores = convidado). `players.name` é o nick como foi escrito e `players.name_key`
@@ -212,7 +209,9 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - Protocolo em `src/game/party.ts`. Cliente → sala: `start`, `progress`, `finish`, `end`.
   Sala → cliente: `state` (completo, a cada mudança) e `error`.
 - Mesmos 10 personagens para todos; **pontuação calculada no servidor**; pontuações, posições e moedas só no pódio.
-  Cada resultado entra no ranking da categoria (grava `games` + `scores`).
+  Cada resultado é gravado (`games` + `scores`) e rende moedas, mas não entra no ranking (só o Desafio Diário).
+- Pódio (`PartyPodium`): o servidor revela as `placements` de todos; tocar num jogador da classificação troca a
+  comparação embaixo (a sua por padrão) pela lista dele. Uma lista por vez.
 - Cada jogador tem um `pid` secreto (sessionStorage, para reconectar na mesma vaga) e um `id` público.
 - Regras: nick repetido na sala é recusado; ninguém entra depois do início; quem cai no lobby sai; se o dono sai,
   o conectado mais antigo assume; pódio quando todos os conectados terminam ou o dono encerra; sala vazia some
@@ -222,11 +221,12 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 ## Front
 
 - `App.tsx`: reducer `nick` → `intro` (home) → `playing` → `result`, ou `intro` → `party` / `shop`.
-  `playing`/`result` têm `daily` (vem do `POST /api/games`): o título mostra "Desafio diário · <categoria>" e o
-  ranking do resultado abre na aba Desafio.
+  `playing`/`result` têm `daily`: o título mostra "Desafio diário · <categoria>", o resultado mostra a posição no
+  desafio e não tem "Jogar de novo". A home consulta `/api/daily` (ao abrir e ao trocar de categoria); o botão trava
+  depois da tentativa e mostra a pontuação.
 - A primeira tela é o nick. Telas fora da home têm "Início" no cabeçalho (na party, sai da sala).
-- Home (`IntroScreen`): título, o seletor de categoria (`ModePicker`, rótulo "Modo" na tela), SOLO/PARTY embaixo e o
-  ranking. `ProfileBar` no canto; no celular vira faixa com nick + saldo, e Loja/Cassino ficam no menu (sanfona).
+- Home (`IntroScreen`): título, o seletor de categoria (`ModePicker`, rótulo "Modo" na tela), SOLO/PARTY, o botão do
+  Desafio Diário e o ranking. `ProfileBar` no canto; no celular vira faixa com nick + saldo, e Loja/Cassino ficam no menu (sanfona).
 - Se a API falhar, o jogo sorteia localmente (`gameId: null`) e não conta para o ranking.
 - Imagens da partida pré-carregadas no sorteio; URL com `?v=<id da fonte>` para invalidar cache.
 - `?review` só existe em dev (import lazy atrás de `import.meta.env.DEV`).

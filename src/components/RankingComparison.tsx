@@ -6,18 +6,26 @@ import Avatar from './Avatar';
 import RankBadge from './RankBadge';
 
 /**
- * "Seu ranking" ao lado do "Ranking correto". Usado no solo e na party.
+ * "Seu ranking" (ou o de outro jogador, na party: `title`) ao lado do "Ranking correto". Usado no solo e na party.
  * O site não sabe o poder: `ranks` (vindo do servidor no fim da partida) diz quantos são mais fortes que cada um,
  * o que basta para a ordem e as cores de acerto.
  */
-export default function RankingComparison({ slots, ranks }: { slots: CharacterInfo[]; ranks: Record<string, number> }) {
+export default function RankingComparison({
+  slots,
+  ranks,
+  title,
+}: {
+  slots: CharacterInfo[];
+  ranks: Record<string, number>;
+  title?: string;
+}) {
   const { t } = useI18n();
   const { results, correctOrder } = scoreGame(withRanks(slots, ranks));
 
   return (
     <div className="result-columns">
       <div className="panel">
-        <h3 className="section-title">{t('result.yours')}</h3>
+        <h3 className="section-title">{title ?? t('result.yours')}</h3>
         <ol className="row-list">
           {results.map((r) => (
             <li key={r.position} className={`row row-yours hit-${hitLevel(r.pairsTotal - r.pairsRight)}`}>
