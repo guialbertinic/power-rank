@@ -5,7 +5,7 @@ import { openBox } from './gacha';
 import { json, type Env } from './lib';
 import { connectParty, createParty } from './party';
 import { claimPlayer, playerStatus, renamePlayer, setPassword } from './players';
-import { buyItem, equipItem, getProfile } from './profile';
+import { buyItem, confirmAdult, equipItem, getProfile } from './profile';
 import { getLeaderboard, submitScore } from './scores';
 import { getConfig, rateLimit } from './security';
 
@@ -61,6 +61,8 @@ export default {
           return await setPassword(request, env);
         case 'POST /api/profile':
           return await getProfile(request, env);
+        case 'POST /api/profile/adult':
+          return await confirmAdult(request, env);
         case 'POST /api/profile/equip':
           return await equipItem(request, env);
         case 'POST /api/shop/buy':

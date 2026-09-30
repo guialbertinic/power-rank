@@ -171,6 +171,11 @@ export function equipItem(auth: Auth, slot: CosmeticSlot, itemId: string | null)
   return request('/api/profile/equip', { method: 'POST', body: JSON.stringify({ ...auth, slot, itemId }) });
 }
 
+/** A conta declara ter 18 anos ou mais (libera cassino e Mystery Box). */
+export function confirmAdult(auth: Auth): Promise<Profile> {
+  return request('/api/profile/adult', { method: 'POST', body: JSON.stringify(auth) });
+}
+
 export interface CasinoState {
   pot: number;
   lastWinner: { name: string; prize: number; at: number } | null;

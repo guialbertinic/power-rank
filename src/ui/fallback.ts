@@ -7,9 +7,14 @@ function hashString(value: string): string {
   return hash.toString(36);
 }
 
+/** Matiz do placeholder de um personagem (também usado na imagem de compartilhar). */
+export function fallbackHue(id: string): number {
+  return parseInt(hashString(id), 36) % 360;
+}
+
 /** Placeholder para personagens sem imagem: iniciais sobre um gradiente derivado do id. */
 export function fallbackBackground(id: string): string {
-  const hue = parseInt(hashString(id), 36) % 360;
+  const hue = fallbackHue(id);
   return `linear-gradient(135deg, hsl(${hue} 70% 45%), hsl(${(hue + 40) % 360} 70% 25%))`;
 }
 

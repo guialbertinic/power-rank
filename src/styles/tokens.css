@@ -25,10 +25,13 @@
   --tier-b-text: #4d8bff;
   --tier-c: #00e676;
   --tier-d: #7a8b9e;
+  /* Acerto "quase" (amarelo) na comparação do resultado */
+  --hit-mid: #ffd700;
 
   /* Ação principal */
   --accent: #ff2a6d;
-  --accent-fill: linear-gradient(135deg, #ff2a6d, #9a00e6);
+  --accent-2: #9a00e6;
+  --accent-fill: linear-gradient(135deg, var(--accent), var(--accent-2));
 
   /* Tipografia */
   --font-display: 'Chakra Petch', 'Arial Narrow', sans-serif;

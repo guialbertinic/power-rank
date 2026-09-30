@@ -51,17 +51,20 @@ async function authenticate<T extends object>(request: Request, env: Env): Promi
 export async function loadProfile(env: Env, playerId: number): Promise<Profile> {
   const [player, items] = await env.DB.batch([
     env.DB.prepare(
-      'SELECT name, coins, avatar, name_color, frame, title, password_hash IS NOT NULL AS has_password FROM players WHERE id = ?',
+      `SELECT name, coins, avatar, name_color, frame, title, password_hash IS NOT NULL AS has_password,
+         adult_confirmed_at IS NOT NULL AS adult
+       FROM players WHERE id = ?`,
     ).bind(playerId),
     env.DB.prepare('SELECT item_id FROM player_items WHERE player_id = ? ORDER BY acquired_at').bind(playerId),
   ]);
-  const row = (player.results[0] ?? null) as (LookRow & { name: string; coins: number; has_password: number }) | null;
+  const row = (player.results[0] ?? null) as (LookRow & { name: string; coins: number; has_password: number; adult: number }) | null;
   return {
     name: row?.name ?? '',
     coins: row?.coins ?? 0,
     owned: (items.results as { item_id: string }[]).map((r) => r.item_id),
     look: toLook(row),
     hasPassword: Boolean(row?.has_password),
+    adult: Boolean(row?.adult),
   };
 }
 
@@ -70,6 +73,28 @@ export async function getProfile(request: Request, env: Env): Promise<Response> 
   const auth = await authenticate(request, env);
   if (auth instanceof Response) return auth;
   return json(await loadProfile(env, auth.id));
+}
+
+/**
+ * POST /api/profile/adult: { token } → Profile. A conta declara ter 18 anos ou mais (libera cassino e Mystery Box).
+ * Vale a primeira declaração.
+ */
+export async function confirmAdult(request: Request, env: Env): Promise<Response> {
+  const auth = await authenticate(request, env);
+  if (auth instanceof Response) return auth;
+  await env.DB.prepare('UPDATE players SET adult_confirmed_at = ? WHERE id = ? AND adult_confirmed_at IS NULL')
+    .bind(Date.now(), auth.id)
+    .run();
+  return json(await loadProfile(env, auth.id));
+}
+
+/** Cassino e Mystery Box: 403 se a conta ainda não declarou ter 18 anos ou mais; null se pode seguir. */
+export async function requireAdult(env: Env, playerId: number): Promise<Response | null> {
+  const row = await env.DB.prepare('SELECT adult_confirmed_at IS NOT NULL AS adult FROM players WHERE id = ?')
+    .bind(playerId)
+    .first<{ adult: number }>();
+  if (row?.adult) return null;
+  return json({ error: 'Só para maiores de 18 anos.', code: 'adult_required' }, { status: 403 });
 }
 
 /** Preço de um item do catálogo (ou de um avatar). null se o item não existe. */

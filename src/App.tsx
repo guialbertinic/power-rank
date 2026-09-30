@@ -19,6 +19,7 @@ import ResultScreen from './components/ResultScreen';
 import ShopScreen from './components/ShopScreen';
 import CasinoScreen from './components/CasinoScreen';
 import SettingsMenu from './components/SettingsMenu';
+import { LegalLink, LegalProvider } from './components/Legal';
 import { I18nProvider, useI18n } from './i18n';
 
 // Tela de revisão da base (http://localhost:5173/?review). Só existe em dev: sai do build de produção.
@@ -326,6 +327,13 @@ function Game() {
           onExit={() => dispatch({ type: 'home' })}
         />
       )}
+      {state.phase === 'intro' && !showReview && (
+        <footer className="app-footer">
+          <LegalLink doc="terms">{t('legal.terms')}</LegalLink>
+          <span aria-hidden="true">·</span>
+          <LegalLink doc="privacy">{t('legal.privacy')}</LegalLink>
+        </footer>
+      )}
       {state.phase === 'playing' && (
         <PlayingScreen
           current={state.drawn[state.index]}
@@ -354,7 +362,9 @@ type CatalogStatus = 'loading' | 'ready' | 'error';
 export default function App() {
   return (
     <I18nProvider>
-      <CatalogGate />
+      <LegalProvider>
+        <CatalogGate />
+      </LegalProvider>
     </I18nProvider>
   );
 }

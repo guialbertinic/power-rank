@@ -1,17 +1,9 @@
 import { scoreGame, withRanks } from '../game/scoring';
 import type { CharacterInfo } from '../game/types';
 import { useI18n } from '../i18n';
+import { hitLevel } from '../ui/hits';
 import Avatar from './Avatar';
 import RankBadge from './RankBadge';
-
-/** Cor da linha pela quantidade de pares errados envolvendo o personagem (0 = todos certos). */
-function hitLevel(pairsWrong: number): number {
-  if (pairsWrong === 0) return 0;
-  if (pairsWrong <= 2) return 1;
-  if (pairsWrong <= 4) return 2;
-  if (pairsWrong <= 6) return 3;
-  return 4;
-}
 
 /**
  * "Seu ranking" ao lado do "Ranking correto". Usado no solo e na party.

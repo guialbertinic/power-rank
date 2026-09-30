@@ -24,6 +24,24 @@ export const en: Record<Key, string> = {
   // Settings
   'settings.title': 'Settings',
   'settings.language': 'Language',
+  'settings.legal': 'Terms and privacy',
+
+  // Terms, privacy and 18+
+  'legal.terms': 'Terms of use',
+  'legal.privacy': 'Privacy',
+  'legal.nav': 'Documents',
+  'legal.updated': 'Updated {date}',
+  'legal.close': 'Close',
+  'legal.noticeBefore': 'By continuing, you confirm you are 13 or older and agree to the ',
+  'legal.noticeAnd': ' and the ',
+  'legal.noticeAfter': '.',
+  'legal.privacyLong': 'Privacy policy',
+  'adult.title': 'Adults only (18+)',
+  'adult.text':
+    'The casino and the Mystery Box use only in-game coins, which have no real value and cannot be purchased. Even so, they are for adults only.',
+  'adult.confirm': 'I am 18 or older',
+  'adult.noticeBefore': 'This applies to the account and cannot be undone. Declaring a false age violates the ',
+  'adult.noticeAfter': '.',
 
   // Nick screen
   'nick.label': 'Username',
@@ -95,6 +113,11 @@ export const en: Record<Key, string> = {
   'result.newBestAfter': ' in today’s ranking.',
   'result.yours': 'Your ranking',
   'result.correct': 'Correct ranking',
+  'share.image': 'Share image',
+  'share.result': 'Share result',
+  'share.copied': 'Copied!',
+  'share.copyFailed': "Couldn't copy",
+  'share.text': 'I scored {score}/{max} on Power Rank ({mode}) · {title}',
   'rank.nerd': 'Weird nerd',
   'rank.cooking': 'Let him cook',
   'rank.brabo': 'Beast mode',

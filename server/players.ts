@@ -1,3 +1,4 @@
+import { logAccess } from './access';
 import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
 import { lookalikeOf, nickProblem, verifyTurnstile } from './security';
 import { passwordProblem } from '../src/game/account';
@@ -143,7 +144,7 @@ export async function claimPlayer(request: Request, env: Env): Promise<Response>
     if (!password || !owner.password_hash) {
       return json({ error: 'Esse nick já tem dono', taken: true, hasPassword }, { status: 409 });
     }
-    return login(env, owner, password);
+    return login(request, env, owner, password);
   }
 
   const problem = passwordProblem(password) ?? nickProblem(name);
@@ -163,15 +164,17 @@ export async function claimPlayer(request: Request, env: Env): Promise<Response>
     .first<{ id: number }>();
   if (!created) return json({ error: 'Esse nick já tem dono', taken: true }, { status: 409 });
 
+  await logAccess(env, request, 'signup', { playerId: created.id, name });
   return json({ name, token: await issueToken(env, created.id) });
 }
 
-async function login(env: Env, owner: OwnerRow, password: string): Promise<Response> {
+async function login(request: Request, env: Env, owner: OwnerRow, password: string): Promise<Response> {
   if (owner.locked_until > Date.now()) {
     return json({ error: 'Muitas tentativas. Espere alguns minutos e tente de novo.' }, { status: 429 });
   }
   if (await checkPassword(password, owner.password_hash!)) {
     await env.DB.prepare('UPDATE players SET failed_logins = 0 WHERE id = ?').bind(owner.id).run();
+    await logAccess(env, request, 'login', { playerId: owner.id, name: owner.name });
     return json({ name: owner.name, token: await issueToken(env, owner.id) });
   }
   // Os dois SET usam o valor antigo de failed_logins; ao bloquear, a contagem recomeça.
@@ -183,6 +186,7 @@ async function login(env: Env, owner: OwnerRow, password: string): Promise<Respo
   )
     .bind(MAX_FAILED_LOGINS, Date.now() + LOCK_MS, owner.id)
     .run();
+  await logAccess(env, request, 'login_failed', { playerId: owner.id, name: owner.name });
   return json({ error: 'Senha incorreta' }, { status: 403 });
 }
 

@@ -1,7 +1,7 @@
 import { loadCatalog } from './catalog';
 import { json, type Env } from './lib';
 import { accountByToken } from './players';
-import { loadProfile } from './profile';
+import { loadProfile, requireAdult } from './profile';
 import { BOX_PRICE, drawBox, duplicateRefund } from '../src/game/gacha';
 
 const secureRandom = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
@@ -17,6 +17,8 @@ export async function openBox(request: Request, env: Env): Promise<Response> {
   const body = (await request.json().catch(() => null)) as { token?: unknown } | null;
   const account = await accountByToken(env, body?.token);
   if (!account) return json({ error: 'Nick não verificado' }, { status: 401 });
+  const notAdult = await requireAdult(env, account.id);
+  if (notAdult) return notAdult;
 
   const paid = await env.DB.prepare('UPDATE players SET coins = coins - ?1 WHERE id = ?2 AND coins >= ?1')
     .bind(BOX_PRICE, account.id)

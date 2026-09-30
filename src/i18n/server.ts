@@ -17,6 +17,7 @@ const EXACT_EN: Record<string, string> = {
   'Muitas tentativas. Espere alguns minutos e tente de novo.': 'Too many attempts. Wait a few minutes and try again.',
   'Muitas tentativas seguidas. Espere um minuto e tente de novo.': 'Too many attempts in a row. Wait a minute and try again.',
   'Confirme que você não é um robô.': 'Confirm you are not a robot.',
+  'Só para maiores de 18 anos.': 'Adults only (18+).',
   // Partida
   'Categoria inválida': 'Invalid category',
   'Categoria ainda sem personagens suficientes': 'This category doesn’t have enough characters yet',

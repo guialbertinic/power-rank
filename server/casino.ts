@@ -1,5 +1,6 @@
 import { badRequest, json, type Env } from './lib';
 import { accountByToken } from './players';
+import { requireAdult } from './profile';
 import {
   BET_MAX,
   drawReels,
@@ -56,6 +57,8 @@ export async function spin(request: Request, env: Env): Promise<Response> {
   const body = (await request.json().catch(() => null)) as { token?: unknown; bet?: unknown } | null;
   const account = await accountByToken(env, body?.token);
   if (!account) return json({ error: 'Nick não verificado' }, { status: 401 });
+  const notAdult = await requireAdult(env, account.id);
+  if (notAdult) return notAdult;
   const bet = body?.bet;
   if (!isValidBet(bet)) return badRequest('Aposta inválida');
 

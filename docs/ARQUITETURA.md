@@ -13,7 +13,7 @@ migrations/               schema do D1 (0001 scores · 0002 melhor por jogador �
                           0004 donos de nick · 0005 moedas e cosméticos ·
                           0006 senha do nick · 0007 jogador por id · 0008 títulos ·
                           0009 tempo da partida · 0010 cassino · 0011 mystery box ·
-                          0012 personagens no banco)
+                          0012 personagens no banco · 0013 18+ e registro de acesso)
 scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet (+ lib/images.mjs)
 e2e/                      testes e2e: api.mjs (sem navegador), ui.mjs (Edge headless), lib.mjs (utilitários)
 server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick),
@@ -58,6 +58,30 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 - **Cabeçalhos** (`public/_headers`, só no site publicado): CSP (só o próprio site + challenges.cloudflare.com para o
   Turnstile), `frame-ancestors 'none'`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`. Mexeu na CSP? Rode
   `npm run build`, `npx vite preview --port 4173` e `npm run e2e:csp`.
+
+## Termos, privacidade, 18+ e registro de acesso
+
+- **Textos** em `src/i18n/legal.ts` (pt/en, estruturados; `CONTACT_EMAIL` e `UPDATED` no topo). Tela `Legal.tsx`:
+  abre por cima de qualquer tela (não desmonta partida/party), por `LegalLink` (tela do nick, rodapé da home,
+  engrenagem) ou por URL direta `/?termos` · `/?privacidade` (`?terms`/`?privacy`). Aceite: aviso na tela do nick
+  ("ao continuar... 13+"). Mudou uma regra (retenção, idade)? Atualize o texto e o `UPDATED`.
+- **18+** (cassino e Mystery Box): a conta declara uma vez (`POST /api/profile/adult` → `players.adult_confirmed_at`,
+  sem desfazer); `Profile.adult`. `CasinoScreen` mostra a trava; `spin` e `openBox` recusam sem a declaração
+  (403 `adult_required`, `requireAdult` em `server/profile.ts`).
+- **Registro de acesso** (`server/access.ts` → tabela `access_log`): IP (`CF-Connecting-IP`), país, user agent,
+  conta/nick e evento: `signup`, `login`, `login_failed`, `score` (inclusive convidado e partida rápida demais),
+  `party` (entrada na sala, não reconexão). Guardado 90 dias (`ACCESS_LOG_RETENTION_MS`, apagado a cada gravação);
+  falha ao gravar não derruba a requisição. Nunca vai para o site. Consultar (o usuário roda, `--remote`):
+  ```sql
+  -- IPs de uma conta
+  SELECT ip, country, COUNT(*) n, MAX(datetime(created_at/1000,'unixepoch')) ultimo FROM access_log
+   WHERE player_id = (SELECT id FROM players WHERE name_key = lower('Nick')) GROUP BY ip, country ORDER BY n DESC;
+  -- Contas/nicks que usaram o mesmo IP (multi-conta)
+  SELECT DISTINCT player_id, name FROM access_log WHERE ip = '1.2.3.4';
+  -- IPs com muitas contas nos últimos 7 dias
+  SELECT ip, COUNT(DISTINCT COALESCE(player_id, name)) contas FROM access_log
+   WHERE created_at > (unixepoch() - 7*86400) * 1000 GROUP BY ip HAVING contas > 3 ORDER BY contas DESC;
+  ```
 
 ## Personagens: banco e o que o site sabe
 
@@ -196,6 +220,11 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - Se a API falhar, o jogo sorteia localmente (`gameId: null`) e não conta para o ranking.
 - Imagens da partida pré-carregadas no sorteio; URL com `?v=<id da fonte>` para invalidar cache.
 - `?review` só existe em dev (import lazy atrás de `import.meta.env.DEV`).
+- **Compartilhar** (solo, `ShareResult`, embaixo de "Jogar de novo"):
+  - "Compartilhar imagem": PNG 1080×1920 desenhado em canvas (`ui/shareImage.ts`, cores lidas dos tokens), gerado
+    assim que o resultado chega; com Web Share de arquivos abre o menu do sistema, senão baixa.
+  - "Compartilhar resultado": copia pontuação + título + 10 quadrados de acerto (`ui/hits.ts`, mesmos níveis da
+    comparação) + link. Sem nomes: não dá spoiler da ordem.
 
 ## Design system ("Dark Battle Interface")
 

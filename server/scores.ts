@@ -1,3 +1,4 @@
+import { logAccess } from './access';
 import { loadCatalog } from './catalog';
 import { MIN_GAME_MS } from './security';
 import { badRequest, GAME_TTL_MS, json, LEADERBOARD_SIZE, nameKey, type Env } from './lib';
@@ -140,6 +141,7 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   // Do sorteio ao envio, medido aqui (o cliente não informa tempo).
   const durationMs = now - game.created_at;
   // Ninguém posiciona 10 personagens em menos de alguns segundos: é script. A partida já foi consumida.
+  await logAccess(env, request, 'score', { playerId, name: game.name });
   if (durationMs < MIN_GAME_MS) return json({ error: 'Partida rápida demais para valer.', code: 'too_fast' }, { status: 400 });
   const insert = (coins: number) =>
     env.DB.prepare(

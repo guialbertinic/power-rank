@@ -1,4 +1,5 @@
 import { DurableObject } from 'cloudflare:workers';
+import { logAccess } from './access';
 import { loadCatalog } from './catalog';
 import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
 import { playerAccess } from './players';
@@ -78,7 +79,7 @@ export class PartyRoom extends DurableObject<Env> {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
     if (request.method === 'POST' && url.pathname === '/init') return this.init(request);
-    if (request.headers.get('Upgrade') === 'websocket') return this.openSocket(url);
+    if (request.headers.get('Upgrade') === 'websocket') return this.openSocket(request, url);
     return json({ error: 'Not found' }, { status: 404 });
   }
 
@@ -94,12 +95,12 @@ export class PartyRoom extends DurableObject<Env> {
     return json({ ok: true });
   }
 
-  private async openSocket(url: URL): Promise<Response> {
+  private async openSocket(request: Request, url: URL): Promise<Response> {
     const { 0: client, 1: server } = new WebSocketPair();
     this.ctx.acceptWebSocket(server);
 
     const pid = url.searchParams.get('pid');
-    const error = await this.join(server, pid, url.searchParams.get('name'), url.searchParams.get('token'));
+    const error = await this.join(server, request, pid, url.searchParams.get('name'), url.searchParams.get('token'));
     if (error) {
       this.send(server, { type: 'error', message: error });
       server.close(4000, error);
@@ -110,6 +111,7 @@ export class PartyRoom extends DurableObject<Env> {
   /** Entra (ou reconecta) na sala. Devolve a mensagem de erro, se não puder. */
   private async join(
     ws: WebSocket,
+    request: Request,
     pid: string | null,
     rawName: string | null,
     token: string | null,
@@ -154,6 +156,10 @@ export class PartyRoom extends DurableObject<Env> {
         look,
         playerId: access.kind === 'account' ? access.id : null,
       });
+      // Registro de acesso (abuso/trapaça): só na entrada, não nas reconexões. Em segundo plano, depois da resposta.
+      this.ctx.waitUntil(
+        logAccess(this.env, request, 'party', { playerId: access.kind === 'account' ? access.id : null, name: displayName }),
+      );
     }
 
     ws.serializeAttachment({ pid });

@@ -18,9 +18,10 @@ Objetivo: **abrir o site para pessoas testarem**. Na ordem:
 | 1 | Personagens no banco + tirar o `power` do código do site | Arquitetura | 🟡 | ✅ |
 | 2 | Segurança para teste aberto (rate limit, cabeçalhos, anti-bot, nicks, placar honesto) | Arquitetura | 🟡 | ✅ |
 | 3 | Tradução para inglês + menu de configurações com idioma | Feature | 🟡 | ✅ |
+| 4 | Termos de uso + privacidade (LGPD), trava 18+ no cassino/Mystery Box, registro de IP para abuso | Feature | 🟢 | ✅ |
 
-Quick wins logo depois: trocar os sprites do cassino por arte própria · termos de uso e privacidade · botão
-"Apoie" (Patreon) · trava 18+ no cassino · compartilhar resultado.
+Quick wins logo depois: trocar os sprites do cassino por arte própria · ~~termos de uso e privacidade~~ ✅ · botão
+"Apoie" (Patreon) · ~~trava 18+ no cassino~~ ✅ · ~~compartilhar resultado~~ ✅.
 
 ## Visão
 
@@ -137,7 +138,8 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
   calibrar.
 - 🧭 Olhar o retorno real depois de uns dias · `Manutenção` 🟢:
   `SELECT SUM(prize) * 1.0 / SUM(bet) FROM casino_spins` e `SELECT rarity, COUNT(*) FROM gacha_openings GROUP BY rarity`.
-- 🧭 **Idade:** trava 18+ (ou chave para desligar) no cassino por causa do ECA Digital e loot boxes · `Feature` 🟢
+- ✅ **Idade:** trava 18+ no cassino e na Mystery Box (declaração da conta, checada no servidor). 💡 Depois: chave
+  para desligar o cassino; verificação de idade mais forte se o ECA Digital exigir.
   (ver "Monetização e legal").
 
 ## Economia e cosméticos
@@ -158,8 +160,9 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
 
 ## Criadores de conteúdo e crescimento
 
-- 💡 **Compartilhar resultado** · `Feature` 🟡: imagem pronta para story/TikTok (ranking do jogador + pontuação +
-  nick) e texto para copiar. É o principal motor de crescimento.
+- ✅ **Compartilhar resultado** (solo): imagem pronta para story/TikTok (ranking do jogador + pontuação + nick) e
+  texto estilo Wordle sem spoiler (pontuação + quadrados de acerto + link). É o principal motor de crescimento.
+  💡 Depois: na party (pódio), e link de desafio junto.
 - 💡 "Modo gravação" · `Feature` 🟢: layout vertical limpo (sem barra de perfil, sem cassino), ideal para gravar a tela.
 - 💡 Link de desafio · `Feature` 🟡: "tente bater meu resultado" com a mesma partida (seed) do amigo.
 
@@ -188,9 +191,10 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
     Europa; LGPD no Brasil) se os anúncios forem personalizados.
   - Conferir a política da rede sobre conteúdo de "social casino" antes de aplicar.
   - Opção futura: apoiador não vê anúncios.
-- 💡 Páginas de **termos de uso** (moedas sem valor, não compráveis) e **política de privacidade** (LGPD);
-  "excluir minha conta"; canal para pedido de remoção de imagem · `Feature` 🟢
-- 💡 Idade mínima (13+ nos termos) e trava 18+ no cassino/Mystery Box (ECA Digital, loot boxes) · `Feature` 🟢
+- ✅ Páginas de **termos de uso** (moedas sem valor, não compráveis) e **política de privacidade** (LGPD), com
+  registro de acesso (IP, 90 dias) para investigar abuso; remoção de imagem e exclusão de dados pelo e-mail de
+  contato. 💡 Falta: e-mail definitivo (placeholder em `src/i18n/legal.ts`) e botão "excluir minha conta" · `Feature` 🟢
+- ✅ Idade mínima (13+ nos termos) e trava 18+ no cassino/Mystery Box (ECA Digital, loot boxes)
 
 ## Dados: personagens no banco
 

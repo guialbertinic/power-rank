@@ -118,6 +118,14 @@ section('Conta e convidado');
   check('perfil diz que tem senha', (await post('/profile', old)).data.hasPassword === true);
 
   check('token inválido é recusado', (await post('/games', { name, token: 'token-falso', mode: 'anime' })).status === 401);
+
+  // Registro de acesso (IP) para investigar abuso: criação, login, senha errada e partida (inclusive de convidado).
+  const events = d1(`SELECT event, ip FROM access_log WHERE lower(name) IN ('${name.toLowerCase()}', '${guest.toLowerCase()}')`);
+  check(
+    'registro de acesso: signup, login, login_failed e score, com IP',
+    ['signup', 'login', 'login_failed', 'score'].every((e) => events.includes(`"event": "${e}"`)) && /"ip": "[^"]+"/.test(events),
+    [...new Set(events.match(/"event": "\w+"/g))].join(', '),
+  );
 }
 
 // ---------- Trocar nick ----------
@@ -221,6 +229,12 @@ section('Cassino');
 {
   const me = await player('Cassino');
   check('convidado não joga (401)', (await post('/casino/spin', { bet: 1 })).status === 401);
+  const underage = await post('/casino/spin', { ...me, bet: 1 });
+  check('sem declarar 18+: 403', underage.status === 403 && underage.data.code === 'adult_required');
+  check('perfil começa sem 18+', (await post('/profile', me)).data.adult === false);
+  const adult = await post('/profile/adult', me);
+  check('declara 18+ e o perfil mostra', adult.status === 200 && adult.data.adult === true);
+  check('declarar 18+ pede a conta (401)', (await post('/profile/adult', {})).status === 401);
   check('aposta fora da regra é recusada', (await post('/casino/spin', { ...me, bet: 11 })).status === 400);
   check('sem saldo: 402', (await post('/casino/spin', { ...me, bet: 1 })).status === 402);
 
@@ -261,6 +275,8 @@ section('Mystery Box');
 {
   const me = await player('Gacha');
   check('convidado não abre caixa (401)', (await post('/gacha/open', {})).status === 401);
+  check('sem declarar 18+: 403', (await post('/gacha/open', me)).status === 403);
+  await post('/profile/adult', me);
   check('sem saldo: 402', (await post('/gacha/open', me)).status === 402);
   check('exclusivo não está à venda', (await post('/shop/buy', { ...me, itemId: 'name-aurora' })).status === 400);
 
@@ -311,6 +327,8 @@ section('Party');
   await Promise.all([t1.ready, t2.ready]);
   await sleep(500);
   check('conexões simultâneas não duplicam a vaga', h.state.players.length === 2, `${h.state.players.length} jogadores`);
+  const partyLog = d1(`SELECT COUNT(*) AS n FROM access_log WHERE event = 'party' AND lower(name) = '${twin.name.toLowerCase()}'`);
+  check('entrada na party fica no registro de acesso (uma vez)', /"n": 1\b/.test(partyLog), /"n": \d+/.exec(partyLog)?.[0]);
   t1.ws.close();
   t2.ws.close();
   await sleep(400);

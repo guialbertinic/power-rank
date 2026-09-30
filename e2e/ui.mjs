@@ -1,5 +1,8 @@
 // Testes e2e de interface com navegador headless (Edge/Chrome). Sem screenshots: tudo é checado por seletor/texto.
 // Uso: com `npm run dev` rodando, `npm run e2e:ui`.
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   chooseGuest,
   chooseNick,
@@ -30,7 +33,17 @@ try {
   await ana.goto('http://localhost:5173/', { waitUntil: 'networkidle0' });
   check('primeira visita abre a tela do nick', Boolean(await ana.$('.nick-screen')));
   check('botão de login avisa que também cria conta', (await text(ana, '.nick-login small')) === '(criar conta)');
+  check('tela do nick avisa dos termos (13+)', /13 anos ou mais/.test((await text(ana, '.nick-screen .legal-notice')) ?? ''));
+  await ana.click('.nick-screen .legal-notice .legal-link');
+  await ana.waitForSelector('.legal-overlay');
+  check('link abre os termos por cima da tela', (await text(ana, '#legal-title')) === 'Termos de uso');
+  await ana.click('.legal-tabs button:last-child');
+  check('troca para a privacidade', (await text(ana, '#legal-title')) === 'Política de privacidade');
+  check('privacidade fala do IP e dos 90 dias', /IP/.test((await text(ana, '.legal')) ?? '') && /90 dias/.test((await text(ana, '.legal')) ?? ''));
+  await ana.keyboard.press('Escape');
+  check('Esc fecha e volta para a tela do nick', !(await ana.$('.legal-overlay')) && Boolean(await ana.$('#nick')));
   await chooseNick(ana, nick('Ana'));
+  check('home tem rodapé com termos e privacidade', (await ana.$$('.app-footer .legal-link')).length === 2);
   const bar = await ana.$eval('.profile-bar', (el) => {
     const r = el.getBoundingClientRect();
     return { right: Math.round(document.documentElement.clientWidth - r.right), top: Math.round(r.top) };
@@ -70,6 +83,16 @@ try {
   await bruno.goto(`http://localhost:5173/?sala=${room}`, { waitUntil: 'networkidle0' });
   check('convite sem nick mostra a sala', (await text(bruno, '.nick-screen-invite'))?.includes(room));
   check('tela do nick sem scroll horizontal no celular', (await overflowX(bruno)) <= 0);
+  // Link direto para a política (ex: bio, rede de anúncios); abre por cima e ao fechar a URL fica limpa.
+  const legalPage = await b.page(PHONE);
+  await legalPage.goto('http://localhost:5173/?privacidade', { waitUntil: 'networkidle0' });
+  await legalPage.waitForSelector('.legal-overlay');
+  check('/?privacidade abre a política', (await text(legalPage, '#legal-title')) === 'Política de privacidade');
+  const legalOverflow = await legalPage.$eval('.legal-overlay', (el) => el.scrollWidth - el.clientWidth);
+  check('política sem scroll horizontal no celular', legalOverflow <= 0, String(legalOverflow));
+  await legalPage.click('.legal-close');
+  check('fechar limpa a URL', !legalPage.url().includes('privacidade'));
+  await legalPage.close();
   await chooseGuest(bruno, nick('Bruno'), '.party-lobby');
   check('convidado entra direto na sala', (await text(bruno, '.party-code')) === room);
   check('URL do convite é limpa', !bruno.url().includes('sala='));
@@ -217,12 +240,51 @@ try {
 
   // ---------- Solo ----------
   section('Solo');
+  // O Edge no Windows tem Web Share de arquivos (abriria o menu do sistema): testa o caminho de baixar o PNG.
+  await ana.evaluate(() => Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true }));
   await ana.click('.play-buttons .btn-primary');
   await placeAll(ana);
   await ana.waitForSelector('.coins-earned');
   await sleep(1000);
   check('resultado mostra moedas (ou o aviso de 500+)', /^\+\d+$|500\+/.test((await text(ana, '.coins-earned')) ?? ''));
   check('resultado solo sem valores de poder', !(await ana.$('.row-power')));
+
+  // Compartilhar imagem: sem Web Share de arquivos, baixa o PNG de story.
+  await ana.waitForSelector('.share-image:not([disabled])', { timeout: 8000 });
+  const shareLabels = `${await text(ana, '.share-image')} / ${await text(ana, '.share-text')}`;
+  check('botões de compartilhar', shareLabels === 'Compartilhar imagem / Compartilhar resultado', shareLabels);
+  const downloads = mkdtempSync(join(tmpdir(), 'e2e-share-'));
+  const cdp = await ana.createCDPSession();
+  await cdp.send('Browser.setDownloadBehavior', {
+    behavior: 'allow',
+    downloadPath: downloads,
+    browserContextId: ana.browserContext().id,
+  });
+  await ana.click('.share-image');
+  let png = null;
+  for (let i = 0; i < 25 && !png; i++) {
+    await sleep(200);
+    const done = readdirSync(downloads).find((f) => f.endsWith('.png'));
+    if (done) png = readFileSync(join(downloads, done));
+  }
+  // Largura e altura ficam no cabeçalho IHDR do PNG (bytes 16–23).
+  const size = png ? `${png.readUInt32BE(16)}x${png.readUInt32BE(20)}` : 'sem arquivo';
+  check('imagem de compartilhar é um PNG 1080x1920', size === '1080x1920', size);
+  rmSync(downloads, { recursive: true, force: true });
+
+  // Compartilhar resultado: copia o texto (sem nomes, para não dar spoiler).
+  await ana.browserContext().overridePermissions('http://localhost:5173', ['clipboard-read', 'clipboard-sanitized-write']);
+  await ana.bringToFront();
+  await ana.click('.share-text');
+  await sleep(300);
+  check('compartilhar resultado confirma a cópia', (await text(ana, '.share-text')) === 'Copiado!', await text(ana, '.share-text'));
+  const copied = await ana.evaluate(() => navigator.clipboard.readText()).catch((e) => e.message);
+  check(
+    'texto copiado tem pontuação, 10 quadrados e o link',
+    /^Fiz \d+\/1000 no Power Rank/.test(copied) && [...(copied.split(/\r?\n/)[1] ?? '')].length === 10 && copied.includes('localhost:5173'),
+    JSON.stringify(copied),
+  );
+
   // O ranking aparece na hora como skeleton: espera carregar (e recarregar depois do envio) com a Ana nele.
   await ana.waitForSelector('.leaderboard [aria-busy="false"] :is(.row.highlight, .podium-step.you)', { timeout: 8000 });
   check(
@@ -251,6 +313,9 @@ try {
   await ana.click('.home-button');
   await ana.waitForSelector('.profile-bar .coins');
   await (await ana.waitForSelector('.profile-bar ::-p-text(Cassino)')).click();
+  await ana.waitForSelector('.adult-gate');
+  check('cassino pede 18+ antes de mostrar os jogos', !(await ana.$('.casino-machine')));
+  await ana.click('.adult-confirm');
   await ana.waitForSelector('.casino-machine');
   check('pote acumulado aparece', /\d/.test((await text(ana, '.casino-pot .coins')) ?? ''));
   await ana.waitForFunction(() => [...document.querySelectorAll('.casino-reel img')].every((i) => i.complete), { timeout: 5000 });
@@ -314,6 +379,14 @@ try {
   await bruno.reload({ waitUntil: 'networkidle0' });
   await bruno.waitForSelector('.profile-bar');
   check('home sem scroll horizontal', (await overflowX(bruno)) <= 0);
+  await bruno.click('.play-buttons .btn-primary');
+  await placeAll(bruno);
+  await bruno.waitForSelector('.share-image:not([disabled])', { timeout: 8000 });
+  const shareFits = await bruno.$$eval('.share-result .btn', (els) =>
+    els.map((el) => el.getBoundingClientRect()).every((r) => r.left >= 0 && r.right <= document.documentElement.clientWidth),
+  );
+  check('botões de compartilhar cabem no celular', shareFits);
+  check('resultado sem scroll horizontal', (await overflowX(bruno)) <= 0);
 
   check('sem erros no console', b.errors.length === 0, b.errors.join(' | '));
 } catch (err) {

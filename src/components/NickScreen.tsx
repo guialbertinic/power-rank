@@ -3,6 +3,7 @@ import { claimNick, nickStatus } from '../api';
 import { passwordProblem, PASSWORD_MAX_LENGTH } from '../game/account';
 import { NICK_MAX_LENGTH, suggestedNick, tokenFor, type Identity } from '../nick';
 import { serverText, useI18n } from '../i18n';
+import { LegalLink } from './Legal';
 import Turnstile from './Turnstile';
 
 interface Props {
@@ -228,6 +229,13 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
         </div>
       </form>
       {error && <p className="error">{error}</p>}
+      <p className="legal-notice">
+        {t('legal.noticeBefore')}
+        <LegalLink doc="terms">{t('legal.terms')}</LegalLink>
+        {t('legal.noticeAnd')}
+        <LegalLink doc="privacy">{t('legal.privacyLong')}</LegalLink>
+        {t('legal.noticeAfter')}
+      </p>
     </section>
   );
 }

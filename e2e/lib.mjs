@@ -73,6 +73,7 @@ export function cleanTestData() {
     `DELETE FROM player_items WHERE player_id IN ${accounts}; DELETE FROM player_tokens WHERE player_id IN ${accounts}; ` +
       `DELETE FROM casino_spins WHERE player_id IN ${accounts}; DELETE FROM gacha_openings WHERE player_id IN ${accounts}; ` +
       `UPDATE casino_pot SET last_winner_id = NULL WHERE last_winner_id IN ${accounts}; ` +
+      `DELETE FROM access_log WHERE lower(name) LIKE 'e2e%' OR player_id IN ${accounts}; ` +
       `DELETE FROM scores WHERE name_key LIKE 'e2e%' OR player_id IN ${accounts}; ` +
       `DELETE FROM games WHERE lower(name) LIKE 'e2e%' OR player_id IN ${accounts}; ` +
       "DELETE FROM players WHERE name_key LIKE 'e2e%';",

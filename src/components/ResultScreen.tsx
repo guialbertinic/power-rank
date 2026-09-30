@@ -7,6 +7,7 @@ import type { CharacterInfo } from '../game/types';
 import Leaderboard from './Leaderboard';
 import RankingComparison from './RankingComparison';
 import RankingStatus from './RankingStatus';
+import ShareResult from './ShareResult';
 
 interface Props {
   mode: Mode;
@@ -70,6 +71,7 @@ export default function ResultScreen({ mode, gameId, nick, slots, starting, onRe
             {t('result.again')}
           </button>
         </div>
+        {result && <ShareResult mode={mode} nick={nick} slots={slots} ranks={result.ranks} score={result.score} />}
       </div>
 
       {result && <RankingComparison slots={slots} ranks={result.ranks} />}

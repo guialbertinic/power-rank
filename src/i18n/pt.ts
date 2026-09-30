@@ -25,6 +25,24 @@ export const pt = {
   // Configurações
   'settings.title': 'Configurações',
   'settings.language': 'Idioma',
+  'settings.legal': 'Termos e privacidade',
+
+  // Termos, privacidade e 18+
+  'legal.terms': 'Termos de uso',
+  'legal.privacy': 'Privacidade',
+  'legal.nav': 'Documentos',
+  'legal.updated': 'Atualizado em {date}',
+  'legal.close': 'Fechar',
+  'legal.noticeBefore': 'Ao continuar, você confirma ter 13 anos ou mais e concorda com os ',
+  'legal.noticeAnd': ' e a ',
+  'legal.noticeAfter': '.',
+  'legal.privacyLong': 'Política de privacidade',
+  'adult.title': 'Só para maiores de 18',
+  'adult.text':
+    'O cassino e a Mystery Box usam só moedas do jogo, que não têm valor real e não podem ser compradas. Mesmo assim, são só para maiores de 18 anos.',
+  'adult.confirm': 'Tenho 18 anos ou mais',
+  'adult.noticeBefore': 'A confirmação vale para a conta e não pode ser desfeita. Declarar uma idade falsa viola os ',
+  'adult.noticeAfter': '.',
 
   // Tela do nick
   'nick.label': 'Username',
@@ -96,6 +114,11 @@ export const pt = {
   'result.newBestAfter': ' no ranking de hoje.',
   'result.yours': 'Seu ranking',
   'result.correct': 'Ranking correto',
+  'share.image': 'Compartilhar imagem',
+  'share.result': 'Compartilhar resultado',
+  'share.copied': 'Copiado!',
+  'share.copyFailed': 'Não deu para copiar',
+  'share.text': 'Fiz {score}/{max} no Power Rank ({mode}) · {title}',
   'rank.nerd': 'Nerd esquisito',
   'rank.cooking': 'Tá cozinhando chefe',
   'rank.brabo': 'Brabo',

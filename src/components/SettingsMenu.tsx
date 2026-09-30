@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useI18n, type Lang } from '../i18n';
+import { LegalLink } from './Legal';
 
 const LANGS: { id: Lang; label: string }[] = [
   { id: 'pt', label: 'Português' },
@@ -7,7 +8,7 @@ const LANGS: { id: Lang; label: string }[] = [
 ];
 
 /**
- * Configurações (engrenagem no canto superior esquerdo, em todas as telas). Por enquanto: idioma.
+ * Configurações (engrenagem no canto superior esquerdo, em todas as telas): idioma e links de termos/privacidade.
  * A escolha fica salva neste navegador.
  */
 export default function SettingsMenu() {
@@ -62,6 +63,11 @@ export default function SettingsMenu() {
                 {l.label}
               </button>
             ))}
+          </div>
+          <p className="settings-label">{t('settings.legal')}</p>
+          <div className="settings-legal">
+            <LegalLink doc="terms">{t('legal.terms')}</LegalLink>
+            <LegalLink doc="privacy">{t('legal.privacy')}</LegalLink>
           </div>
         </div>
       )}
