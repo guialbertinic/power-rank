@@ -5,16 +5,10 @@ cada um numa posição de 1 a 10, sem poder mudar. Solo e Party (multiplayer), c
 conta (nick + senha) ou convidado, moedas e loja de cosméticos.
 No ar em Cloudflare Workers; repo `github.com/guialbertinic/power-rank`, deploy automático a cada push na `main`.
 
-**Referência completa (estrutura, API, regras, party, economia, design system, imagens): `docs/ARQUITETURA.md`.
-Leia só a seção necessária.** Ideias e roadmap: `docs/IDEIAS.md` (modos de jogo planejados, cassino, legal).
-
-## Skills do projeto (`.claude/skills/`)
-
-- `testar` — rodar e interpretar os testes (unitários, e2e de API e de interface).
-- `personagens` — adicionar personagens, poderes e imagens.
-- `publicar` — migrações, commit e push.
-- `loja` — itens da loja (cores, molduras, títulos), preços, espaço novo, qualquer débito/crédito de moedas.
-- `banco-local` — consultar/alterar o D1 local (dar moedas, listar, zerar, testar migração).
+**Referência completa (estrutura, API, regras, party, economia, design system, imagens): `docs/ARQUITETURA.md`.**
+Ideias e roadmap: `docs/IDEIAS.md`. Os dois são grandes: nunca leia inteiros. `grep -n '^## ' <arquivo>` dá o
+índice; leia só a seção com `offset`/`limit` (ou `grep -n` pelo assunto).
+Tarefas recorrentes (testes, personagens, publicar, loja, banco local) têm skill em `.claude/skills/`.
 
 ## Stack e comandos
 
@@ -27,10 +21,7 @@ npm run build          # typecheck (front + server) + build
 npm test               # unitários (src/game)
 npm run e2e:api        # e2e sem navegador (precisa do dev rodando); -- cassino party = só essas seções
 npm run e2e:ui         # e2e com Edge headless (sem screenshots)
-npm run e2e:csp        # CSP no build de produção (precisa de: npm run build + npx vite preview --port 4173)
-npm run validate       # valida data/characters.json
-npm run characters:sync # copia data/characters.json para o D1 local (-- --remote: produção, o usuário roda)
-npm run contact-sheet -- <ids> | --category games | --series "X" | --recent N   # mosaico de imagens
+npm run db -- "<SQL>"  # D1 local, saída compacta
 npm run db:migrate:local
 ```
 

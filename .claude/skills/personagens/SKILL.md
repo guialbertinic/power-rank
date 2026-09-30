@@ -34,12 +34,14 @@ description: Adiciona ou corrige personagens do Power Rank (anime ou games) com 
 ## 3. Conferir e validar
 
 ```bash
-npm run contact-sheet -- <ids> | --recent N | --series "Obra"   # gera e2e/screenshots/contact-sheet.png
+npm run contact-sheet -- <ids> | --recent N | --series "Obra" | --category games   # gera e2e/screenshots/contact-sheet.png
 npm run validate
 npm run build
 ```
 
-Abra o mosaico e confira personagem certo e recorte (imagens largas são recortadas em 3:4 e às vezes pegam a área
+Cada imagem aberta custa tokens: pergunte ao usuário antes de abrir o mosaico e gere-o **só dos personagens novos ou trocados** (`<ids>` ou `--recent N`),
+nunca de uma série ou categoria inteira sem o usuário pedir, e abra uma vez só (lotes grandes: um mosaico por lote,
+não por personagem). Abra o mosaico e confira personagem certo e recorte (imagens largas são recortadas em 3:4 e às vezes pegam a área
 errada; recorte à mão e use `import:image`). Personagem sem imagem fica fora do sorteio automaticamente.
 
 ## 4. Sincronizar com o banco

@@ -23,4 +23,5 @@ description: Checklist para publicar mudanças do Power Rank — migrações de 
    o push ele mesmo: nesse caso deixe tudo commitado e diga quantos commits estão pendentes e qual migração rodar.
 5. **Depois do push**, se a mudança alterou pontuação ou poderes: lembrar o `npm.cmd run rescore -- --remote`.
 6. Atualize `docs/IDEIAS.md` (status da ideia: 💡 → 🚧 → ✅; resumo em "Já feito") e, se a arquitetura mudou,
-   a seção certa de `docs/ARQUITETURA.md`.
+   a seção certa de `docs/ARQUITETURA.md`. Não leia os arquivos inteiros: `grep -n` pela ideia/seção e edite
+   com `offset`/`limit`.

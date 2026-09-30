@@ -8,6 +8,8 @@ description: Roda e interpreta os testes do Power Rank (unitários, e2e de API e
 Rode na pasta `games/anime-ranking`. **Economize tokens:** cada e2e completo é caro.
 
 - **Durante o trabalho:** só `npm run build` (typecheck front + server) e, se mexeu em `src/game/*`, `npm test`.
+  O build já é silencioso (só erros do `tsc` e avisos do Vite); se só quer saber se passou, `2>&1 | tail -15`.
+  `npm test` com muitos testes: `npx vitest run <arquivo>` para rodar só o tocado.
 - **e2e uma vez, no fim da tarefa**, só a suíte que a mudança toca:
 
 | Mudou | Rode no fim |

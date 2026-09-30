@@ -47,22 +47,10 @@ Exige migração (`ALTER TABLE players ADD COLUMN <coluna> TEXT`, sem risco para
   prêmio numa operação só (`env.DB.batch`) ou com a condição de saldo no próprio UPDATE. O cliente só anima.
 - Moedas nunca compráveis com dinheiro real.
 
-## Mystery Box (gacha)
+## Mystery Box e cassino
 
-Regras em `src/game/gacha.ts` (+ `gacha.test.ts`): caixa de 100, raridade pelo preço do item (comum < 150 ou
-avatar, raro 150–349, épico 350+, lendário = `exclusive: true`). Item exclusivo novo: entrada em `COSMETICS` com
-`price: 0, exclusive: true` + classe CSS; ele entra sozinho no pool lendário, some da loja para quem não tem e o
-`buyItem` recusa. Repetido devolve metade do preço (lendário: 300). Histórico em `gacha_openings`.
-
-## Cassino
-
-Regras e calibração em `src/game/casino.ts` + `casino.test.ts` (retorno exato; mexeu em peso ou multiplicador,
-rode `npm test` e mantenha a tabela fixa perto de 90%). Detalhes em `docs/ARQUITETURA.md` → "Cassino".
-Ícones: pixel art do Game Corner de Pokémon (original: 6 ícones empilhados, 48px de largura), recortados pelas
-faixas transparentes e ampliados 4× com `kernel: 'nearest'` (WebP lossless) em `public/cassino/<id>.webp`; o CSS
-usa `image-rendering: pixelated`. Mudou o número de símbolos? Recalibre pesos e multiplicadores (o teste de retorno
-enumera todas as combinações). O pote é compartilhado: em teste, não assuma que só o
-teste está jogando.
+Mexer na gacha ou no cassino (pesos, multiplicadores, itens exclusivos, ícones): leia `cassino-gacha.md`
+nesta pasta.
 
 ## UI da loja
 

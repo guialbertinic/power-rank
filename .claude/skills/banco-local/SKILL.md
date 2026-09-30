@@ -5,14 +5,16 @@ description: Consultar ou alterar o banco D1 local do Power Rank (dev) — dar m
 
 # Banco local (D1 do `npm run dev`)
 
-São arquivos SQLite em `.wrangler/state/v3/d1/` (fora do git). **Sempre `--local`**: sem ele o comando vai para
-produção, que é do usuário (nunca rode `--remote` que escreve).
+São arquivos SQLite em `.wrangler/state/v3/d1/` (fora do git). Produção é do usuário: nunca rode `--remote`
+que escreve.
 
 ```bash
-npx wrangler d1 execute power-rank --local --command "<SQL>"
+npm run db -- "<SQL>"
 ```
 
-(no PowerShell do usuário: `npx.cmd`). Saída é JSON; filtre com `| grep '"campo"'`.
+Saída compacta: só as linhas (`coluna | coluna`) ou `(0 linhas; alteradas: N)`, e só a mensagem em caso de erro.
+Só banco local (recusa `--remote`). Use sempre este em vez do `npx wrangler d1 execute`, que imprime banner + JSON.
+Sempre escolha as colunas e ponha `LIMIT` em tabelas grandes (`scores`, `games`, `access_log`, `characters`).
 
 ## Receitas
 
