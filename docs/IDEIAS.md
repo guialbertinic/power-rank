@@ -239,7 +239,6 @@ o site — qualquer um que abra o código do site vê o `power` de todos. Migrar
 
 ## Técnico
 
-- 💡 CI (GitHub Actions) com `npm test` + `e2e:api` antes do deploy · `Arquitetura` 🟢
 - 💡 Testes da party no `e2e:api` esperam com `sleep` fixo: trocar por "esperar até o estado X" · `Manutenção` 🟢
 - 💡 Endpoint de saúde e alerta simples de erro (observability já está ligado no `wrangler.jsonc`) ·
   `Arquitetura` 🟢
@@ -256,4 +255,4 @@ o site — qualquer um que abra o código do site vê o `power` de todos. Migrar
 - Desafio Diário: os mesmos 10 (Free for All) para todos no dia, uma tentativa, ranking próprio (aba Desafio).
 - Moedas, loja de cosméticos (cores, molduras, títulos, avatares), cassino (caça-níquel + Mystery Box).
 - Design system "Dark Battle Interface"; testes e2e (`e2e:api`, `e2e:ui`); skills do projeto (`.claude/skills/`).
-- Produção: migrações 0001–0014; deploy automático pela `main`.
+- Produção: migrações 0001–0014; deploy pela `main` via GitHub Actions, só se build + `npm test` + `e2e:api` passarem.

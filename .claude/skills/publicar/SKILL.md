@@ -18,7 +18,7 @@ description: Checklist para publicar mudanças do Power Rank — migrações de 
 3. **Commit:** `git add` com os arquivos da mudança (não inclua `data/characters.json`/`public/chars/` se o usuário
    estiver mexendo neles em paralelo). Mensagem em inglês, resumo + tópicos, terminando com a linha
    `Co-Authored-By` do harness. Nunca commitar `.env`/`.dev.vars`.
-4. **Push só quando o usuário pedir.** O push em `main` dispara o deploy automático; **não acompanhe o deploy**
+4. **Push só quando o usuário pedir.** O push em `main` dispara o GitHub Actions (testes → deploy só se passarem); **não acompanhe o deploy**
    (o usuário confere no painel). Informe o intervalo de commits enviado. Às vezes o usuário roda a migração e dá
    o push ele mesmo: nesse caso deixe tudo commitado e diga quantos commits estão pendentes e qual migração rodar.
 5. **Depois do push**, se a mudança alterou pontuação ou poderes: lembrar o `npm.cmd run rescore -- --remote`.

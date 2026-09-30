@@ -1,0 +1,62 @@
+# Testes antes do deploy: push na main só vai para a Cloudflare se build, unitários e e2e:api passarem.
+# Pull request roda só os testes. O deploy usa os secrets CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID do repo.
+name: Test and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Dois pushes seguidos: o mais novo cancela o anterior (nunca publica um commit velho por cima de um novo).
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+      # e2e:api precisa do `npm run dev` com o D1 local montado (migrações + personagens).
+      # Chaves de teste do Turnstile (públicas, sempre passam), como no .dev.vars do dev.
+      - name: Prepare local D1
+        run: |
+          printf 'TURNSTILE_SITE_KEY=1x00000000000000000000AA\nTURNSTILE_SECRET=1x0000000000000000000000000000000AA\n' > .dev.vars
+          npm run db:migrate:local
+          npm run characters:sync
+      - name: Start dev server
+        run: |
+          nohup npm run dev -- --port 5173 --strictPort > dev.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:5173/api/config > /dev/null && exit 0; sleep 2; done
+          cat dev.log; exit 1
+      - run: npm run e2e:api
+      - name: Dev server log
+        if: failure()
+        run: cat dev.log || true
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

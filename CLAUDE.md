@@ -3,7 +3,7 @@
 Jogo de browser de "blind ranking" de poder: 10 personagens sorteados aparecem um de cada vez e o jogador coloca
 cada um numa posição de 1 a 10, sem poder mudar. Solo e Party (multiplayer), categorias Animes / Games / Free for All,
 conta (nick + senha) ou convidado, moedas e loja de cosméticos.
-No ar em Cloudflare Workers; repo `github.com/guialbertinic/power-rank`, deploy automático a cada push na `main`.
+No ar em Cloudflare Workers; repo `github.com/guialbertinic/power-rank`, deploy pelo GitHub Actions a cada push na `main`, só se build + `npm test` + `e2e:api` passarem.
 
 **Referência completa (estrutura, API, regras, party, economia, design system, imagens): `docs/ARQUITETURA.md`.**
 Ideias e roadmap: `docs/IDEIAS.md`. Os dois são grandes: nunca leia inteiros. `grep -n '^## ' <arquivo>` dá o

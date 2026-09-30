@@ -51,6 +51,8 @@ https://dev.twitch.tv/console, com autenticação em dois fatores na conta Twitc
 
 ## Deploy
 
-O Worker `power-rank` está conectado a este repositório (Workers Builds): cada push na `main` roda o build e o
-`wrangler deploy`. Mudanças de schema: `npm run db:migrate:remote` **antes** do push. Depois de mudar pontuação ou
+O GitHub Actions (`.github/workflows/deploy.yml`) roda build, `npm test` e `e2e:api` (dev server + D1 local montado
+do zero) em cada push e pull request; na `main`, só se tudo passar, faz o `wrangler deploy`. O deploy usa os secrets
+do repositório `CLOUDFLARE_API_TOKEN` (template "Edit Cloudflare Workers") e `CLOUDFLARE_ACCOUNT_ID`; a integração
+Workers Builds da Cloudflare fica desconectada (senão ela publica sem esperar os testes). Mudanças de schema: `npm run db:migrate:remote` **antes** do push. Depois de mudar pontuação ou
 poderes: `npm run rescore -- --remote`.
