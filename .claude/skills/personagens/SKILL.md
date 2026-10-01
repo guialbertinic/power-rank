@@ -1,6 +1,6 @@
 ---
 name: personagens
-description: Adiciona ou corrige personagens do Power Rank (anime ou games) com valor de poder e imagem: monta as entradas, baixa imagens (AniList/IGDB/Wikipédia), confere com mosaico e valida. Use quando o usuário pedir mais personagens, uma franquia nova, ajuste de poder ou troca de imagem.
+description: Adiciona ou corrige personagens do Power Rank (anime, games ou Pokémon) com valor de poder e imagem: monta as entradas, baixa imagens (AniList/IGDB/Wikipédia/PokeAPI), confere com mosaico e valida. Use quando o usuário pedir mais personagens, uma franquia nova, ajuste de poder ou troca de imagem.
 ---
 
 # Personagens
@@ -25,6 +25,9 @@ description: Adiciona ou corrige personagens do Power Rank (anime ou games) com 
   o AniList limita a ~30 req/min.
   - **Anime → AniList.** Não achou: `"search": "Nome como no AniList"` (romanização japonesa: "Tanjirou",
     "Toudou"). Achou o errado: `"anilistId": 123`.
+  - **Pokémon → PokeAPI** (arte oficial pelo `pokeapiId`). As entradas vêm de `npm run pokemon:import`
+    (espécie nova da PokeAPI entra sozinha; ajuste de poder direto no JSON ou na tabela `LORE` do script, que só
+    vale para entradas novas).
   - **Games → Wikipédia** com `"wikipedia": "Título exato do artigo"` (teste o título antes). Sem isso, tenta o
     IGDB, que quase não tem retratos.
   - Sem fonte automática (personagem sem artigo): peça ao usuário para baixar a imagem no navegador e rode

@@ -1,4 +1,4 @@
-import { DEFAULT_MODE, isMode, type Mode } from './game/modes';
+import { DEFAULT_MODE, GENERATIONS, isMode, parseGenerations, type Mode } from './game/modes';
 
 export const NICK_MAX_LENGTH = 20;
 
@@ -15,6 +15,7 @@ const TOKENS_KEY = 'power-rank:tokens';
 /** Versões antigas guardavam só o nick. */
 const LEGACY_NICK_KEY = 'power-rank:name';
 const MODE_KEY = 'power-rank:mode';
+const GENERATIONS_KEY = 'power-rank:generations';
 
 /** Mesma normalização do servidor: sem diferenciar maiúsculas/minúsculas. */
 export const nickKey = (nick: string) => nick.trim().normalize('NFC').toLocaleLowerCase('pt-BR');
@@ -89,6 +90,24 @@ export function loadMode(): Mode {
     return isMode(mode) ? mode : DEFAULT_MODE;
   } catch {
     return DEFAULT_MODE;
+  }
+}
+
+/** Gerações ligadas no modo Pokémon neste navegador (padrão: todas). */
+export function loadGenerations(): number[] {
+  try {
+    const saved = parseGenerations(JSON.parse(localStorage.getItem(GENERATIONS_KEY) ?? 'null'));
+    return saved ?? [...GENERATIONS];
+  } catch {
+    return [...GENERATIONS];
+  }
+}
+
+export function saveGenerations(generations: number[]) {
+  try {
+    localStorage.setItem(GENERATIONS_KEY, JSON.stringify(generations));
+  } catch {
+    // Storage indisponível: só não lembra o filtro.
   }
 }
 

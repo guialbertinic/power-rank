@@ -4,20 +4,21 @@ import { badRequest, GAME_TTL_MS, json, sanitizeName, type Env } from './lib';
 import { playerAccess } from './players';
 import { nickProblem } from './security';
 import { drawCharacters } from '../src/game/draw';
-import { DEFAULT_MODE, isMode, poolFor } from '../src/game/modes';
+import { DEFAULT_MODE, isMode, parseGenerations, poolFor } from '../src/game/modes';
 import { SLOTS } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
 /**
- * POST /api/games: { name, token?, mode?, daily? } → sorteia uma partida para esse nick e devolve
+ * POST /api/games: { name, token?, mode?, generations?, daily? } → sorteia uma partida para esse nick e devolve
  * { gameId, characterIds, characters, daily } (characters = dados públicos dos sorteados, sem `power`).
  * Nick de conta exige o token do dono; nick livre joga como convidado.
  * `daily: true`: o Desafio Diário da categoria (os mesmos personagens para todos); uma tentativa por jogador e
  * categoria (409 `daily_done` depois).
+ * `generations`: filtro de gerações do modo pokemon (o desafio diário ignora: usa todas). O ranking é um só.
  */
 export async function createGame(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const body = (await request.json().catch(() => null)) as
-    | { name?: unknown; token?: unknown; mode?: unknown; daily?: unknown }
+    | { name?: unknown; token?: unknown; mode?: unknown; generations?: unknown; daily?: unknown }
     | null;
   const name = sanitizeName(body?.name);
   if (!name) return badRequest('Nick inválido');
@@ -28,8 +29,10 @@ export async function createGame(request: Request, env: Env, ctx: ExecutionConte
   if (problem) return badRequest(problem);
   const mode = body?.mode ?? DEFAULT_MODE;
   if (!isMode(mode)) return badRequest('Categoria inválida');
+  const generations = mode === 'pokemon' && body?.daily !== true ? parseGenerations(body?.generations) : undefined;
+  if (generations === null) return badRequest('Gerações inválidas');
   const { active, byId } = await loadCatalog(env);
-  const pool = poolFor(mode, active);
+  const pool = poolFor(mode, active, generations);
   if (pool.length < SLOTS) return badRequest('Categoria ainda sem personagens suficientes');
   const gameId = crypto.randomUUID();
 

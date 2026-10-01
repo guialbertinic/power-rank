@@ -98,7 +98,8 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 
 ## Regras do jogo
 
-- **Personagem** (`src/game/types.ts`): `id`, `name`, `category` (`anime` | `games`), `series` (obra),
+- **Personagem** (`src/game/types.ts`): `id`, `name`, `category` (`anime` | `games` | `pokemon`), `series` (obra),
+  `generation?` (1–9, só Pokémon),
   `version?` (arco/forma), `power` 0–100, `image?` e origem da imagem (`anilistId`, `igdbId`, `wikipedia`,
   `search`, `imageVersion`).
 - **Escala de poder universal** (o Free for All depende dela): 0–15 humano · 15–40 sobre-humano ·
@@ -108,8 +109,14 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
   tudo forte, de propósito). O pool exclui personagens sem imagem.
 - **Pontuação** (`scoring.ts`): ordem entre pares. Cada um dos 45 pares vale se o mais forte ficou acima
   (empate conta como certo). `total = round(1000 * paresCertos / 45)`. Ordem aleatória ≈ 500.
-- **Modos** (`modes.ts`): `anime`, `games`, `all` (Free for All), cada um com o próprio ranking.
-  Disponível com ≥ 10 personagens sorteáveis.
+- **Modos** (`modes.ts`): `anime`, `games`, `pokemon`, `all` (Free for All = anime + games; Pokémon fica
+  fora), cada um com o próprio ranking. Disponível com ≥ 10 personagens sorteáveis.
+- **Pokémon:** todas as espécies (forma padrão, gerações 1–9), ids `pkm-<nome>`, criadas por
+  `npm run pokemon:import` (PokeAPI GraphQL) com uma proposta de poder de lore (tabela `LORE` no script para
+  legendários e casos conhecidos, o resto pelo total de status base); quem já existe mantém o `power`.
+  **Filtro de gerações** (home, só no modo Pokémon, lembrado no navegador): vai como `generations` em
+  `POST /api/games` e `POST /api/party` (a sala guarda e mostra no lobby). O desafio diário ignora o filtro
+  (todas) e o ranking é um só.
 
 ## API
 
@@ -312,4 +319,6 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - **Games:** o IGDB (`.env`) quase não tem retratos; a fonte principal é a imagem do artigo da **Wikipédia**
   (`wikipedia: "Título exato"`, `pilicense=any`). A **Fandom bloqueia scripts** (403) — não contornar com
   User-Agent/Referer falsos; usar `import:image` com arquivo baixado pelo usuário.
+- **Pokémon:** arte oficial da PokeAPI (GitHub) pelo `pokeapiId`; `saveImage(..., { contain: true })` tira a
+  margem transparente e encaixa a arte inteira em 3:4 (sem cortar caudas/asas), com fundo transparente.
 - `scripts/lib/images.mjs`: WebP 240px; imagens largas recortadas em 3:4 (`attention`, às vezes erra).

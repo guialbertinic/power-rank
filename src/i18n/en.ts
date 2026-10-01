@@ -67,6 +67,9 @@ export const en: Record<Key, string> = {
   // Home
   'mode.category': 'Mode',
   'mode.soon': 'soon',
+  'gen.label': 'Generations',
+  'gen.aria': 'Generation {n}',
+  'gen.short': 'Gen {list}',
   'daily.label': 'Daily challenge',
   'daily.done': 'Today’s challenge done',
   'daily.doneScore': 'Today’s challenge: {score} pts',

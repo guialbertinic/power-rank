@@ -38,7 +38,31 @@ if (section('Catálogo')) {
   await sleep(MIN_GAME_MS + 100);
   const { data: scored } = await post('/scores', { gameId: guestGame.data.gameId, placements: ids });
   const ranksOk = ids.every((id, i) => i === 0 || scored.ranks[ids[i - 1]] <= scored.ranks[id]);
-  check('resultado traz a ordem correta (ranks) e não o power', scored.score === 1000 && ranksOk && !JSON.stringify(scored).includes('power'));
+  check('resultado traz a ordem correta (ranks) e não o power', scored.score === 1000 && ranksOk && !JSON.stringify(scored).includes('"power":'));
+}
+
+// ---------- Pokémon: categoria própria com filtro de gerações ----------
+if (section('Pokémon')) {
+  const catalog = await get('/characters');
+  const pokemon = catalog.filter((c) => c.category === 'pokemon');
+  check('catálogo tem Pokémon com geração', pokemon.length >= 100 && pokemon.every((c) => c.generation >= 1 && c.generation <= 9));
+  const gen = (ids) => ids.map((id) => catalog.find((c) => c.id === id)?.generation);
+  const filtered = (await post('/games', { name: nick('Pokemon'), mode: 'pokemon', generations: [1, 3] })).data;
+  check('filtro de gerações: só as escolhidas', gen(filtered.characterIds ?? []).every((g) => g === 1 || g === 3), JSON.stringify(gen(filtered.characterIds ?? [])));
+  check('geração inválida é recusada', (await post('/games', { name: nick('Pokemon'), mode: 'pokemon', generations: [0] })).status === 400);
+  check('filtro vazio é recusado', (await post('/games', { name: nick('Pokemon'), mode: 'pokemon', generations: [] })).status === 400);
+  const ffa = (await post('/games', { name: nick('Pokemon'), mode: 'all' })).data;
+  check('Free for All não tem Pokémon', ffa.characters?.length === 10 && !ffa.characters.some((c) => c.category === 'pokemon'));
+  const { data: room } = await post('/party', { mode: 'pokemon', pid: 'e2e-pkmn-pid-01', generations: [2] });
+  const host = await player('PkmHost');
+  const h = partyClient(room.code, 'e2e-pkmn-pid-01', host.name, host.token);
+  await h.ready;
+  await sleep(300);
+  check('sala Pokémon guarda o filtro', JSON.stringify(h.state?.generations) === '[2]', JSON.stringify(h.state?.generations));
+  h.send({ type: 'start' });
+  await sleep(500);
+  check('partida da sala respeita o filtro', h.state?.characterIds.length === 10 && gen(h.state.characterIds).every((g) => g === 2));
+  h.ws.close();
 }
 
 // ---------- Segurança ----------

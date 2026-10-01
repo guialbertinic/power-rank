@@ -38,6 +38,8 @@ export interface PartyPlayer {
 export interface PartyState {
   code: string;
   mode: Mode;
+  /** Filtro de gerações do modo pokemon, escolhido por quem criou a sala (ausente = todas). */
+  generations?: number[];
   phase: PartyPhase;
   /** Incrementa a cada partida iniciada na sala. */
   round: number;

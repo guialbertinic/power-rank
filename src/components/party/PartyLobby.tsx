@@ -28,7 +28,9 @@ export default function PartyLobby({ state, you, onStart, onLeave }: Props) {
   const [copied, setCopied] = useState<'code' | 'link' | null>(null);
   const [starting, start] = usePendingClick();
   const isHost = state.hostId === you;
-  const mode = MODES.find((m) => m.id === state.mode)?.label;
+  const label = MODES.find((m) => m.id === state.mode)?.label ?? '';
+  // Sala Pokémon com filtro: mostra quais gerações valem.
+  const mode = state.generations ? `${label} · ${t('gen.short', { list: state.generations.join(', ') })}` : label;
 
   const onCopy = async (what: 'code' | 'link') => {
     if (await copy(what === 'code' ? state.code : inviteLink(state.code))) {
@@ -40,7 +42,7 @@ export default function PartyLobby({ state, you, onStart, onLeave }: Props) {
   return (
     <section className="party party-lobby">
       <div className="panel party-code-panel">
-        <p className="score-label">{t('lobby.code', { mode: mode ?? '' })}</p>
+        <p className="score-label">{t('lobby.code', { mode })}</p>
         <p className="party-code" aria-label={t('lobby.codeAria', { code: state.code.split('').join(' ') })}>
           {state.code}
         </p>

@@ -68,6 +68,9 @@ export const pt = {
   // Home
   'mode.category': 'Modo',
   'mode.soon': 'em breve',
+  'gen.label': 'Gerações',
+  'gen.aria': 'Geração {n}',
+  'gen.short': 'Gen {list}',
   'daily.label': 'Desafio diário',
   'daily.done': 'Desafio de hoje feito',
   'daily.doneScore': 'Desafio de hoje: {score} pts',

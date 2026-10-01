@@ -453,6 +453,13 @@ try {
   await bruno.reload({ waitUntil: 'networkidle0' });
   await bruno.waitForSelector('.profile-bar');
   check('home sem scroll horizontal', (await overflowX(bruno)) <= 0);
+  // Modo Pokémon: o filtro de gerações aparece embaixo das categorias e a partida sai só das gerações ligadas.
+  await bruno.click('.mode-picker ::-p-text(Pokémon)');
+  await bruno.waitForSelector('.gen-picker');
+  check('Pokémon mostra as 9 gerações ligadas', (await bruno.$$('.gen-option.selected')).length === 9);
+  await bruno.click('.gen-option:nth-child(2)');
+  check('desligar uma geração', (await bruno.$$('.gen-option.selected')).length === 8);
+  check('home Pokémon sem scroll horizontal', (await overflowX(bruno)) <= 0);
   await bruno.click('.play-buttons .btn-primary');
   await placeAll(bruno);
   await bruno.waitForSelector('.share-image:not([disabled])', { timeout: 8000 });

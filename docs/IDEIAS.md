@@ -36,7 +36,7 @@ A home vira um seletor de **modos**; cada modo tem suas **categorias**, seu rank
 
 | Modo | Categorias | Status |
 |---|---|---|
-| **Blind Power Ranking** (o jogo de hoje) | Animes, Games, Free for All; + Filmes, Séries | ✅ (3 categorias) / 💡 (novas) |
+| **Blind Power Ranking** (o jogo de hoje) | Animes, Games, Pokémon (filtro de gerações), Free for All; + Filmes, Séries | ✅ (4 categorias) / 💡 (novas) |
 | **Desafio Diário** | uma partida igual para todos, por dia e categoria | ✅ |
 | **Blind Rating Ranking** | Filmes, Séries, Games, Animes (por nota) | 💡 |
 | **Size Comparison** | Games, Séries, Animes | 💡 |
@@ -164,6 +164,7 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
 ## Conteúdo
 
 - 🧭 Revisar os valores de `power` em `/?review` (principalmente games e os anime mais discutíveis) · `Manutenção` 🟡
+- 🧭 Revisar o poder de lore dos 1025 Pokémon (proposta: legendários à mão, o resto pelos status base) · `Manutenção` 🟡
 - 💡 Mais personagens de games (meta: ~200), prioridade para franquias famosas com artigo na Wikipédia ·
   `Manutenção` 🟡
 - 💡 Revisar imagens aceitáveis mas não ideais: Xehanort (colagem), The Knight (capa do jogo) · `Manutenção` 🟢
@@ -253,6 +254,7 @@ economia e jogadores. O resto abaixo continua 💡.
 
 - Blind Power Ranking solo: pontuação por ordem entre pares; 438 personagens (368 anime + 70 games) com imagem;
   categorias Animes / Games / Free for All; resultado sem valores de poder.
+- Categoria Pokémon: 1025 espécies (PokeAPI, gerações 1–9) com filtro de gerações no solo e na party; fora do Free for All.
 - Party (Durable Objects): sala por código/convite, espera ao vivo, pódio, revanche, reconexão.
 - Conta (nick + senha) ou convidado; jogador por id (trocar nick renomeia a conta); sincronizar dispositivo.
 - Rankings do Desafio Diário (o de hoje, desempate por tempo) e Acumulado (soma dos desafios), pódio dos 3 primeiros, skeleton.

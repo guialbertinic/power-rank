@@ -118,6 +118,8 @@ export async function createGame(
   mode: Mode,
   /** Desafio Diário da categoria (uma tentativa por dia; recusado se já jogou). */
   daily = false,
+  /** Filtro de gerações do modo pokemon (o desafio diário ignora). */
+  generations?: number[],
 ): Promise<
   | { gameId: string; characterIds: string[]; characters: CharacterInfo[]; daily: boolean }
   | 'unauthorized'
@@ -125,7 +127,7 @@ export async function createGame(
   | null
 > {
   try {
-    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode, daily }) });
+    return await request('/api/games', { method: 'POST', body: JSON.stringify({ name, token, mode, daily, generations }) });
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) return 'unauthorized';
     // Recusa do servidor (ex: nick não permitido, muitas partidas seguidas): mostra o motivo.
@@ -167,10 +169,10 @@ export function submitScoreOnce(gameId: string, placements: string[]): Promise<S
 }
 
 /** Cria uma sala da Party; o dono entra em seguida pelo WebSocket com o mesmo `pid`. */
-export async function createParty(mode: Mode, pid: string): Promise<string> {
+export async function createParty(mode: Mode, pid: string, generations?: number[]): Promise<string> {
   const { code } = await request<{ code: string }>('/api/party', {
     method: 'POST',
-    body: JSON.stringify({ mode, pid }),
+    body: JSON.stringify({ mode, pid, generations }),
   });
   return code;
 }

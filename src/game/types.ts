@@ -1,4 +1,4 @@
-export type Category = 'anime' | 'games';
+export type Category = 'anime' | 'games' | 'pokemon';
 
 /** O que o site sabe de um personagem (catálogo público, GET /api/characters): nunca o `power`. */
 export interface CharacterInfo {
@@ -7,6 +7,8 @@ export interface CharacterInfo {
   category: Category;
   /** Obra/franquia do personagem (anime ou jogo). */
   series: string;
+  /** Geração do Pokémon (1–9), usada no filtro de gerações. Só na categoria pokemon. */
+  generation?: number;
   /** Qual versão/arco do personagem está sendo considerada. */
   version?: string;
   /** Caminho relativo a /public, ex: "chars/goku.webp". */
@@ -25,6 +27,8 @@ export interface Character extends CharacterInfo {
   igdbId?: number;
   /** Título do artigo da Wikipédia (inglês) com a imagem (games sem retrato no IGDB). */
   wikipedia?: string;
+  /** Id do Pokémon na PokeAPI (arte oficial), usado por scripts/fetch-images.mjs. */
+  pokeapiId?: number;
   /** Nome de busca no AniList/IGDB quando difere de `name` (ex: "Tanjirou Kamado"). */
   search?: string;
 }

@@ -22,7 +22,7 @@ if (!character) {
   process.exit(1);
 }
 
-character.image = await saveImage(id, readFileSync(resolve(file)));
+character.image = await saveImage(id, readFileSync(resolve(file)), { contain: character.category === 'pokemon' });
 // Entra na URL da imagem: reimportar invalida o cache dos navegadores.
 character.imageVersion = Date.now().toString(36);
 writeFileSync(dataPath, JSON.stringify(characters, null, 2) + '\n');

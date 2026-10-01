@@ -21,6 +21,7 @@ const EXACT_EN: Record<string, string> = {
   // Partida
   'Você já jogou o desafio de hoje.': 'You already played today’s challenge.',
   'Categoria inválida': 'Invalid category',
+  'Gerações inválidas': 'Invalid generations',
   'Categoria ainda sem personagens suficientes': 'This category doesn’t have enough characters yet',
   'Categoria sem personagens suficientes': 'This category doesn’t have enough characters',
   'Partida inexistente, expirada ou já enviada': 'Game not found, expired or already submitted',

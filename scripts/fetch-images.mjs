@@ -3,6 +3,7 @@
 //   anime → AniList (API pública)
 //   games → imagem do artigo da Wikipédia (inglês) indicado em "wikipedia"; sem ele, IGDB
 //           (precisa de IGDB_CLIENT_ID e IGDB_CLIENT_SECRET no .env; ver README). O IGDB tem poucos retratos.
+//   pokemon → arte oficial da PokeAPI pelo "pokeapiId" (criado por npm run pokemon:import)
 //   Sem nenhuma fonte: baixe a imagem no navegador e use `npm run import:image -- <id> <arquivo>`.
 // Marca com ⚠ quando o personagem encontrado parece não ser o certo (nome ou obra diferentes).
 //
@@ -135,6 +136,22 @@ const sources = {
       };
     },
   },
+
+  pokemon: {
+    idField: 'pokeapiId',
+    label: 'PokeAPI',
+    delayMs: 100, // arquivos estáticos do GitHub
+    async find(c) {
+      if (!c.pokeapiId) return null;
+      return {
+        sourceId: c.pokeapiId,
+        name: c.name,
+        altNames: [],
+        imageUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${c.pokeapiId}.png`,
+        inSeries: true,
+      };
+    },
+  },
 };
 
 // A Wikimedia exige um User-Agent que identifique o projeto.
@@ -219,7 +236,7 @@ for (const c of characters) {
     console.warn(`✗ ${c.id}: falha ao baixar imagem (${img.status})`);
     continue;
   }
-  c.image = await saveImage(c.id, Buffer.from(await img.arrayBuffer()));
+  c.image = await saveImage(c.id, Buffer.from(await img.arrayBuffer()), { contain: c.category === 'pokemon' });
   if (match.sourceId) c[source.idField] = match.sourceId;
   updated++;
 

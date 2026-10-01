@@ -4,6 +4,7 @@ import type { Mode } from '../game/modes';
 import { isPartyCode, normalizePartyCode, PARTY_CODE_LENGTH } from '../game/party';
 import { serverText, useI18n } from '../i18n';
 import type { Identity } from '../nick';
+import GenerationPicker from './GenerationPicker';
 import Leaderboard from './Leaderboard';
 import ModePicker from './ModePicker';
 
@@ -12,6 +13,9 @@ interface Props {
   /** Categoria escolhida; o ranking abaixo acompanha. */
   mode: Mode;
   onModeChange: (mode: Mode) => void;
+  /** Filtro de gerações do modo Pokémon (vale para Solo e para a sala criada; o diário usa todas). */
+  generations: number[];
+  onGenerationsChange: (generations: number[]) => void;
   /** Categorias sem personagens suficientes aparecem como "em breve". */
   isModeAvailable: (mode: Mode) => boolean;
   /** Algo em andamento (sorteando ou criando sala). */
@@ -30,7 +34,7 @@ interface Props {
 
 /** Home: categoria (rótulo "Modo"), SOLO / PARTY, o Desafio Diário e o ranking da categoria escolhida no título (o perfil fica na ProfileBar, no canto). */
 export default function IntroScreen(props: Props) {
-  const { identity, mode, onModeChange, isModeAvailable, busy, onSolo, daily, onDaily, onCreateParty, onJoinParty, partyError, soloError } = props;
+  const { identity, mode, onModeChange, generations, onGenerationsChange, isModeAvailable, busy, onSolo, daily, onDaily, onCreateParty, onJoinParty, partyError, soloError } = props;
   const { t, lang } = useI18n();
   const [partyOpen, setPartyOpen] = useState(false);
   const [code, setCode] = useState('');
@@ -46,6 +50,9 @@ export default function IntroScreen(props: Props) {
       <div className="play-setup">
         <p className="setup-label">{t('mode.category')}</p>
         <ModePicker mode={mode} onChange={onModeChange} isAvailable={isModeAvailable} disabled={busy} />
+        {mode === 'pokemon' && canStart && (
+          <GenerationPicker generations={generations} onChange={onGenerationsChange} disabled={busy} />
+        )}
         <div className="play-buttons">
           <button
             className="btn btn-primary btn-lg"

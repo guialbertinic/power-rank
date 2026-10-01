@@ -1270,7 +1270,7 @@ input:focus {
 }
 
 @media (max-width: 760px) {
-  /* As três categorias numa linha só */
+  /* As quatro categorias numa linha só (em 2×2 no celular, abaixo) */
   .mode-picker {
     flex-wrap: nowrap;
     width: 100%;
@@ -1285,6 +1285,72 @@ input:focus {
     letter-spacing: 0.02em;
     white-space: nowrap;
   }
+}
+
+@media (max-width: 520px) {
+  /* Quatro categorias não cabem numa linha no celular: 2×2 */
+  .mode-picker {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Filtro de gerações do modo Pokémon: 9 botões liga/desliga embaixo das categorias. */
+.gen-picker {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.gen-picker-label {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.gen-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.gen-option {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  clip-path: var(--clip-chamfer-sm);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.gen-option:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.gen-option.selected {
+  background: var(--accent-fill);
+  border-color: transparent;
+  color: #fff;
+}
+
+.gen-option:focus-visible {
+  outline: none;
+  box-shadow: inset 0 -3px 0 var(--text);
+}
+
+.gen-option:disabled {
+  cursor: default;
+  opacity: 0.45;
 }
 
 /* ---------- Party (multiplayer) ---------- */

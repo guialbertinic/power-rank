@@ -28,10 +28,10 @@ const now = Date.now();
 
 const statements = characters.map(
   (c) =>
-    `INSERT INTO characters (id, name, category, series, version, power, image, anilist_id, image_version, active, updated_at) ` +
-    `VALUES (${[c.id, c.name, c.category, c.series, c.version, c.power, c.image, c.anilistId, imageVersion(c)].map(sql).join(', ')}, 1, ${now}) ` +
+    `INSERT INTO characters (id, name, category, series, generation, version, power, image, anilist_id, image_version, active, updated_at) ` +
+    `VALUES (${[c.id, c.name, c.category, c.series, c.generation, c.version, c.power, c.image, c.anilistId, imageVersion(c)].map(sql).join(', ')}, 1, ${now}) ` +
     `ON CONFLICT (id) DO UPDATE SET name = excluded.name, category = excluded.category, series = excluded.series, ` +
-    `version = excluded.version, power = excluded.power, image = excluded.image, anilist_id = excluded.anilist_id, ` +
+    `generation = excluded.generation, version = excluded.version, power = excluded.power, image = excluded.image, anilist_id = excluded.anilist_id, ` +
     `image_version = excluded.image_version, active = 1, updated_at = excluded.updated_at;`,
 );
 statements.push(`UPDATE characters SET active = 0, updated_at = ${now} WHERE id NOT IN (${characters.map((c) => sql(c.id)).join(', ')});`);

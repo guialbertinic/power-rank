@@ -2,12 +2,22 @@ import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
 import { ApiError, createGame, createParty, fetchConfig, fetchDaily, fetchProfile, type DailyStatus } from './api';
 import type { Profile } from './game/cosmetics';
 import { FEATURES, NO_FEATURES } from './game/features';
-import { MODES, poolFor, type Mode } from './game/modes';
+import { GENERATIONS, MODES, poolFor, type Mode } from './game/modes';
 import { isPartyCode } from './game/party';
 import { SLOTS } from './game/scoring';
 import type { CharacterInfo } from './game/types';
 import { loadCatalog, POOL, POOL_BY_ID, rememberCharacters } from './data';
-import { clearIdentity, forgetToken, loadIdentity, loadMode, saveIdentity, saveMode, type Identity } from './nick';
+import {
+  clearIdentity,
+  forgetToken,
+  loadGenerations,
+  loadIdentity,
+  loadMode,
+  saveGenerations,
+  saveIdentity,
+  saveMode,
+  type Identity,
+} from './nick';
 import { clearCodeFromUrl, codeFromUrl, newPid, partyPid, rememberPartyPid } from './party/session';
 import { preloadImages } from './ui/fallback';
 import IntroScreen from './components/IntroScreen';
@@ -112,8 +122,9 @@ async function newGame(
   identity: Identity,
   mode: Mode,
   daily = false,
+  generations?: number[],
 ): Promise<{ gameId: string; drawn: CharacterInfo[]; daily: boolean } | 'unauthorized' | { error: string }> {
-  const game = await createGame(identity.name, identity.token, mode, daily);
+  const game = await createGame(identity.name, identity.token, mode, daily, generations);
   if (game === 'unauthorized') return game;
   if (!game) return { error: 'Sem conexão com o servidor. Tente de novo.' }; // traduzido na tela (serverText)
   if ('error' in game) return game;
@@ -124,6 +135,10 @@ async function newGame(
 
 const isModeAvailable = (mode: Mode) => poolFor(mode, POOL).length >= SLOTS;
 
+/** Filtro de gerações a enviar: só no modo pokemon e quando nem todas estão ligadas. */
+const generationFilter = (mode: Mode, generations: number[]) =>
+  mode === 'pokemon' && generations.length < GENERATIONS.length ? generations : undefined;
+
 function Game() {
   const { t } = useI18n();
   const [identity, setIdentity] = useState(loadIdentity);
@@ -133,6 +148,7 @@ function Game() {
     const saved = loadMode();
     return isModeAvailable(saved) ? saved : 'anime';
   });
+  const [generations, setGenerations] = useState(loadGenerations);
   const [starting, setStarting] = useState(false);
   const [partyError, setPartyError] = useState<string | null>(null);
   const [soloError, setSoloError] = useState<string | null>(null);
@@ -233,6 +249,11 @@ function Game() {
     saveMode(next);
   };
 
+  const changeGenerations = (next: number[]) => {
+    setGenerations(next);
+    saveGenerations(next);
+  };
+
   const onNickChosen = (chosen: Identity) => {
     saveIdentity(chosen);
     setIdentity(chosen);
@@ -249,7 +270,7 @@ function Game() {
     if (!identity) return dispatch({ type: 'nick' });
     setStarting(true);
     try {
-      const game = await newGame(identity, mode, asDaily);
+      const game = await newGame(identity, mode, asDaily, asDaily ? undefined : generationFilter(mode, generations));
       if (game === 'unauthorized') {
         // Convidado cujo nick virou conta de outra pessoa, ou token que deixou de valer.
         const reason = identity.token ? t('app.confirmNick') : t('app.nickNowAccount');
@@ -273,7 +294,7 @@ function Game() {
     setStarting(true);
     try {
       const pid = newPid();
-      const code = await createParty(mode, pid);
+      const code = await createParty(mode, pid, generationFilter(mode, generations));
       rememberPartyPid(code, pid);
       dispatch({ type: 'party', code, pid });
     } catch (err) {
@@ -343,6 +364,8 @@ function Game() {
           identity={identity}
           mode={mode}
           onModeChange={changeMode}
+          generations={generations}
+          onGenerationsChange={changeGenerations}
           isModeAvailable={isModeAvailable}
           busy={starting}
           onSolo={() => start()}
