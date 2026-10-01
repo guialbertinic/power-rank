@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { correctRange, MAX_SCORE, scoreGame, strengthRanks, withRanks } from './scoring';
+import { correctRange, MAX_SCORE, rankLevel, scoreGame, strengthRanks, withRanks } from './scoring';
 import { drawCharacters } from './draw';
 import type { Character } from './types';
 
@@ -20,33 +20,43 @@ describe('scoreGame', () => {
   it('gives max score for the perfect order', () => {
     const result = scoreGame(ten);
     expect(result.total).toBe(MAX_SCORE);
-    expect(result.pairsRight).toBe(45);
-    expect(result.results.every((r) => r.pairsRight === 9)).toBe(true);
+    expect(result.results.every((r) => r.distance === 0 && r.points === 100)).toBe(true);
   });
 
-  it('gives zero for the reversed order', () => {
-    expect(scoreGame([...ten].reverse()).total).toBe(0);
+  it('scores each character by its distance to the right position', () => {
+    // Invertido: distâncias 9, 7, 5, 3, 1, 1, 3, 5, 7, 9 → só os 4 do meio pontuam (15 + 70 + 70 + 15).
+    const reversed = scoreGame([...ten].reverse());
+    expect(reversed.results.map((r) => r.distance)).toEqual([9, 7, 5, 3, 1, 1, 3, 5, 7, 9]);
+    expect(reversed.total).toBe(170);
   });
 
-  it('loses a single pair when two neighbours are swapped', () => {
+  it('two neighbours swapped lose 30 points each', () => {
     const swapped = [...ten];
     [swapped[4], swapped[5]] = [swapped[5], swapped[4]];
     const result = scoreGame(swapped);
-    expect(result.pairsRight).toBe(44);
-    expect(result.total).toBe(Math.round((1000 * 44) / 45));
-    expect(result.results.map((r) => r.pairsRight)).toEqual([9, 9, 9, 9, 8, 8, 9, 9, 9, 9]);
+    expect(result.results.map((r) => r.points)).toEqual([100, 100, 100, 100, 70, 70, 100, 100, 100, 100]);
+    expect(result.total).toBe(940);
   });
 
-  it('rewards relative order even when every position is shifted', () => {
-    // O mais fraco foi colocado em 1º; o resto está na ordem certa, só deslocado uma posição.
-    const shifted = [ten[9], ...ten.slice(0, 9)];
-    expect(scoreGame(shifted).pairsRight).toBe(36);
+  it('a character far from its place shifts the others too', () => {
+    // O mais fraco foi colocado em 1º: ele erra por 9 casas e todos os outros ficam 1 casa abaixo.
+    const shifted = scoreGame([ten[9], ...ten.slice(0, 9)]);
+    expect(shifted.results.map((r) => r.distance)).toEqual([9, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+    expect(shifted.total).toBe(630);
   });
 
-  it('counts tied pairs as right in either order', () => {
+  it('accepts any position inside a tie as exact', () => {
     const tied = [char('a', 50), char('b', 50), char('c', 10)];
-    expect(scoreGame(tied).total).toBe(MAX_SCORE);
-    expect(scoreGame([tied[1], tied[0], tied[2]]).total).toBe(MAX_SCORE);
+    expect(scoreGame(tied).total).toBe(300);
+    expect(scoreGame([tied[1], tied[0], tied[2]]).total).toBe(300);
+    // O empatado em 3º está a 1 casa da faixa 1–2.
+    expect(scoreGame([tied[0], tied[2], tied[1]]).results.map((r) => r.distance)).toEqual([0, 1, 1]);
+  });
+
+  it('title levels follow the score bands', () => {
+    expect([0, 399, 400, 549, 550, 699, 700, 849, 850, 1000].map(rankLevel)).toEqual([
+      'noob', 'noob', 'retry', 'retry', 'brabo', 'brabo', 'cooking', 'cooking', 'nerd', 'nerd',
+    ]);
   });
 
   it('returns the correct order strongest first', () => {
@@ -78,7 +88,7 @@ describe('strengthRanks / withRanks', () => {
       const real = scoreGame(shuffled);
       const fromRanks = scoreGame(withRanks(shuffled.map(({ power: _, ...info }) => info), ranks));
       expect(fromRanks.total).toBe(real.total);
-      expect(fromRanks.results.map((r) => r.pairsRight)).toEqual(real.results.map((r) => r.pairsRight));
+      expect(fromRanks.results.map((r) => r.distance)).toEqual(real.results.map((r) => r.distance));
       expect(fromRanks.correctOrder.map((c) => c.id)).toEqual(real.correctOrder.map((c) => c.id));
     }
   });

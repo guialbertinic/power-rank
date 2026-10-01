@@ -129,7 +129,7 @@ export const pt = {
   'rank.noob': 'Kk Noob',
   'coins.aria': '{amount} moedas',
   'coins.guest': 'Crie uma conta para ganhar moedas',
-  'coins.min': 'Faça 500+ pontos para ganhar moedas',
+  'coins.min': 'Faça {min}+ pontos para ganhar moedas',
 
   // Ranking
   'leaderboard.title': 'Ranking · {mode}',
@@ -178,7 +178,7 @@ export const pt = {
   'podium.waitingHost': 'Aguardando o dono iniciar...',
 
   // Loja
-  'shop.hint': 'Ganhe moedas fazendo 500+ pontos.',
+  'shop.hint': 'Ganhe moedas fazendo {min}+ pontos.',
   'shop.tab.nameColor': 'Cor do nick',
   'shop.tab.frame': 'Moldura',
   'shop.tab.title': 'Título',

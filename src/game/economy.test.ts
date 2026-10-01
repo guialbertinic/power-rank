@@ -2,18 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { coinsForScore, podiumBonus } from './economy';
 
 describe('coinsForScore', () => {
-  it('pays nothing below 500 (random guessing)', () => {
+  it('pays nothing below 400 (random guessing makes ~330)', () => {
     expect(coinsForScore(0)).toBe(0);
-    expect(coinsForScore(499)).toBe(0);
+    expect(coinsForScore(399)).toBe(0);
   });
 
   it('pays by score band', () => {
-    expect(coinsForScore(500)).toBe(5);
-    expect(coinsForScore(600)).toBe(10);
-    expect(coinsForScore(750)).toBe(20);
-    expect(coinsForScore(850)).toBe(35);
-    expect(coinsForScore(949)).toBe(35);
-    expect(coinsForScore(950)).toBe(60);
+    expect(coinsForScore(400)).toBe(5);
+    expect(coinsForScore(549)).toBe(5);
+    expect(coinsForScore(550)).toBe(15);
+    expect(coinsForScore(700)).toBe(35);
+    expect(coinsForScore(849)).toBe(35);
+    expect(coinsForScore(850)).toBe(60);
     expect(coinsForScore(1000)).toBe(60);
   });
 });

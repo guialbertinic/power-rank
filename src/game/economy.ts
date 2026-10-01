@@ -1,14 +1,13 @@
 /**
  * Moedas ganhas por partida. Calculadas no servidor a partir da pontuação (que também é do servidor).
- * Abaixo de 500 (o que se faz chutando: ordem aleatória ≈ 500) não paga nada, para não compensar spam.
+ * Abaixo de 400 (chutando, uma ordem aleatória faz ~330) não paga nada, para não compensar spam.
  */
-export const MIN_SCORE_FOR_COINS = 500;
+export const MIN_SCORE_FOR_COINS = 400;
 
 const COINS_BY_SCORE: { min: number; coins: number }[] = [
-  { min: 950, coins: 60 },
-  { min: 850, coins: 35 },
-  { min: 750, coins: 20 },
-  { min: 600, coins: 10 },
+  { min: 850, coins: 60 },
+  { min: 700, coins: 35 },
+  { min: 550, coins: 15 },
   { min: MIN_SCORE_FOR_COINS, coins: 5 },
 ];
 

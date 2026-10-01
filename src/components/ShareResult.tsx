@@ -36,7 +36,7 @@ export default function ShareResult({ mode, nick, slots, ranks, score, daily = f
     return results.map((r) => ({
       character: r.character,
       correctPosition: (ranks[r.character.id] ?? 0) + 1,
-      hit: hitLevel(r.pairsTotal - r.pairsRight),
+      hit: hitLevel(r.distance),
     }));
   }, [slots, ranks]);
 

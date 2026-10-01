@@ -9,8 +9,8 @@ Referência: `docs/ARQUITETURA.md` → "Economia e cosméticos". Tudo que envolv
 
 ## Escala de preços
 
-Uma partida rende no máximo **60** moedas (950+ pontos; ver `src/game/economy.ts`) e o pódio da party até +20.
-Uma partida "boa" rende 10–20. Faixas usadas: básico 40–80 · médio 150–250 · raro 350–500 · lendário 600–800.
+Uma partida rende no máximo **60** moedas (850+ pontos; ver `src/game/economy.ts`) e o pódio da party até +20.
+Uma partida "boa" rende 15–35. Faixas usadas: básico 40–80 · médio 150–250 · raro 350–500 · lendário 600–800.
 Avatar é sempre `AVATAR_PRICE` (50): preço por força revelaria o `power`.
 
 ## Item novo (cor, moldura ou título)

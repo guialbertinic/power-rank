@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { buyItem, equipItem } from '../api';
 import { AVATAR_PRICE, avatarItemId, COSMETICS, type Cosmetic, type Profile } from '../game/cosmetics';
+import { MIN_SCORE_FOR_COINS } from '../game/economy';
 import type { CharacterInfo } from '../game/types';
 import type { Identity } from '../nick';
 import { POOL } from '../data';
@@ -187,7 +188,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
         <p className="shop-balance">
           <Coins amount={profile.coins} />
         </p>
-        <p className="muted shop-hint">{t('shop.hint')}</p>
+        <p className="muted shop-hint">{t('shop.hint', { min: MIN_SCORE_FOR_COINS })}</p>
       </div>
 
       <div className="shop-tabs" role="tablist">

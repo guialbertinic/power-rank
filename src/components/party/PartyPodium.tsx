@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { podiumOrder, type PartyPlayer, type PartyState } from '../../game/party';
+import { MIN_SCORE_FOR_COINS } from '../../game/economy';
 import { MAX_SCORE, rankLevel } from '../../game/scoring';
 import { useI18n } from '../../i18n';
 import type { CharacterInfo } from '../../game/types';
@@ -122,7 +123,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
               ? t('coins.guest')
               : me.coinsEarned
                 ? <Coins amount={me.coinsEarned} prefix="+" />
-                : t('coins.min')}
+                : t('coins.min', { min: MIN_SCORE_FOR_COINS })}
           </p>
         </div>
       )}

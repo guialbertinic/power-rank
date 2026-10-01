@@ -1,4 +1,5 @@
 import type { SubmitResult } from '../api';
+import { MIN_SCORE_FOR_COINS } from '../game/economy';
 import { useI18n } from '../i18n';
 import { formatDuration } from '../ui/format';
 import Coins from './Coins';
@@ -15,7 +16,7 @@ export default function RankingStatus({ result }: { result: SubmitResult }) {
           ? t('coins.guest')
           : coinsEarned
             ? <Coins amount={coinsEarned} prefix="+" />
-            : t('coins.min')}
+            : t('coins.min', { min: MIN_SCORE_FOR_COINS })}
       </p>
       {daily && rank !== null && (
         <p className="ranking-status new-best">{t('result.dailyRank', { rank: `#${rank}` })}</p>

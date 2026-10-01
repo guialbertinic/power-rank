@@ -177,7 +177,7 @@ if (section('Trocar nick')) {
 if (section('Economia e loja')) {
   const me = await player('Loja');
   const bad = await playSolo(me, 'reversed');
-  check('abaixo de 500 não paga', bad.coinsEarned === 0, `${bad.score} pts`);
+  check('abaixo de 400 não paga', bad.coinsEarned === 0, `${bad.score} pts`);
   const good = await playDaily(me, 'perfect');
   check('partida perfeita paga 60', good.coinsEarned === 60 && good.coins === 60);
 
@@ -583,7 +583,7 @@ if (section('Party')) {
   check('todos terminaram → pódio', h.state.phase === 'podium');
   check('pódio revela a ordem correta (ranks), sem power', Object.keys(h.state.ranks ?? {}).length === 10 && !JSON.stringify(h.state).includes('power'));
   check('1º com 1000 ganha 60 + 20 de pódio', ph.score === 1000 && ph.coinsEarned === 80);
-  check('chute não ganha bônus de pódio', pg.score < 500 && pg.coinsEarned === 0, `${pg.score} pts`);
+  check('chute não ganha bônus de pódio', pg.score < 400 && pg.coinsEarned === 0, `${pg.score} pts`);
 
   h.send({ type: 'start' });
   await sleep(400);

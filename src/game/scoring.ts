@@ -2,15 +2,19 @@ export const SLOTS = 10;
 export const MAX_SCORE = 1000;
 
 /**
- * Pontuação por ordem entre pares: para cada par de personagens, o que o jogador colocou mais acima
- * precisa ser pelo menos tão forte quanto o outro. Com 10 personagens são 45 pares.
- * Acertar a ordem relativa vale mesmo com as posições absolutas deslocadas.
- * Pares com o mesmo poder contam sempre como certos.
+ * Pontuação por posição: cada personagem vale até 100 pontos, conforme a distância (em casas) entre onde o
+ * jogador o colocou e onde ele deveria estar. Exato vale 100; cada casa de erro tira pontos, e a 4 casas ou mais
+ * não vale nada. Com 10 personagens, o máximo é 1000.
+ * Empates de poder cobrem várias posições, e qualquer uma delas conta como exata.
+ * Uma ordem aleatória faz ~330 pontos.
  *
  * Funciona com qualquer item que tenha `power`: no servidor, o poder real; no site, o `power` é trocado pela
  * posição relativa que o servidor revela no fim da partida (ver `strengthRanks` / `withRanks`), que dá o mesmo
  * resultado sem expor o valor.
  */
+
+/** Pontos por personagem pela distância até a posição certa (índice = casas de erro; além do fim vale 0). */
+export const POINTS_BY_DISTANCE = [100, 70, 40, 15] as const;
 
 interface Ranked {
   id: string;
@@ -25,15 +29,14 @@ export interface SlotResult<T extends Ranked = Ranked> {
   character: T;
   /** Onde o personagem deveria estar (usado só como dica no resultado). */
   correct: Range;
-  /** Pares envolvendo este personagem com a ordem certa, de `pairsTotal`. */
-  pairsRight: number;
-  pairsTotal: number;
+  /** Casas entre `position` e a faixa `correct` (0 = posição certa). */
+  distance: number;
+  /** Pontos que este personagem rendeu (0 a 100). */
+  points: number;
 }
 
 export interface GameResult<T extends Ranked = Ranked> {
   total: number;
-  pairsRight: number;
-  pairsTotal: number;
   results: SlotResult<T>[];
   /** Os personagens sorteados na ordem correta (mais forte primeiro). */
   correctOrder: T[];
@@ -45,32 +48,22 @@ export function correctRange(character: Ranked, drawn: readonly Ranked[]): Range
   return { min: stronger + 1, max: stronger + tied };
 }
 
+export function pointsForDistance(distance: number): number {
+  return POINTS_BY_DISTANCE[distance] ?? 0;
+}
+
 /** `slots[i]` é o personagem colocado na posição i + 1. */
 export function scoreGame<T extends Ranked>(slots: readonly T[]): GameResult<T> {
-  const right = slots.map(() => 0);
-  let pairsRight = 0;
-  for (let i = 0; i < slots.length; i++) {
-    for (let j = i + 1; j < slots.length; j++) {
-      if (slots[i].power >= slots[j].power) {
-        pairsRight++;
-        right[i]++;
-        right[j]++;
-      }
-    }
-  }
-  const pairsTotal = (slots.length * (slots.length - 1)) / 2;
+  const results = slots.map((character, i) => {
+    const position = i + 1;
+    const correct = correctRange(character, slots);
+    const distance = position < correct.min ? correct.min - position : position > correct.max ? position - correct.max : 0;
+    return { position, character, correct, distance, points: pointsForDistance(distance) };
+  });
 
   return {
-    total: pairsTotal ? Math.round((MAX_SCORE * pairsRight) / pairsTotal) : 0,
-    pairsRight,
-    pairsTotal,
-    results: slots.map((character, i) => ({
-      position: i + 1,
-      character,
-      correct: correctRange(character, slots),
-      pairsRight: right[i],
-      pairsTotal: slots.length - 1,
-    })),
+    total: results.reduce((sum, r) => sum + r.points, 0),
+    results,
     correctOrder: [...slots].sort((a, b) => b.power - a.power),
   };
 }
@@ -91,13 +84,13 @@ export function withRanks<T extends { id: string }>(items: readonly T[], ranks: 
 export type RankLevel = 'nerd' | 'cooking' | 'brabo' | 'retry' | 'noob';
 
 /**
- * Nível do título do resultado (o texto vem da tradução: `rank.<nível>`). Uma ordem aleatória acerta ~50% dos
- * pares (~500 pontos), por isso os títulos começam acima disso.
+ * Nível do título do resultado (o texto vem da tradução: `rank.<nível>`). Mesmas faixas das moedas
+ * (`economy.ts`): uma ordem aleatória faz ~330 pontos, por isso "Tente novamente" começa em 400.
  */
 export function rankLevel(total: number): RankLevel {
-  if (total >= 950) return 'nerd';
-  if (total >= 850) return 'cooking';
-  if (total >= 750) return 'brabo';
-  if (total >= 600) return 'retry';
+  if (total >= 850) return 'nerd';
+  if (total >= 700) return 'cooking';
+  if (total >= 550) return 'brabo';
+  if (total >= 400) return 'retry';
   return 'noob';
 }

@@ -128,7 +128,7 @@ export const en: Record<Key, string> = {
   'rank.noob': 'LOL noob',
   'coins.aria': '{amount} coins',
   'coins.guest': 'Create an account to earn coins',
-  'coins.min': 'Score 500+ to earn coins',
+  'coins.min': 'Score {min}+ to earn coins',
 
   // Ranking
   'leaderboard.title': 'Ranking · {mode}',
@@ -177,7 +177,7 @@ export const en: Record<Key, string> = {
   'podium.waitingHost': 'Waiting for the host...',
 
   // Shop
-  'shop.hint': 'Earn coins by scoring 500+.',
+  'shop.hint': 'Earn coins by scoring {min}+.',
   'shop.tab.nameColor': 'Nick color',
   'shop.tab.frame': 'Frame',
   'shop.tab.title': 'Title',

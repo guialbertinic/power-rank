@@ -28,7 +28,7 @@ export default function RankingComparison({
         <h3 className="section-title">{title ?? t('result.yours')}</h3>
         <ol className="row-list">
           {results.map((r) => (
-            <li key={r.position} className={`row row-yours hit-${hitLevel(r.pairsTotal - r.pairsRight)}`}>
+            <li key={r.position} className={`row row-yours hit-${hitLevel(r.distance)}`}>
               <RankBadge position={r.position} small />
               <Avatar character={r.character} size={32} />
               <span className="row-name">{r.character.name}</span>

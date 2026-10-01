@@ -107,8 +107,10 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
   Os valores são propostas; o usuário revisa em `/?review`.
 - **Sorteio** (`draw.ts`): Fisher-Yates uniforme sobre o pool do modo, sem espaçamento (pode vir tudo fraco ou
   tudo forte, de propósito). O pool exclui personagens sem imagem.
-- **Pontuação** (`scoring.ts`): ordem entre pares. Cada um dos 45 pares vale se o mais forte ficou acima
-  (empate conta como certo). `total = round(1000 * paresCertos / 45)`. Ordem aleatória ≈ 500.
+- **Pontuação** (`scoring.ts`): por posição. Cada personagem vale pela distância (em casas) até a posição certa:
+  exato 100 · 1 casa 70 · 2 casas 40 · 3 casas 15 · 4+ 0 (`POINTS_BY_DISTANCE`); a soma vai de 0 a 1000. Empate de
+  poder: qualquer posição da faixa conta como exata. Ordem aleatória ≈ 330; quem sabe o poder de todos faz ≈ 690 de
+  mediana (às cegas, já ocupou a casa de quem vem depois). Títulos (`rankLevel`) nas mesmas faixas das moedas.
 - **Modos** (`modes.ts`): `anime`, `games`, `pokemon`, `all` (Free for All = anime + games; Pokémon fica
   fora), cada um com o próprio ranking. Disponível com ≥ 10 personagens sorteáveis.
 - **Pokémon:** todas as espécies (forma padrão, gerações 1–9), ids `pkm-<nome>`, criadas por
@@ -178,9 +180,9 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 
 ## Economia e cosméticos
 
-- **Moedas** (`economy.ts`), creditadas no servidor: < 500 pts: 0 (anti-spam, sem limite diário) · 500–599: 5 ·
-  600–749: 10 · 750–849: 20 · 850–949: 35 · 950+: 60. Bônus de pódio na party (+20/+10/+5) só com 2+ jogadores
-  que terminaram **e** 500+ pontos. O `rescore` não mexe em moedas creditadas.
+- **Moedas** (`economy.ts`), creditadas no servidor: < 400 pts: 0 (anti-spam, sem limite diário) · 400–549: 5 ·
+  550–699: 15 · 700–849: 35 · 850+: 60. Bônus de pódio na party (+20/+10/+5) só com 2+ jogadores
+  que terminaram **e** 400+ pontos. O `rescore` não mexe em moedas creditadas.
 - **Loja** (`cosmetics.ts`): cor do nick, moldura, título (o `label` é o texto do título) e avatar (qualquer
   personagem, preço único de 50: preço por força revelaria o poder). A loja lista por preço, com filtro
   Todos/Obtidos/Não obtidos; cor = o nome da cor com o efeito, moldura = quadro vazio, título = por categoria (`group`), 2 por linha.
@@ -300,7 +302,7 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - **Compartilhar** (solo, `ShareResult`, embaixo de "Jogar de novo"):
   - "Compartilhar imagem": PNG 1080×1920 desenhado em canvas (`ui/shareImage.ts`, cores lidas dos tokens), gerado
     assim que o resultado chega; com Web Share de arquivos abre o menu do sistema, senão baixa.
-  - "Compartilhar resultado": copia pontuação + título + 10 quadrados de acerto (`ui/hits.ts`, mesmos níveis da
+  - "Compartilhar resultado": copia pontuação + título + 10 quadrados de acerto (`ui/hits.ts`: casas de erro, mesmos níveis da
     comparação) + link. Sem nomes: não dá spoiler da ordem.
 
 ## Design system ("Dark Battle Interface")

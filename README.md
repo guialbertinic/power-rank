@@ -4,12 +4,12 @@ Jogo de browser de **blind ranking de poder**. São sorteados 10 personagens, qu
 coloca cada um numa posição de 1 (mais forte) a 10 sem saber quem vem depois, e não pode mudar.
 
 - **Categorias:** Animes (368 personagens), Games (70) e Free for All (todos juntos), cada uma com seu ranking.
-- **Pontuação por ordem entre pares:** cada um dos 45 pares vale se o mais forte ficou acima. Máximo 1000;
-  chutar dá ~500.
+- **Pontuação por posição:** cada personagem vale até 100 pontos, menos quanto mais longe da posição certa
+  (100 / 70 / 40 / 15 / 0). Máximo 1000; chutar dá ~330.
 - **Solo e Party:** na party, até 8 pessoas entram numa sala por código de 6 letras (ou link de convite), jogam os
   mesmos 10 personagens ao mesmo tempo e veem o pódio no final.
 - **Nick com dono**, sincronizável entre dispositivos por código.
-- **Moedas** a partir de 500 pontos e **loja** de cosméticos (cor do nick, moldura, avatar) que aparecem no ranking.
+- **Moedas** a partir de 400 pontos e **loja** de cosméticos (cor do nick, moldura, avatar) que aparecem no ranking.
 
 ## Rodando
 
