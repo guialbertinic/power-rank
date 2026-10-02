@@ -112,7 +112,7 @@ export const en: Record<Key, string> = {
   'daily.ruleAllDiff': 'All difficulties',
   'daily.ruleAllGens': 'All generations',
   'daily.ruleOnce': 'One try per day',
-  'daily.play': 'Play',
+  'daily.play': 'Start',
   'daily.done': 'You already played today’s',
   'daily.doneScore': 'You scored {score} pts today',
   'daily.next': 'New challenge in {time}',

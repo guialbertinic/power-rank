@@ -117,7 +117,7 @@ export default function IntroScreen(props: Props) {
           ) : (
             // daily null = carregando (ou sem conexão): o botão espera.
             <button
-              className="btn btn-lg btn-daily-play"
+              className="btn btn-lg btn-chamfer btn-daily-play"
               onClick={() => {
                 setClicked('daily');
                 onDaily();
@@ -148,7 +148,7 @@ export default function IntroScreen(props: Props) {
           {open === 'solo' ? (
             <>
               <button
-                className="btn btn-primary btn-lg"
+                className="btn btn-primary btn-lg btn-chamfer"
                 onClick={() => {
                   setClicked('solo');
                   onSolo();
@@ -163,7 +163,7 @@ export default function IntroScreen(props: Props) {
           ) : (
             <>
               <button
-                className="btn btn-secondary"
+                className="btn btn-secondary btn-chamfer"
                 onClick={() => {
                   setClicked('party');
                   onCreateParty();
@@ -186,7 +186,7 @@ export default function IntroScreen(props: Props) {
                   spellCheck={false}
                   disabled={busy}
                 />
-                <button className="btn btn-secondary" disabled={busy || !isPartyCode(code)}>
+                <button className="btn btn-secondary btn-chamfer" disabled={busy || !isPartyCode(code)}>
                   {t('intro.join')}
                 </button>
               </form>

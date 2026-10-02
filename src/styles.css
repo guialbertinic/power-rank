@@ -144,7 +144,10 @@ p {
   font-style: italic;
   letter-spacing: var(--tracking-display);
   text-transform: uppercase;
-  clip-path: var(--clip-slant);
+  /* Inclinação em px (não em % da largura): botões de larguras diferentes ficam com o mesmo ângulo.
+     --slant acompanha a altura de cada tamanho (sm/lg). */
+  --slant: 12px;
+  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -226,8 +229,14 @@ p {
 }
 
 .btn-lg {
+  --slant: 18px;
   padding: 18px 64px;
   font-size: 1.4rem;
+}
+
+/* Cantos chanfrados (como os botões de dificuldade) no lugar da inclinação: iniciar / criar sala / entrar. */
+.btn-chamfer {
+  clip-path: var(--clip-chamfer-sm);
 }
 
 input {
@@ -1211,7 +1220,12 @@ input:focus {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  gap: 6px 0;
+}
+
+/* Categorias coladas: cada uma recua sobre a vizinha até as bordas inclinadas ficarem paralelas. */
+.mode-picker .mode-option + .mode-option {
+  margin-left: calc(var(--slant-seam) - var(--slant));
 }
 
 .mode-option {
@@ -1227,7 +1241,9 @@ input:focus {
   font-style: italic;
   letter-spacing: var(--tracking-display);
   text-transform: uppercase;
-  clip-path: var(--clip-slant);
+  /* Inclinação em px, igual em todas (em % da largura, as mais largas ficavam mais inclinadas). */
+  --slant: 12px;
+  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
   cursor: pointer;
   transition:
     color 0.15s,
@@ -1266,10 +1282,11 @@ input:focus {
   .mode-picker {
     flex-wrap: nowrap;
     width: 100%;
-    gap: 4px;
+    gap: 4px 0;
   }
 
   .mode-option {
+    --slant: 10px;
     flex: 1 1 0;
     min-width: 0;
     padding: 9px 10px;
@@ -1284,6 +1301,15 @@ input:focus {
   .mode-picker {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  /* Em grade, só a da direita de cada linha recua sobre a da esquerda. */
+  .mode-picker .mode-option + .mode-option {
+    margin-left: 0;
+  }
+
+  .mode-picker .mode-option:nth-child(even) {
+    margin-left: calc(var(--slant-seam) - var(--slant));
   }
 }
 
@@ -1412,13 +1438,21 @@ input:focus {
   color: var(--text-2);
 }
 
+/* Flex (não grid): com base 0, as três ficam da mesma largura mesmo com a margem negativa que as cola. */
 .play-buttons {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  display: flex;
   width: 100%;
   max-width: 560px;
   margin: 14px auto 0;
+}
+
+.play-buttons .btn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.play-buttons .btn + .btn {
+  margin-left: calc(var(--slant-seam) - var(--slant));
 }
 
 /* Solo / Party / Diário: abas iguais; cada uma abre o seu painel (ativo = painel aberto). */
@@ -1796,7 +1830,9 @@ input:focus {
 }
 
 @media (max-width: 760px) {
+  /* Pouco padding lateral no celular: inclinação menor para o corte não comer o texto. */
   .play-buttons .btn-lg {
+    --slant: 12px;
     padding: 16px 8px;
   }
 
@@ -1921,6 +1957,7 @@ input:focus {
 }
 
 .btn-sm {
+  --slant: 8px;
   padding: 6px 20px;
   font-size: 0.85rem;
 }
@@ -3972,6 +4009,11 @@ input:focus {
   display: contents;
 }
 
+/* Loja / Conquistas / Arcade colados (o gap da faixa também vale entre eles: desconta). */
+.profile-bar-actions .btn + .btn {
+  margin-left: calc(var(--slant-seam) - var(--slant) - 12px);
+}
+
 .profile-menu-actions {
   display: none;
 }
@@ -4046,12 +4088,15 @@ input:focus {
 
   .profile-menu-actions {
     display: flex;
-    gap: 8px;
     width: 100%;
   }
 
   .profile-menu-actions .btn {
     flex: 1 1 0;
+  }
+
+  .profile-menu-actions .btn + .btn {
+    margin-left: calc(var(--slant-seam) - var(--slant));
   }
 
 }

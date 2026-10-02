@@ -113,7 +113,7 @@ export const pt = {
   'daily.ruleAllDiff': 'Todas as dificuldades',
   'daily.ruleAllGens': 'Todas as gerações',
   'daily.ruleOnce': 'Uma tentativa por dia',
-  'daily.play': 'Jogar',
+  'daily.play': 'Iniciar',
   'daily.done': 'Você já jogou o de hoje',
   'daily.doneScore': 'Você fez {score} pts hoje',
   'daily.next': 'Novo desafio em {time}',

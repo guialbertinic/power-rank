@@ -59,6 +59,8 @@
     0 var(--chamfer-sm)
   );
   --clip-slant: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+  /* Botões inclinados "colados": a borda inclinada de um encosta na do vizinho, com essa fresta. */
+  --slant-seam: 3px;
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
