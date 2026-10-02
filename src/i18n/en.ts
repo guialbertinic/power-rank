@@ -165,7 +165,7 @@ export const en: Record<Key, string> = {
   'rank.nerd': 'Weird nerd',
   'rank.cooking': 'Let him cook',
   'rank.brabo': 'Beast mode',
-  'rank.retry': 'Try again',
+  'rank.lucky': 'Lucky guess',
   'rank.noob': 'LOL noob',
   'coins.aria': '{amount} coins',
   'coins.guest': 'Create an account to earn coins',

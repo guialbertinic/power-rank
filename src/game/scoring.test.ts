@@ -55,7 +55,7 @@ describe('scoreGame', () => {
 
   it('title levels follow the score bands', () => {
     expect([0, 399, 400, 549, 550, 699, 700, 849, 850, 1000].map(rankLevel)).toEqual([
-      'noob', 'noob', 'retry', 'retry', 'brabo', 'brabo', 'cooking', 'cooking', 'nerd', 'nerd',
+      'noob', 'noob', 'lucky', 'lucky', 'brabo', 'brabo', 'cooking', 'cooking', 'nerd', 'nerd',
     ]);
   });
 

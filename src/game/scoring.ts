@@ -81,16 +81,16 @@ export function withRanks<T extends { id: string }>(items: readonly T[], ranks: 
   return items.map((item) => ({ ...item, power: -(ranks[item.id] ?? 0) }));
 }
 
-export type RankLevel = 'nerd' | 'cooking' | 'brabo' | 'retry' | 'noob';
+export type RankLevel = 'nerd' | 'cooking' | 'brabo' | 'lucky' | 'noob';
 
 /**
  * Nível do título do resultado (o texto vem da tradução: `rank.<nível>`). Mesmas faixas das moedas
- * (`economy.ts`): uma ordem aleatória faz ~330 pontos, por isso "Tente novamente" começa em 400.
+ * (`economy.ts`): uma ordem aleatória faz ~330 pontos, por isso "Chutou bonito" começa em 400.
  */
 export function rankLevel(total: number): RankLevel {
   if (total >= 850) return 'nerd';
   if (total >= 700) return 'cooking';
   if (total >= 550) return 'brabo';
-  if (total >= 400) return 'retry';
+  if (total >= 400) return 'lucky';
   return 'noob';
 }

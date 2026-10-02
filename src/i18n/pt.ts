@@ -166,7 +166,7 @@ export const pt = {
   'rank.nerd': 'Nerd esquisito',
   'rank.cooking': 'Tá cozinhando chefe',
   'rank.brabo': 'Brabo',
-  'rank.retry': 'Tente novamente',
+  'rank.lucky': 'Chutou bonito',
   'rank.noob': 'Kk Noob',
   'coins.aria': '{amount} moedas',
   'coins.guest': 'Crie uma conta para ganhar moedas',
