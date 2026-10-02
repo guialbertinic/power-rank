@@ -34,7 +34,7 @@ p {
 
 /* ---------- Header ---------- */
 
-/* Durante a partida: "CATEGORIA  POWER RANK" em linha. Na tela inicial (.hero): só o título grande. */
+/* Durante a partida: "CATEGORIA  POWERDLE" em linha. Na tela inicial (.hero): só o título grande. */
 .app-header {
   display: flex;
   align-items: baseline;

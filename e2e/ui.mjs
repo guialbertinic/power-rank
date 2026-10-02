@@ -449,7 +449,7 @@ try {
   const copied = await ana.evaluate(() => navigator.clipboard.readText()).catch((e) => e.message);
   check(
     'texto copiado tem pontuação, 10 quadrados e o link',
-    /^Fiz \d+\/1000 no Power Rank/.test(copied) && [...(copied.split(/\r?\n/)[1] ?? '')].length === 10 && copied.includes('localhost:5173'),
+    /^Fiz \d+\/1000 no Powerdle/.test(copied) && [...(copied.split(/\r?\n/)[1] ?? '')].length === 10 && copied.includes('localhost:5173'),
     JSON.stringify(copied),
   );
 

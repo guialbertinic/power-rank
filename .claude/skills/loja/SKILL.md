@@ -1,6 +1,6 @@
 ---
 name: loja
-description: Mexer na loja e na economia do Power Rank — adicionar/renomear cores de nick, molduras, títulos e avatares, criar um espaço (slot) novo de cosmético, ajustar preços e ganhos de moedas, ou qualquer recurso que debita/credita moedas (ex: gambling). Use quando o usuário pedir itens novos, mudanças na loja ou nas moedas.
+description: Mexer na loja e na economia do Powerdle — adicionar/renomear cores de nick, molduras, títulos e avatares, criar um espaço (slot) novo de cosmético, ajustar preços e ganhos de moedas, ou qualquer recurso que debita/credita moedas (ex: gambling). Use quando o usuário pedir itens novos, mudanças na loja ou nas moedas.
 ---
 
 # Loja e economia

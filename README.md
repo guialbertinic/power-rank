@@ -1,4 +1,4 @@
-# Power Rank
+# Powerdle
 
 Jogo de browser de **blind ranking de poder**. São sorteados 10 personagens, que aparecem um de cada vez; você
 coloca cada um numa posição de 1 (mais forte) a 10 sem saber quem vem depois, e não pode mudar.

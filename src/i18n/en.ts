@@ -161,7 +161,7 @@ export const en: Record<Key, string> = {
   'share.result': 'Share result',
   'share.copied': 'Copied!',
   'share.copyFailed': "Couldn't copy",
-  'share.text': 'I scored {score}/{max} on Power Rank ({mode}) · {title}',
+  'share.text': 'I scored {score}/{max} on Powerdle ({mode}) · {title}',
   'rank.nerd': 'Weird nerd',
   'rank.cooking': 'Let him cook',
   'rank.brabo': 'Beast mode',

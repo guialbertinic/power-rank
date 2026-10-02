@@ -55,7 +55,7 @@ export default function ShareResult({ mode, nick, slots, ranks, score, daily = f
       site: window.location.host,
     })
       .then((blob) => {
-        if (!cancelled) setFile(new File([blob], `power-rank-${score}.png`, { type: 'image/png' }));
+        if (!cancelled) setFile(new File([blob], `powerdle-${score}.png`, { type: 'image/png' }));
       })
       .catch(() => {
         if (!cancelled) setImageFailed(true);

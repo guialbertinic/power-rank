@@ -28,12 +28,12 @@ export interface LegalText {
 const TERMS_PT: LegalText = {
   title: 'Termos de uso',
   intro:
-    'Estes termos valem para quem joga o Power Rank. Ao escolher um nick e jogar, você concorda com eles e com a Política de privacidade.',
+    'Estes termos valem para quem joga o Powerdle. Ao escolher um nick e jogar, você concorda com eles e com a Política de privacidade.',
   sections: [
     {
       title: 'O jogo',
       body: [
-        'O Power Rank é um jogo gratuito de entretenimento: você ordena personagens de animes e games pelo "nível de poder". Os níveis de poder são uma opinião nossa, feita para a brincadeira, e não uma verdade oficial das obras.',
+        'O Powerdle é um jogo gratuito de entretenimento: você ordena personagens de animes e games pelo "nível de poder". Os níveis de poder são uma opinião nossa, feita para a brincadeira, e não uma verdade oficial das obras.',
       ],
     },
     {
@@ -85,7 +85,7 @@ const TERMS_PT: LegalText = {
     {
       title: 'Personagens e imagens',
       body: [
-        'Os personagens, nomes e imagens pertencem aos seus respectivos donos. O Power Rank é um projeto de fã, sem ligação com esses donos. Se você é titular de direitos e quer que uma imagem ou personagem seja removido, escreva para {email}.',
+        'Os personagens, nomes e imagens pertencem aos seus respectivos donos. O Powerdle é um projeto de fã, sem ligação com esses donos. Se você é titular de direitos e quer que uma imagem ou personagem seja removido, escreva para {email}.',
       ],
     },
     {
@@ -107,12 +107,12 @@ const TERMS_PT: LegalText = {
 const TERMS_EN: LegalText = {
   title: 'Terms of use',
   intro:
-    'These terms apply to everyone who plays Power Rank. By choosing a nick and playing, you agree to them and to the Privacy policy.',
+    'These terms apply to everyone who plays Powerdle. By choosing a nick and playing, you agree to them and to the Privacy policy.',
   sections: [
     {
       title: 'The game',
       body: [
-        'Power Rank is a free entertainment game: you rank anime and game characters by "power level". Power levels are our opinion, made for fun, not an official fact from the original works.',
+        'Powerdle is a free entertainment game: you rank anime and game characters by "power level". Power levels are our opinion, made for fun, not an official fact from the original works.',
       ],
     },
     {
@@ -164,7 +164,7 @@ const TERMS_EN: LegalText = {
     {
       title: 'Characters and images',
       body: [
-        'Characters, names and images belong to their respective owners. Power Rank is a fan project, not affiliated with them. If you are a rights holder and want an image or character removed, write to {email}.',
+        'Characters, names and images belong to their respective owners. Powerdle is a fan project, not affiliated with them. If you are a rights holder and want an image or character removed, write to {email}.',
       ],
     },
     {
@@ -186,11 +186,11 @@ const TERMS_EN: LegalText = {
 const PRIVACY_PT: LegalText = {
   title: 'Política de privacidade',
   intro:
-    'Esta política explica quais dados o Power Rank guarda, para quê e por quanto tempo, de acordo com a Lei Geral de Proteção de Dados (LGPD).',
+    'Esta política explica quais dados o Powerdle guarda, para quê e por quanto tempo, de acordo com a Lei Geral de Proteção de Dados (LGPD).',
   sections: [
     {
       title: 'Quem é o responsável',
-      body: ['O Power Rank é mantido por um desenvolvedor independente. Para qualquer assunto sobre seus dados: {email}.'],
+      body: ['O Powerdle é mantido por um desenvolvedor independente. Para qualquer assunto sobre seus dados: {email}.'],
     },
     {
       title: 'Dados que guardamos',
@@ -271,11 +271,11 @@ const PRIVACY_PT: LegalText = {
 const PRIVACY_EN: LegalText = {
   title: 'Privacy policy',
   intro:
-    'This policy explains what data Power Rank keeps, why and for how long, in line with the Brazilian General Data Protection Law (LGPD).',
+    'This policy explains what data Powerdle keeps, why and for how long, in line with the Brazilian General Data Protection Law (LGPD).',
   sections: [
     {
       title: 'Who is responsible',
-      body: ['Power Rank is run by an independent developer. For anything about your data: {email}.'],
+      body: ['Powerdle is run by an independent developer. For anything about your data: {email}.'],
     },
     {
       title: 'Data we keep',

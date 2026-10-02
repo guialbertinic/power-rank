@@ -24,7 +24,7 @@ export interface ShareImageData {
   /** Na ordem em que o jogador colocou (posição 1 primeiro). */
   rows: ShareRow[];
   labels: { yours: string; correct: string };
-  /** Endereço do site no rodapé (ex: "powerrank.gg"). */
+  /** Endereço do site no rodapé (ex: "powerdle.gg"). */
   site: string;
 }
 
@@ -137,9 +137,15 @@ export async function renderShareImage(data: ShareImageData): Promise<Blob> {
   ctx.textBaseline = 'alphabetic';
 
   // Cabeçalho: nome do jogo, modo e nick.
-  ctx.fillStyle = color.text;
+  // "POWER" na cor do texto e "DLE" no destaque, como o título do site; centralizados juntos.
   ctx.font = `italic 700 88px ${display}`;
-  ctx.fillText('POWER RANK', WIDTH / 2, 160);
+  const brandLeft = (WIDTH - ctx.measureText('POWERDLE').width) / 2;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = color.text;
+  ctx.fillText('POWER', brandLeft, 160);
+  ctx.fillStyle = color.accent;
+  ctx.fillText('DLE', brandLeft + ctx.measureText('POWER').width, 160);
+  ctx.textAlign = 'center';
   ctx.fillStyle = color.text2;
   ctx.font = `700 38px ${display}`;
   ctx.fillText(data.modeLabel.toUpperCase(), WIDTH / 2, 220);

@@ -409,7 +409,7 @@ function Game() {
         {!isHome && <span className="title-eyebrow">{eyebrow}</span>}
         <h1>
           <span className="title-main">
-            Power <em>Rank</em>
+            Power<em>dle</em>
           </span>
         </h1>
         {!isHome && !showReview && (

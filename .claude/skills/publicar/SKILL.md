@@ -1,6 +1,6 @@
 ---
 name: publicar
-description: Checklist para publicar mudanças do Power Rank — migrações de banco, commit e push para a main (que roda os testes e faz o deploy na Cloudflare pelo GitHub Actions). Use quando o usuário pedir para commitar, publicar, subir ou fazer push, ou ao terminar uma mudança que altera o schema do D1.
+description: Checklist para publicar mudanças do Powerdle — migrações de banco, commit e push para a main (que roda os testes e faz o deploy na Cloudflare pelo GitHub Actions). Use quando o usuário pedir para commitar, publicar, subir ou fazer push, ou ao terminar uma mudança que altera o schema do D1.
 ---
 
 # Publicar

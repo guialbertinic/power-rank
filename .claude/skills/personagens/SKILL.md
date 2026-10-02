@@ -1,6 +1,6 @@
 ---
 name: personagens
-description: Adiciona ou corrige personagens do Power Rank (anime, games ou Pokémon) com valor de poder e imagem: monta as entradas, baixa imagens (AniList/IGDB/Wikipédia/PokeAPI), confere com mosaico e valida. Use quando o usuário pedir mais personagens, uma franquia nova, ajuste de poder ou troca de imagem.
+description: Adiciona ou corrige personagens do Powerdle (anime, games ou Pokémon) com valor de poder e imagem: monta as entradas, baixa imagens (AniList/IGDB/Wikipédia/PokeAPI), confere com mosaico e valida. Use quando o usuário pedir mais personagens, uma franquia nova, ajuste de poder ou troca de imagem.
 ---
 
 # Personagens

@@ -162,7 +162,7 @@ export const pt = {
   'share.result': 'Compartilhar resultado',
   'share.copied': 'Copiado!',
   'share.copyFailed': 'Não deu para copiar',
-  'share.text': 'Fiz {score}/{max} no Power Rank ({mode}) · {title}',
+  'share.text': 'Fiz {score}/{max} no Powerdle ({mode}) · {title}',
   'rank.nerd': 'Nerd esquisito',
   'rank.cooking': 'Tá cozinhando chefe',
   'rank.brabo': 'Brabo',

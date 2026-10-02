@@ -1,6 +1,6 @@
 ---
 name: banco-local
-description: Consultar ou alterar o banco D1 local do Power Rank (dev) — dar moedas, listar contas, ver partidas, apagar dados de teste, zerar o banco. Use quando o usuário pedir para mexer no banco local, testar com saldo, ou quando a API local der "Erro interno" por falta de tabelas.
+description: Consultar ou alterar o banco D1 local do Powerdle (dev) — dar moedas, listar contas, ver partidas, apagar dados de teste, zerar o banco. Use quando o usuário pedir para mexer no banco local, testar com saldo, ou quando a API local der "Erro interno" por falta de tabelas.
 ---
 
 # Banco local (D1 do `npm run dev`)

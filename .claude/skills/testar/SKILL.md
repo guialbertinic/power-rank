@@ -1,9 +1,9 @@
 ---
 name: testar
-description: Roda e interpreta os testes do Power Rank (unitários, e2e de API e e2e de interface com Edge headless). Use depois de mudar lógica, servidor, party, loja ou UI, ou quando o usuário pedir para testar.
+description: Roda e interpreta os testes do Powerdle (unitários, e2e de API e e2e de interface com Edge headless). Use depois de mudar lógica, servidor, party, loja ou UI, ou quando o usuário pedir para testar.
 ---
 
-# Testar o Power Rank
+# Testar o Powerdle
 
 Rode na pasta `games/anime-ranking`. **Economize tokens:** cada e2e completo é caro.
 
