@@ -8,7 +8,7 @@ import { creditCoins, lookOf } from './profile';
 import { EMPTY_LOOK, type Look } from '../src/game/cosmetics';
 import { coinsForScore, podiumBonus } from '../src/game/economy';
 import { drawCharacters } from '../src/game/draw';
-import { isMode, parseGenerations, poolFor, type Mode } from '../src/game/modes';
+import { isMode, parseDifficulty, parseGenerations, poolFor, type Difficulty, type Mode } from '../src/game/modes';
 import {
   isPartyCode,
   podiumOrder,
@@ -52,6 +52,8 @@ interface StoredRoom {
   mode: Mode;
   /** Filtro de gerações (modo pokemon); ausente = todas. */
   generations?: number[];
+  /** Dificuldade (outros modos); ausente = todos os personagens. */
+  difficulty?: Difficulty;
   phase: PartyPhase;
   round: number;
   hostPid: string;
@@ -87,15 +89,27 @@ export class PartyRoom extends DurableObject<Env> {
 
   /** Chamado pelo Worker ao criar a sala. 409 se o código já estiver em uso (o Worker sorteia outro). */
   private async init(request: Request): Promise<Response> {
-    const { code, mode, generations, hostPid } = (await request.json()) as {
+    const { code, mode, generations, difficulty, hostPid } = (await request.json()) as {
       code: string;
       mode: Mode;
       generations?: number[];
+      difficulty?: Difficulty;
       hostPid: string;
     };
     if (await this.load()) return json({ error: 'Código em uso' }, { status: 409 });
 
-    this.room = { code, mode, ...(generations ? { generations } : {}), phase: 'lobby', round: 0, hostPid, characterIds: [], players: [], createdAt: Date.now() };
+    this.room = {
+      code,
+      mode,
+      ...(generations ? { generations } : {}),
+      ...(difficulty ? { difficulty } : {}),
+      phase: 'lobby',
+      round: 0,
+      hostPid,
+      characterIds: [],
+      players: [],
+      createdAt: Date.now(),
+    };
     await this.save();
     // Se o dono nunca conectar, a sala some sozinha.
     await this.ctx.storage.setAlarm(Date.now() + IDLE_CLEANUP_MS);
@@ -200,7 +214,7 @@ export class PartyRoom extends DurableObject<Env> {
       case 'start': {
         if (!isHost) return fail('Só o dono da sala pode iniciar');
         if (room.phase === 'playing') return;
-        const pool = poolFor(room.mode, catalog!.active, room.generations);
+        const pool = poolFor(room.mode, catalog!.active, room);
         if (pool.length < SLOTS) return fail('Categoria sem personagens suficientes');
         const drawn = drawCharacters(pool, SLOTS);
         room.characterIds = drawn.map((c) => c.id);
@@ -403,6 +417,7 @@ export class PartyRoom extends DurableObject<Env> {
       code: room.code,
       mode: room.mode,
       ...(room.generations ? { generations: room.generations } : {}),
+      ...(room.difficulty ? { difficulty: room.difficulty } : {}),
       phase: room.phase,
       round: room.round,
       hostId: room.players.find((p) => p.pid === room.hostPid)?.id ?? '',
@@ -448,16 +463,18 @@ function randomCode(): string {
 }
 
 /**
- * POST /api/party: { mode, pid, generations? } → cria a sala e devolve { code }. O dono entra em seguida pelo
- * WebSocket. `generations`: filtro de gerações do modo pokemon (ignorado nos outros).
+ * POST /api/party: { mode, pid, generations?, difficulty? } → cria a sala e devolve { code }. O dono entra em seguida
+ * pelo WebSocket. `generations`: filtro de gerações do modo pokemon; `difficulty`: dos outros modos.
  */
 export async function createParty(request: Request, env: Env): Promise<Response> {
-  const body = (await request.json().catch(() => null)) as { mode?: unknown; pid?: unknown; generations?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as { mode?: unknown; pid?: unknown; generations?: unknown; difficulty?: unknown } | null;
   if (!isMode(body?.mode)) return badRequest('Categoria inválida');
   if (!isPid(body?.pid)) return badRequest('Identificação inválida');
   const generations = body.mode === 'pokemon' ? parseGenerations(body.generations) : undefined;
   if (generations === null) return badRequest('Gerações inválidas');
-  if (poolFor(body.mode, (await loadCatalog(env)).active, generations).length < SLOTS) {
+  const difficulty = body.mode !== 'pokemon' ? parseDifficulty(body.difficulty) : undefined;
+  if (difficulty === null) return badRequest('Dificuldade inválida');
+  if (poolFor(body.mode, (await loadCatalog(env)).active, { generations, difficulty }).length < SLOTS) {
     return badRequest('Categoria sem personagens suficientes');
   }
 
@@ -466,7 +483,7 @@ export async function createParty(request: Request, env: Env): Promise<Response>
     const room = env.PARTY.get(env.PARTY.idFromName(code));
     const res = await room.fetch('https://party/init', {
       method: 'POST',
-      body: JSON.stringify({ code, mode: body.mode, generations, hostPid: body.pid }),
+      body: JSON.stringify({ code, mode: body.mode, generations, difficulty, hostPid: body.pid }),
     });
     if (res.ok) return json({ code });
     if (res.status !== 409) return json({ error: 'Não foi possível criar a sala' }, { status: 500 });

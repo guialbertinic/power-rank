@@ -99,7 +99,7 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 ## Regras do jogo
 
 - **Personagem** (`src/game/types.ts`): `id`, `name`, `category` (`anime` | `games` | `pokemon`), `series` (obra),
-  `generation?` (1–9, só Pokémon),
+  `tier?` (1–3, anime e games: ver Dificuldade), `generation?` (1–9, só Pokémon),
   `version?` (arco/forma), `power` 0–100, `image?` e origem da imagem (`anilistId`, `igdbId`, `wikipedia`,
   `search`, `imageVersion`).
 - **Escala de poder universal** (o Free for All depende dela): 0–15 humano · 15–40 sobre-humano ·
@@ -119,6 +119,12 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
   **Filtro de gerações** (home, só no modo Pokémon, lembrado no navegador): vai como `generations` em
   `POST /api/games` e `POST /api/party` (a sala guarda e mostra no lobby). O desafio diário ignora o filtro
   (todas) e o ranking é um só.
+- **Dificuldade** (Animes, Games, Free for All; `Difficulty` em `modes.ts`): fácil só `tier` 1, médio 1–2,
+  difícil todos (cumulativa; padrão médio, lembrada no navegador). `tier` = fama: 1 mainstream, 2 médio, 3
+  obscuro; base pela fama da obra (AniList, ajustada ao público BR) e um tier abaixo para coadjuvantes com poucos
+  favoritos. Público (vem no catálogo, coluna `characters.tier`); sem `tier` conta como 3. Vai como `difficulty`
+  em `POST /api/games` e `POST /api/party` (a sala guarda e mostra no lobby); ausente = todos. O desafio diário
+  ignora. `poolFor(mode, chars, { generations, difficulty })`: cada filtro só vale no modo dele (`filterFor`).
 
 ## API
 
@@ -128,13 +134,13 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/players` `{ name, token?, password? }` | Conta. Nick livre + senha: cria (`{ token }`); sem senha, 400. Seu (token): confirma. De outra pessoa: senha certa dá token novo; errada 403; 5 erradas seguidas bloqueiam 5 min (429); sem senha: 409 `{ taken, hasPassword }`. |
 | `POST /api/players/password` `{ token, password }` | Cria a senha de uma conta que ainda não tem (409 se já tem). 6 a 72 caracteres (`src/game/account.ts`). |
 | `POST /api/players/rename` `{ token, name }` | Troca o nick da conta, se não for de outra conta (409). Tudo segue a conta (id). |
-| `POST /api/games` `{ name, token?, mode, daily? }` | Com token: a conta dele (token inválido, 401). Sem token: convidado, se o nick não for de uma conta (401). Sorteia no servidor e grava a partida (com `player_id` da conta). `daily: true`: Desafio Diário da categoria; 409 `daily_done` se já começou o de hoje. |
+| `POST /api/games` `{ name, token?, mode, daily?, generations?, difficulty? }` | Com token: a conta dele (token inválido, 401). Sem token: convidado, se o nick não for de uma conta (401). Sorteia no servidor e grava a partida (com `player_id` da conta). `daily: true`: Desafio Diário da categoria; 409 `daily_done` se já começou o de hoje. |
 | `POST /api/daily` `{ name, token?, mode }` | `{ day, done, score }`: se o jogador (conta ou convidado) já jogou o desafio de hoje da categoria. |
 | `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Recalcula a pontuação, mede o tempo (sorteio → envio), credita moedas. Devolve `durationMs`, `daily` e `rank` (posição no ranking do desafio; null em partida solo e de convidado). Uma vez por partida, TTL 1h. |
 | `GET /api/characters` | Catálogo público (sem `power`), ordem alfabética, cache 5 min. |
 | `GET /api/dev/characters` | Com `power`, só em localhost (tela `/?review`). |
 | `GET /api/scores?mode=&period=daily\|total` | Top 20 da categoria, só contas (nick atual + visual), só Desafio Diário. `daily` (padrão): o de hoje, com `durationMs`; `total`: soma de todos os desafios, com `days`. |
-| `POST /api/party` `{ mode, pid }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
+| `POST /api/party` `{ mode, pid, generations?, difficulty? }` | Cria a sala (6 letras, sem I/O) e devolve `{ code }`. |
 | `GET /api/party/:code/ws?pid=&name=&token=` | WebSocket da sala (encaminhado ao Durable Object). |
 | `GET /api/slots` | `{ pot, lastWinner }`: pote acumulado e último ganhador do jackpot. 403 `feature_disabled` com a chave desligada. |
 | `POST /api/gacha/open` `{ token }` | Só contas. Mystery Box: cobra 100, sorteia raridade e item, entrega (ou devolve moedas se repetido) e devolve `{ rarity, itemId, duplicate, refund, profile }`. 402 sem saldo, 403 `feature_disabled` com a chave `mystery_box` desligada. |
@@ -295,7 +301,8 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   depois da tentativa e mostra a pontuação.
 - A primeira tela é o nick. Telas fora da home têm "Início" no cabeçalho (na party, sai da sala).
 - Home (`IntroScreen`): título, o seletor de categoria (`ModePicker`, rótulo "Modo" na tela), SOLO/PARTY, o botão do
-  Desafio Diário e o ranking. `ProfileBar` no canto; no celular vira faixa com nick + saldo, e Loja/Cassino ficam no menu (sanfona).
+  Desafio Diário e o ranking. Solo e Party abrem um painel (um por vez) com a configuração da partida
+  (`DifficultyPicker`, ou `GenerationPicker` no Pokémon) e o Iniciar / Criar sala + entrar por código. `ProfileBar` no canto; no celular vira faixa com nick + saldo, e Loja/Cassino ficam no menu (sanfona).
 - Se a API falhar, o jogo sorteia localmente (`gameId: null`) e não conta para o ranking.
 - Imagens da partida pré-carregadas no sorteio; URL com `?v=<id da fonte>` para invalidar cache.
 - `?review` só existe em dev (import lazy atrás de `import.meta.env.DEV`).

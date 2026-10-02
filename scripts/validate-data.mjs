@@ -20,6 +20,9 @@ for (const [i, c] of characters.entries()) {
   if (c.category === 'pokemon' && !(Number.isInteger(c.generation) && c.generation >= 1 && c.generation <= 9)) {
     errors.push(`${where}: Pokémon precisa de generation 1-9`);
   }
+  if (c.category !== 'pokemon' && ![1, 2, 3].includes(c.tier)) {
+    errors.push(`${where}: anime/games precisa de tier 1 (mainstream), 2 (médio) ou 3 (obscuro)`);
+  }
   if (typeof c.power !== 'number' || c.power < 0 || c.power > 100) errors.push(`${where}: power deve ser 0-100`);
   if (c.image && !existsSync(join(root, 'public', c.image))) errors.push(`${where}: imagem não encontrada: ${c.image}`);
 }

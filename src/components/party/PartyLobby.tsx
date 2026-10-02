@@ -29,8 +29,13 @@ export default function PartyLobby({ state, you, onStart, onLeave }: Props) {
   const [starting, start] = usePendingClick();
   const isHost = state.hostId === you;
   const label = MODES.find((m) => m.id === state.mode)?.label ?? '';
-  // Sala Pokémon com filtro: mostra quais gerações valem.
-  const mode = state.generations ? `${label} · ${t('gen.short', { list: state.generations.join(', ') })}` : label;
+  // Filtro da sala: gerações (Pokémon) ou dificuldade (os outros modos).
+  const filter = state.generations
+    ? t('gen.short', { list: state.generations.join(', ') })
+    : state.difficulty
+      ? t(`diff.${state.difficulty}`)
+      : null;
+  const mode = filter ? `${label} · ${filter}` : label;
 
   const onCopy = async (what: 'code' | 'link') => {
     if (await copy(what === 'code' ? state.code : inviteLink(state.code))) {

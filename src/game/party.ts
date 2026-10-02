@@ -1,5 +1,5 @@
 import type { Look } from './cosmetics';
-import type { Mode } from './modes';
+import type { Difficulty, Mode } from './modes';
 
 /**
  * Protocolo da Party (multiplayer). Compartilhado entre o front e o Durable Object `PartyRoom`,
@@ -40,6 +40,8 @@ export interface PartyState {
   mode: Mode;
   /** Filtro de gerações do modo pokemon, escolhido por quem criou a sala (ausente = todas). */
   generations?: number[];
+  /** Dificuldade dos outros modos, escolhida por quem criou a sala (ausente = todos os personagens). */
+  difficulty?: Difficulty;
   phase: PartyPhase;
   /** Incrementa a cada partida iniciada na sala. */
   round: number;

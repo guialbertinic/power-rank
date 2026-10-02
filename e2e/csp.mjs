@@ -20,7 +20,8 @@ try {
   await page.waitForSelector('.play-buttons', { timeout: 15000 });
   console.log('conta criada (anti-bot ok)');
 
-  await page.click('.play-buttons .btn-primary');
+  await page.click('.btn-solo');
+  await page.click('.solo-entry .btn-primary');
   await placeAll(page);
   await page.waitForSelector('.result-columns', { timeout: 15000 });
   const imgs = await page.$$eval('img', (list) => list.filter((i) => i.complete && !i.naturalWidth).length);

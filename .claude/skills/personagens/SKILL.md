@@ -8,13 +8,18 @@ description: Adiciona ou corrige personagens do Power Rank (anime, games ou Pok�
 ## 1. Entradas em `data/characters.json`
 
 ```json
-{ "id": "kebab-unico", "name": "Nome", "category": "anime", "series": "Obra", "version": "Forma/arco", "power": 80 }
+{ "id": "kebab-unico", "name": "Nome", "category": "anime", "series": "Obra", "tier": 2, "version": "Forma/arco", "power": 80 }
 ```
 
 - `id` minúsculo com hífens, único. `version` é opcional (qual forma vale).
 - **Escala universal de `power`** (vale para todas as categorias): 0–15 humano · 15–40 sobre-humano ·
   40–60 prédio→cidade · 60–75 cidade→montanha · 75–85 ilha→continente · 85–95 planeta→estrela · 95–100 galáxia+.
   Encaixe os novos em relação aos existentes da mesma obra e de obras parecidas (`grep` no JSON).
+- **`tier`** (anime e games, obrigatório; o `validate` recusa sem): fama do personagem, que define a dificuldade em
+  que ele aparece (fácil = 1, médio = 1–2, difícil = todos). 1 mainstream (obra muito conhecida e personagem
+  central), 2 médio (obra menos famosa ou coadjuvante), 3 obscuro. Base pela fama da obra (popularidade do anime no
+  AniList, ajustada para o público brasileiro: CDZ e Yu Yu são 1) e desce um tier para coadjuvante com poucos
+  favoritos no AniList; compare com os da mesma obra (`grep`). Pokémon não tem.
 - `series` igual ao título usado pela fonte da imagem ajuda a conferir a correspondência (ex.: "Naruto Shippuden").
 - Para lotes grandes, escreva as entradas num `.mjs` no scratchpad e junte com um script Node que recusa ids
   duplicados e reordena por `power` desc. Não edite o JSON com PowerShell.

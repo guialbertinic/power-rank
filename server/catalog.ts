@@ -21,6 +21,7 @@ interface Row {
   name: string;
   category: Character['category'];
   series: string;
+  tier: 1 | 2 | 3 | null;
   generation: number | null;
   version: string | null;
   power: number;
@@ -35,7 +36,7 @@ let cache: { at: number; catalog: Catalog } | null = null;
 export async function loadCatalog(env: Env): Promise<Catalog> {
   if (cache && Date.now() - cache.at < CACHE_MS) return cache.catalog;
   const { results } = await env.DB.prepare(
-    'SELECT id, name, category, series, generation, version, power, image, anilist_id, image_version, active FROM characters',
+    'SELECT id, name, category, series, tier, generation, version, power, image, anilist_id, image_version, active FROM characters',
   ).all<Row>();
   const all = results.map((r) => ({
     character: {
@@ -44,6 +45,7 @@ export async function loadCatalog(env: Env): Promise<Catalog> {
       category: r.category,
       series: r.series,
       power: r.power,
+      ...(r.tier !== null ? { tier: r.tier } : {}),
       ...(r.generation !== null ? { generation: r.generation } : {}),
       ...(r.version ? { version: r.version } : {}),
       ...(r.image ? { image: r.image } : {}),

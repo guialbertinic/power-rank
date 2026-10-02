@@ -65,6 +65,31 @@ if (section('Pokémon')) {
   h.ws.close();
 }
 
+// ---------- Dificuldade: tier (fama) de cada personagem ----------
+if (section('Dificuldade')) {
+  const catalog = await get('/characters');
+  const tierOf = (ids) => ids.map((id) => catalog.find((c) => c.id === id)?.tier);
+  check('catálogo tem tier em anime e games', catalog.filter((c) => c.category !== 'pokemon').every((c) => [1, 2, 3].includes(c.tier)));
+  const easy = (await post('/games', { name: nick('Dificil'), mode: 'all', difficulty: 'easy' })).data;
+  check('fácil: só tier 1', easy.characterIds?.length === 10 && tierOf(easy.characterIds).every((t) => t === 1), JSON.stringify(tierOf(easy.characterIds ?? [])));
+  const medium = (await post('/games', { name: nick('Dificil'), mode: 'anime', difficulty: 'medium' })).data;
+  check('médio: tier 1 e 2', tierOf(medium.characterIds ?? []).every((t) => t <= 2));
+  check('dificuldade inválida é recusada', (await post('/games', { name: nick('Dificil'), mode: 'anime', difficulty: 'insane' })).status === 400);
+  const pkmn = await post('/games', { name: nick('Dificil'), mode: 'pokemon', difficulty: 'insane' });
+  check('Pokémon ignora a dificuldade', pkmn.status === 200);
+  const { data: room } = await post('/party', { mode: 'games', pid: 'e2e-diff-pid-01', difficulty: 'easy' });
+  const host = await player('DiffHost');
+  const h = partyClient(room.code, 'e2e-diff-pid-01', host.name, host.token);
+  await h.ready;
+  await sleep(300);
+  check('sala guarda a dificuldade', h.state?.difficulty === 'easy', String(h.state?.difficulty));
+  h.send({ type: 'start' });
+  // Com a suíte inteira rodando, o início pode demorar mais que meio segundo.
+  for (let i = 0; i < 50 && h.state?.phase !== 'playing'; i++) await sleep(100);
+  check('partida da sala respeita a dificuldade', h.state?.characterIds.length === 10 && tierOf(h.state.characterIds).every((t) => t === 1), JSON.stringify([h.state?.phase, tierOf(h.state?.characterIds ?? [])]));
+  h.ws.close();
+}
+
 // ---------- Segurança ----------
 if (section('Segurança')) {
   const noBot = await post('/players', { name: nick('SemTurnstile'), password: PASSWORD });

@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
 import { ApiError, createGame, createParty, fetchConfig, fetchDaily, fetchProfile, type DailyStatus } from './api';
 import type { Profile } from './game/cosmetics';
 import { FEATURES, NO_FEATURES } from './game/features';
-import { GENERATIONS, MODES, poolFor, type Mode } from './game/modes';
+import { filterFor, GENERATIONS, MODES, poolFor, type Difficulty, type Mode, type PoolFilter } from './game/modes';
 import { isPartyCode } from './game/party';
 import { SLOTS } from './game/scoring';
 import type { CharacterInfo } from './game/types';
@@ -10,9 +10,11 @@ import { loadCatalog, POOL, POOL_BY_ID, rememberCharacters } from './data';
 import {
   clearIdentity,
   forgetToken,
+  loadDifficulty,
   loadGenerations,
   loadIdentity,
   loadMode,
+  saveDifficulty,
   saveGenerations,
   saveIdentity,
   saveMode,
@@ -122,9 +124,9 @@ async function newGame(
   identity: Identity,
   mode: Mode,
   daily = false,
-  generations?: number[],
+  filter: PoolFilter = {},
 ): Promise<{ gameId: string; drawn: CharacterInfo[]; daily: boolean } | 'unauthorized' | { error: string }> {
-  const game = await createGame(identity.name, identity.token, mode, daily, generations);
+  const game = await createGame(identity.name, identity.token, mode, daily, filter);
   if (game === 'unauthorized') return game;
   if (!game) return { error: 'Sem conexão com o servidor. Tente de novo.' }; // traduzido na tela (serverText)
   if ('error' in game) return game;
@@ -135,9 +137,12 @@ async function newGame(
 
 const isModeAvailable = (mode: Mode) => poolFor(mode, POOL).length >= SLOTS;
 
-/** Filtro de gerações a enviar: só no modo pokemon e quando nem todas estão ligadas. */
-const generationFilter = (mode: Mode, generations: number[]) =>
-  mode === 'pokemon' && generations.length < GENERATIONS.length ? generations : undefined;
+/** Filtro a enviar: gerações no modo pokemon (só quando nem todas estão ligadas), dificuldade nos outros. */
+const poolFilter = (mode: Mode, generations: number[], difficulty: Difficulty): PoolFilter =>
+  filterFor(mode, { generations: generations.length < GENERATIONS.length ? generations : undefined, difficulty });
+
+/** Com o filtro escolhido sobram personagens para uma partida? */
+const canDraw = (mode: Mode, filter: PoolFilter) => poolFor(mode, POOL, filter).length >= SLOTS;
 
 function Game() {
   const { t } = useI18n();
@@ -149,6 +154,8 @@ function Game() {
     return isModeAvailable(saved) ? saved : 'anime';
   });
   const [generations, setGenerations] = useState(loadGenerations);
+  const [difficulty, setDifficulty] = useState(loadDifficulty);
+  const filter = poolFilter(mode, generations, difficulty);
   const [starting, setStarting] = useState(false);
   const [partyError, setPartyError] = useState<string | null>(null);
   const [soloError, setSoloError] = useState<string | null>(null);
@@ -254,6 +261,11 @@ function Game() {
     saveGenerations(next);
   };
 
+  const changeDifficulty = (next: Difficulty) => {
+    setDifficulty(next);
+    saveDifficulty(next);
+  };
+
   const onNickChosen = (chosen: Identity) => {
     saveIdentity(chosen);
     setIdentity(chosen);
@@ -270,7 +282,7 @@ function Game() {
     if (!identity) return dispatch({ type: 'nick' });
     setStarting(true);
     try {
-      const game = await newGame(identity, mode, asDaily, asDaily ? undefined : generationFilter(mode, generations));
+      const game = await newGame(identity, mode, asDaily, asDaily ? {} : filter);
       if (game === 'unauthorized') {
         // Convidado cujo nick virou conta de outra pessoa, ou token que deixou de valer.
         const reason = identity.token ? t('app.confirmNick') : t('app.nickNowAccount');
@@ -294,7 +306,7 @@ function Game() {
     setStarting(true);
     try {
       const pid = newPid();
-      const code = await createParty(mode, pid, generationFilter(mode, generations));
+      const code = await createParty(mode, pid, filter);
       rememberPartyPid(code, pid);
       dispatch({ type: 'party', code, pid });
     } catch (err) {
@@ -366,7 +378,10 @@ function Game() {
           onModeChange={changeMode}
           generations={generations}
           onGenerationsChange={changeGenerations}
+          difficulty={difficulty}
+          onDifficultyChange={changeDifficulty}
           isModeAvailable={isModeAvailable}
+          canDraw={canDraw(mode, filter)}
           busy={starting}
           onSolo={() => start()}
           daily={daily}

@@ -82,9 +82,12 @@ try {
   // ---------- Party ----------
   section('Party');
   await ana.click('.btn-party');
+  await ana.waitForSelector('.party-entry .difficulty-picker');
+  await ana.click('.difficulty-option:nth-child(1)');
   await ana.click('.party-entry .btn-secondary');
   await ana.waitForSelector('.party-code');
   const room = await text(ana, '.party-code');
+  check('sala mostra a dificuldade escolhida', (await text(ana, '.party-code-panel .score-label'))?.includes('Fácil'), await text(ana, '.party-code-panel .score-label'));
 
   const bruno = await b.page(PHONE);
   await bruno.goto(`http://localhost:5173/?sala=${room}`, { waitUntil: 'networkidle0' });
@@ -276,7 +279,8 @@ try {
   check('ranking abre na aba Desafio', (await text(ana, '.leaderboard-periods [aria-selected="true"]')) === 'Desafio');
   check('desafio sem "Jogar de novo"', !(await ana.$('.score-actions')));
   await sleep(1000);
-  check('resultado mostra moedas (ou o aviso de 500+)', /^\+\d+$|500\+/.test((await text(ana, '.coins-earned')) ?? ''));
+  // placeAll coloca na ordem do sorteio: a pontuação varia e pode ficar abaixo do mínimo para ganhar moedas.
+  check('resultado mostra moedas (ou o aviso do mínimo)', /^\+\d+$|\d+\+ pontos/.test((await text(ana, '.coins-earned')) ?? ''), await text(ana, '.coins-earned'));
   check('resultado solo sem valores de poder', !(await ana.$('.row-power')));
 
   // Compartilhar imagem: sem Web Share de arquivos, baixa o PNG de story.
@@ -343,7 +347,16 @@ try {
   await ana.click('.home-button');
   await ana.waitForSelector('.btn-daily[disabled] ::-p-text(pts)', { timeout: 5000 });
   check('na home, o desafio fica travado com a pontuação', true);
-  await ana.click('.play-buttons .btn-primary');
+  // Solo abre o painel com a dificuldade (lembrada no navegador: a sala acima foi criada no fácil) e o iniciar.
+  await ana.click('.btn-solo');
+  await ana.waitForSelector('.solo-entry .difficulty-picker');
+  check('Solo abre a dificuldade, lembrando a última', (await text(ana, '.difficulty-option.selected')) === 'Fácil' && Boolean(await ana.$('.setting-hint')));
+  await ana.click('.difficulty-option:nth-child(2)');
+  check('trocar a dificuldade', (await text(ana, '.difficulty-option.selected')) === 'Médio');
+  await ana.click('.btn-party');
+  check('Solo e Party: um painel por vez', !(await ana.$('.solo-entry')) && Boolean(await ana.$('.party-entry')));
+  await ana.click('.btn-solo');
+  await ana.click('.solo-entry .btn-primary');
   await placeAll(ana);
   await ana.waitForSelector('.coins-earned');
   check('Solo é partida normal', (await text(ana, '.title-eyebrow')) === 'Animes');
@@ -453,14 +466,25 @@ try {
   await bruno.reload({ waitUntil: 'networkidle0' });
   await bruno.waitForSelector('.profile-bar');
   check('home sem scroll horizontal', (await overflowX(bruno)) <= 0);
-  // Modo Pokémon: o filtro de gerações aparece embaixo das categorias e a partida sai só das gerações ligadas.
+  // Modo Pokémon: o painel do Solo mostra as gerações no lugar da dificuldade e a partida sai só das ligadas.
+  await bruno.click('.btn-solo');
+  await bruno.waitForSelector('.solo-entry .difficulty-picker');
+  check('painel do Solo sem scroll horizontal', (await overflowX(bruno)) <= 0);
   await bruno.click('.mode-picker ::-p-text(Pokémon)');
-  await bruno.waitForSelector('.gen-picker');
+  await bruno.waitForSelector('.solo-entry .gen-picker');
+  check('Pokémon troca a dificuldade pelas gerações', !(await bruno.$('.difficulty-picker')));
   check('Pokémon mostra as 9 gerações ligadas', (await bruno.$$('.gen-option.selected')).length === 9);
   await bruno.click('.gen-option:nth-child(2)');
-  check('desligar uma geração', (await bruno.$$('.gen-option.selected')).length === 8);
+  check('desligar uma geração', (await bruno.$$('.gen-option.selected')).length === 8 && !(await bruno.$('.gen-all.selected')));
+  await bruno.click('.gen-all');
+  check('"Todas" liga todas', (await bruno.$$('.gen-option.selected')).length === 9);
+  await bruno.click('.gen-option:nth-child(2)');
+  const genFits = await bruno.$$eval('.gen-picker .setting-option', (els) =>
+    els.every((el) => el.getBoundingClientRect().right <= document.documentElement.clientWidth),
+  );
+  check('gerações cabem no celular', genFits);
   check('home Pokémon sem scroll horizontal', (await overflowX(bruno)) <= 0);
-  await bruno.click('.play-buttons .btn-primary');
+  await bruno.click('.solo-entry .btn-primary');
   await placeAll(bruno);
   await bruno.waitForSelector('.share-image:not([disabled])', { timeout: 8000 });
   const shareFits = await bruno.$$eval('.share-result .btn', (els) =>

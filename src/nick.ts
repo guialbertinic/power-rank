@@ -1,4 +1,13 @@
-import { DEFAULT_MODE, GENERATIONS, isMode, parseGenerations, type Mode } from './game/modes';
+import {
+  DEFAULT_DIFFICULTY,
+  DEFAULT_MODE,
+  GENERATIONS,
+  isDifficulty,
+  isMode,
+  parseGenerations,
+  type Difficulty,
+  type Mode,
+} from './game/modes';
 
 export const NICK_MAX_LENGTH = 20;
 
@@ -16,6 +25,7 @@ const TOKENS_KEY = 'power-rank:tokens';
 const LEGACY_NICK_KEY = 'power-rank:name';
 const MODE_KEY = 'power-rank:mode';
 const GENERATIONS_KEY = 'power-rank:generations';
+const DIFFICULTY_KEY = 'power-rank:difficulty';
 
 /** Mesma normalização do servidor: sem diferenciar maiúsculas/minúsculas. */
 export const nickKey = (nick: string) => nick.trim().normalize('NFC').toLocaleLowerCase('pt-BR');
@@ -108,6 +118,24 @@ export function saveGenerations(generations: number[]) {
     localStorage.setItem(GENERATIONS_KEY, JSON.stringify(generations));
   } catch {
     // Storage indisponível: só não lembra o filtro.
+  }
+}
+
+/** Dificuldade escolhida neste navegador (Animes, Games e Free for All). */
+export function loadDifficulty(): Difficulty {
+  try {
+    const saved = localStorage.getItem(DIFFICULTY_KEY);
+    return isDifficulty(saved) ? saved : DEFAULT_DIFFICULTY;
+  } catch {
+    return DEFAULT_DIFFICULTY;
+  }
+}
+
+export function saveDifficulty(difficulty: Difficulty) {
+  try {
+    localStorage.setItem(DIFFICULTY_KEY, difficulty);
+  } catch {
+    // Storage indisponível: só não lembra a dificuldade.
   }
 }
 

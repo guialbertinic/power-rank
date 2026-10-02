@@ -7,6 +7,8 @@ export interface CharacterInfo {
   category: Category;
   /** Obra/franquia do personagem (anime ou jogo). */
   series: string;
+  /** Fama (anime e games): 1 mainstream, 2 médio, 3 obscuro. Define em que dificuldade o personagem aparece. */
+  tier?: 1 | 2 | 3;
   /** Geração do Pokémon (1–9), usada no filtro de gerações. Só na categoria pokemon. */
   generation?: number;
   /** Qual versão/arco do personagem está sendo considerada. */

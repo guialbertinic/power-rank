@@ -1295,37 +1295,44 @@ input:focus {
   }
 }
 
-/* Filtro de gerações do modo Pokémon: 9 botões liga/desliga embaixo das categorias. */
-.gen-picker {
+/*
+ * Configuração da partida, no painel do Solo / Party: dificuldade (Animes, Games, Free for All) ou gerações
+ * (Pokémon). Mesmo visual nos dois: rótulo, botões chanfrados e, na dificuldade, uma dica embaixo.
+ */
+.setting {
   display: grid;
   justify-items: center;
-  gap: 6px;
+  gap: 8px;
+  width: 100%;
 }
 
-.gen-picker-label {
+.setting-label {
   font-family: var(--font-display);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-2);
 }
 
-.gen-options {
+.setting-options {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 4px;
 }
 
-.gen-option {
-  width: 34px;
-  height: 34px;
+.setting-option {
+  height: 38px;
+  padding: 0 14px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--surface-2);
   color: var(--text-2);
   font-family: var(--font-display);
   font-weight: 700;
+  font-style: italic;
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
   clip-path: var(--clip-chamfer-sm);
   cursor: pointer;
   transition:
@@ -1333,24 +1340,65 @@ input:focus {
     background 0.15s;
 }
 
-.gen-option:hover:not(:disabled) {
+.setting-option:hover:not(:disabled) {
   color: var(--text);
 }
 
-.gen-option.selected {
+.setting-option.selected {
   background: var(--accent-fill);
   border-color: transparent;
   color: #fff;
 }
 
-.gen-option:focus-visible {
+.setting-option:focus-visible {
   outline: none;
   box-shadow: inset 0 -3px 0 var(--text);
 }
 
-.gen-option:disabled {
+.setting-option:disabled {
   cursor: default;
   opacity: 0.45;
+}
+
+.difficulty-option {
+  min-width: 104px;
+}
+
+.gen-option {
+  width: 38px;
+  padding: 0;
+  font-style: normal;
+}
+
+.setting-hint {
+  min-height: 1.3em;
+  font-size: 0.95rem;
+  color: var(--text-2);
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .difficulty-picker .setting-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+  }
+
+  .difficulty-option {
+    min-width: 0;
+    padding: 0 6px;
+  }
+
+  /* 9 gerações + "Todas" em duas linhas de 5. */
+  .gen-picker .setting-options {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    width: 100%;
+  }
+
+  .gen-option {
+    width: auto;
+  }
 }
 
 /* ---------- Party (multiplayer) ---------- */
@@ -1395,22 +1443,36 @@ input:focus {
   box-shadow: inset 0 0 0 1px var(--border);
 }
 
-.btn-party {
+/* Solo / Party: abrem o painel com a configuração e o iniciar (ativo = painel aberto). */
+.btn-play-toggle {
   color: var(--text);
   background: var(--surface-2);
   box-shadow: inset 0 0 0 1px var(--border);
 }
 
+.btn-solo.active {
+  color: #fff;
+  background: var(--accent-fill);
+  box-shadow: none;
+}
+
 .btn-party.active {
   color: var(--bg);
   background: var(--tier-a);
+  box-shadow: none;
 }
 
-.party-entry {
+.play-panel {
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 14px;
   width: 100%;
+}
+
+/* A configuração fica separada das ações (iniciar / criar sala / entrar). */
+.play-panel .setting {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
 }
 
 .party-entry-or {

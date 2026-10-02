@@ -63,8 +63,8 @@ Pontos de arquitetura que valem para todos (decidir uma vez) — `Arquitetura` �
 ### 💡 Blind Power Ranking — novas categorias
 - **Filmes** e **Séries** (power scaling de personagens) · `Manutenção` 🟡 — decidir se heróis de quadrinhos entram
   pela versão de cinema; imagens via Wikipédia (o TMDB só tem foto de ator).
-- Níveis de dificuldade · `Feature` 🟡 (adiado): fácil = personagens famosos e poderes espaçados; difícil = janela
-  estreita.
+- ✅ Níveis de dificuldade · `Feature` 🟡: fácil / médio / difícil pela fama (`tier`) do personagem, no solo e na
+  party (Pokémon usa o filtro de gerações). Ideia futura: poderes espaçados no fácil.
 - Modo "consenso da comunidade" · `Feature` 🔴: gabarito = média das posições escolhidas pelos jogadores (precisa
   de volume).
 
@@ -255,6 +255,7 @@ economia e jogadores. O resto abaixo continua 💡.
 - Blind Power Ranking solo: pontuação por ordem entre pares; 438 personagens (368 anime + 70 games) com imagem;
   categorias Animes / Games / Free for All; resultado sem valores de poder.
 - Categoria Pokémon: 1025 espécies (PokeAPI, gerações 1–9) com filtro de gerações no solo e na party; fora do Free for All.
+- Dificuldade (fácil / médio / difícil) pelo `tier` de fama de cada personagem, no painel do Solo e da Party.
 - Party (Durable Objects): sala por código/convite, espera ao vivo, pódio, revanche, reconexão.
 - Conta (nick + senha) ou convidado; jogador por id (trocar nick renomeia a conta); sincronizar dispositivo.
 - Rankings do Desafio Diário (o de hoje, desempate por tempo) e Acumulado (soma dos desafios), pódio dos 3 primeiros, skeleton.
