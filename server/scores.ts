@@ -3,15 +3,12 @@ import { loadCatalog } from './catalog';
 import { MIN_GAME_MS } from './security';
 import { badRequest, GAME_TTL_MS, json, LEADERBOARD_SIZE, nameKey, type Env } from './lib';
 import { creditCoins, toLook } from './profile';
+import { dayKey } from '../src/game/daily';
 import { coinsForScore } from '../src/game/economy';
 import { DEFAULT_MODE, isMode } from '../src/game/modes';
 import { scoreGame, strengthRanks } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
-/** Dia do Desafio Diário: horário de Brasília (UTC−3, sem horário de verão). */
-const BRT_OFFSET_MS = 3 * 60 * 60 * 1000;
-/** Dia de Brasília como texto (AAAA-MM-DD): chave do Desafio Diário. */
-export const dayKey = (now = Date.now()) => new Date(now - BRT_OFFSET_MS).toISOString().slice(0, 10);
 /** Partidas sem tempo (antigas) ficam atrás no desempate. */
 const SQL_DURATION = 'COALESCE(duration_ms, 9000000000000000)';
 

@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import type { DailyStatus } from '../api';
+import { msUntilNextDay } from '../game/daily';
 import type { Difficulty, Mode } from '../game/modes';
 import { isPartyCode, normalizePartyCode, PARTY_CODE_LENGTH } from '../game/party';
 import { serverText, useI18n } from '../i18n';
@@ -8,6 +9,8 @@ import DifficultyPicker from './DifficultyPicker';
 import GenerationPicker from './GenerationPicker';
 import Leaderboard from './Leaderboard';
 import ModePicker from './ModePicker';
+
+type Panel = 'solo' | 'party' | 'daily';
 
 interface Props {
   identity: Identity;
@@ -27,7 +30,7 @@ interface Props {
   /** Algo em andamento (sorteando ou criando sala). */
   busy: boolean;
   onSolo: () => void;
-  /** Desafio Diário da categoria para este jogador (null enquanto carrega ou sem conexão: o botão não aparece). */
+  /** Desafio Diário da categoria para este jogador (null enquanto carrega ou sem conexão: o Jogar espera). */
   daily: DailyStatus | null;
   onDaily: () => void;
   onCreateParty: () => void;
@@ -39,18 +42,19 @@ interface Props {
 }
 
 /**
- * Home: categoria (rótulo "Modo"), SOLO / PARTY, o Desafio Diário e o ranking da categoria escolhida no título (o
- * perfil fica na ProfileBar, no canto). Solo e Party abrem um painel com a configuração da partida (dificuldade, ou
- * gerações no Pokémon) e o botão de iniciar / criar ou entrar em sala.
+ * Home: categoria (rótulo "Modo"), as abas SOLO / PARTY / DIÁRIO e o ranking da categoria escolhida no título (o
+ * perfil fica na ProfileBar, no canto). Cada aba abre um painel: Solo e Party com a configuração da partida
+ * (dificuldade, ou gerações no Pokémon) e o iniciar / criar ou entrar em sala; o Diário com a regra, o status de hoje
+ * e o tempo até o próximo.
  */
 export default function IntroScreen(props: Props) {
   const { identity, mode, onModeChange, generations, onGenerationsChange, difficulty, onDifficultyChange } = props;
   const { isModeAvailable, canDraw, busy, onSolo, daily, onDaily, onCreateParty, onJoinParty, partyError, soloError } = props;
   const { t, lang } = useI18n();
-  const [open, setOpen] = useState<'solo' | 'party' | null>(null);
+  const [open, setOpen] = useState<Panel | null>(null);
   const [code, setCode] = useState('');
   const canStart = isModeAvailable(mode);
-  const toggle = (panel: 'solo' | 'party') => setOpen((current) => (current === panel ? null : panel));
+  const toggle = (panel: Panel) => setOpen((current) => (current === panel ? null : panel));
   // Qual botão disparou o que está em andamento (o spinner aparece só nele).
   const [clicked, setClicked] = useState<'solo' | 'daily' | 'party' | null>(null);
 
@@ -81,29 +85,50 @@ export default function IntroScreen(props: Props) {
           >
             Party
           </button>
-        </div>
-        {daily && (
-          // Uma tentativa por dia e categoria: depois de jogar, o botão trava e mostra a pontuação.
           <button
-            className="btn btn-lg btn-daily"
-            onClick={() => {
-              setClicked('daily');
-              onDaily();
-            }}
-            disabled={busy || !canStart || daily.done}
-            aria-busy={busy && clicked === 'daily'}
+            className={`btn btn-lg btn-play-toggle btn-daily${open === 'daily' ? ' active' : ''}${daily?.done ? ' done' : ''}`}
+            onClick={() => toggle('daily')}
+            aria-expanded={open === 'daily'}
+            disabled={busy || !canStart}
           >
-            {daily.done
-              ? daily.score === null
-                ? t('daily.done')
-                : t('daily.doneScore', { score: daily.score })
-              : t('daily.label')}
+            {t('daily.tab')}
           </button>
-        )}
+        </div>
       </div>
-      {soloError && open !== 'solo' && <p className="error">{serverText(soloError, lang)}</p>}
+      {soloError && open !== 'solo' && open !== 'daily' && <p className="error">{serverText(soloError, lang)}</p>}
 
-      {open && (
+      {open === 'daily' && (
+        // Sem configuração: o painel explica a regra e mostra o status de hoje.
+        <div className="panel play-panel daily-entry">
+          <ul className="daily-rules">
+            <li>{t('daily.ruleSame')}</li>
+            <li>{t(mode === 'pokemon' ? 'daily.ruleAllGens' : 'daily.ruleAllDiff')}</li>
+            <li>{t('daily.ruleOnce')}</li>
+          </ul>
+          {daily?.done ? (
+            <p className="daily-done">
+              {daily.score === null ? t('daily.done') : t('daily.doneScore', { score: daily.score })}
+            </p>
+          ) : (
+            // daily null = carregando (ou sem conexão): o botão espera.
+            <button
+              className="btn btn-lg btn-daily-play"
+              onClick={() => {
+                setClicked('daily');
+                onDaily();
+              }}
+              disabled={busy || !canStart || !daily}
+              aria-busy={(busy && clicked === 'daily') || !daily}
+            >
+              {t('daily.play')}
+            </button>
+          )}
+          <DailyCountdown />
+          {soloError && <p className="error">{serverText(soloError, lang)}</p>}
+        </div>
+      )}
+
+      {(open === 'solo' || open === 'party') && (
         <div className={`panel play-panel ${open === 'solo' ? 'solo-entry' : 'party-entry'}`}>
           {/* Configuração de quem inicia ou cria a sala (quem entra por código joga a da sala). */}
           {canStart &&
@@ -166,4 +191,19 @@ export default function IntroScreen(props: Props) {
       <Leaderboard mode={mode} highlight={identity.name} />
     </div>
   );
+}
+
+/** Tempo até o próximo Desafio Diário (meia-noite de Brasília), atualizado a cada 30 s. */
+function DailyCountdown() {
+  const { t } = useI18n();
+  const [left, setLeft] = useState(() => msUntilNextDay());
+  useEffect(() => {
+    const timer = setInterval(() => setLeft(msUntilNextDay()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+  const minutes = Math.max(1, Math.ceil(left / 60_000));
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  const time = h > 0 ? `${h}h ${String(m).padStart(2, '0')}min` : `${m}min`;
+  return <p className="daily-next">{t('daily.next', { time })}</p>;
 }

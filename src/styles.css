@@ -1421,30 +1421,17 @@ input:focus {
 }
 
 .play-buttons {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-top: 14px;
+  width: 100%;
+  max-width: 560px;
+  margin: 14px auto 0;
 }
 
-/* Desafio Diário: embaixo de Solo/Party; travado (neutro) depois da tentativa do dia. */
-.btn-daily {
-  --spinner-color: var(--bg);
-  max-width: 100%;
-  padding: 14px 36px;
-  font-size: 1.15rem;
-  color: var(--bg);
-  background: var(--tier-ss-fill);
-}
-
-.btn-daily:disabled {
-  color: var(--text-2);
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--border);
-}
-
-/* Solo / Party: abrem o painel com a configuração e o iniciar (ativo = painel aberto). */
+/* Solo / Party / Diário: abas iguais; cada uma abre o seu painel (ativo = painel aberto). */
 .btn-play-toggle {
+  padding-inline: 12px;
   color: var(--text);
   background: var(--surface-2);
   box-shadow: inset 0 0 0 1px var(--border);
@@ -1462,6 +1449,17 @@ input:focus {
   box-shadow: none;
 }
 
+.btn-daily.active {
+  color: var(--bg);
+  background: var(--tier-ss-fill);
+  box-shadow: none;
+}
+
+/* Desafio de hoje já jogado: um check na aba. */
+.btn-daily.done::after {
+  content: ' ✓';
+}
+
 .play-panel {
   display: grid;
   justify-items: center;
@@ -1473,6 +1471,36 @@ input:focus {
 .play-panel .setting {
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
+}
+
+/* Painel do Diário: a regra (sem configuração), o Jogar ou a pontuação de hoje, e quando sai o próximo. */
+.daily-rules {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--border);
+  list-style: none;
+  text-align: center;
+  color: var(--text-2);
+}
+
+.btn-daily-play {
+  --spinner-color: var(--bg);
+  color: var(--bg);
+  background: var(--tier-ss-fill);
+}
+
+.daily-done {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--tier-ss);
+}
+
+.daily-next {
+  font-size: 0.9rem;
+  color: var(--text-2);
 }
 
 .party-entry-or {
@@ -1777,7 +1805,7 @@ input:focus {
 
 @media (max-width: 760px) {
   .play-buttons .btn-lg {
-    padding: 16px 40px;
+    padding: 16px 8px;
   }
 
   .podium-step.first .podium-block {

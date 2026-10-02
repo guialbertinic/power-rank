@@ -259,7 +259,7 @@ economia e jogadores. O resto abaixo continua 💡.
 - Party (Durable Objects): sala por código/convite, espera ao vivo, pódio, revanche, reconexão.
 - Conta (nick + senha) ou convidado; jogador por id (trocar nick renomeia a conta); sincronizar dispositivo.
 - Rankings do Desafio Diário (o de hoje, desempate por tempo) e Acumulado (soma dos desafios), pódio dos 3 primeiros, skeleton.
-- Desafio Diário: os mesmos 10 (Free for All) para todos no dia, uma tentativa, ranking próprio (aba Desafio).
+- Desafio Diário: os mesmos 10 (Free for All) para todos no dia, uma tentativa, aba Diário na home (regra, status e tempo até o próximo), ranking próprio (aba Desafio).
 - Moedas, loja de cosméticos (cores, molduras, títulos, avatares), Arcade (caça-níquel, Plinko, Raspadinha e Mystery Box).
 - Design system "Dark Battle Interface"; testes e2e (`e2e:api`, `e2e:ui`); skills do projeto (`.claude/skills/`).
 - Produção: migrações 0001–0014; deploy pela `main` via GitHub Actions, só se build + `npm test` + `e2e:api` passarem.

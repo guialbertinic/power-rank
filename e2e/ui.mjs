@@ -271,7 +271,11 @@ try {
   section('Desafio diário e resultado');
   // O Edge no Windows tem Web Share de arquivos (abriria o menu do sistema): testa o caminho de baixar o PNG.
   await ana.evaluate(() => Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true }));
-  await (await ana.waitForSelector('.btn-daily:not([disabled])')).click();
+  // O Diário é uma aba como Solo e Party: abre o painel com a regra e o Jogar.
+  await ana.click('.btn-daily');
+  await ana.waitForSelector('.daily-entry .daily-rules');
+  check('Diário abre o painel com a regra e o tempo até o próximo', /^Novo desafio em /.test((await text(ana, '.daily-next')) ?? ''));
+  await (await ana.waitForSelector('.daily-entry .btn-daily-play:not([disabled])')).click();
   await placeAll(ana);
   await ana.waitForSelector('.coins-earned');
   check('título mostra o desafio', (await text(ana, '.title-eyebrow')) === 'Desafio diário · Animes');
@@ -345,8 +349,18 @@ try {
   // ---------- Desafio diário ----------
   section('Desafio diário');
   await ana.click('.home-button');
-  await ana.waitForSelector('.btn-daily[disabled] ::-p-text(pts)', { timeout: 5000 });
-  check('na home, o desafio fica travado com a pontuação', true);
+  await ana.waitForSelector('.btn-daily.done', { timeout: 5000 });
+  await ana.click('.btn-daily');
+  await ana.waitForSelector('.daily-entry .daily-done ::-p-text(pts)', { timeout: 5000 });
+  check('na home, o Diário mostra a pontuação de hoje no lugar do Jogar', !(await ana.$('.btn-daily-play')));
+  await ana.setViewport({ width: 390, height: 844 });
+  await sleep(300);
+  const playTabs = await ana.$$eval('.play-buttons .btn', (els) => ({
+    fit: els.every((el) => el.scrollWidth <= el.clientWidth),
+    row: new Set(els.map((el) => Math.round(el.getBoundingClientRect().top))).size === 1,
+  }));
+  check('celular: Solo / Party / Diário numa linha, sem scroll horizontal', playTabs.fit && playTabs.row && (await overflowX(ana)) <= 0, JSON.stringify(playTabs));
+  await ana.setViewport({ width: 1280, height: 860 });
   // Solo abre o painel com a dificuldade (lembrada no navegador: a sala acima foi criada no fácil) e o iniciar.
   await ana.click('.btn-solo');
   await ana.waitForSelector('.solo-entry .difficulty-picker');

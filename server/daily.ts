@@ -1,6 +1,6 @@
 import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
 import { playerAccess, type Access } from './players';
-import { dayKey } from './scores';
+import { dayKey } from '../src/game/daily';
 import { drawCharacters } from '../src/game/draw';
 import { isMode, poolFor, type Mode } from '../src/game/modes';
 import { SLOTS } from '../src/game/scoring';

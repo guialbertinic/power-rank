@@ -155,10 +155,10 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 `scores` guarda todas as partidas (inclusive de convidados, com `player_id` NULL, que não entram no ranking).
 **Rankings** (`server/scores.ts`): só o **Desafio Diário** conta (solo e party rendem moedas, mas não entram).
 Uma linha por conta mesmo depois de trocar o nick; convidado joga, mas não entra.
-- **Desafio Diário** (`server/daily.ts`, botão próprio na home): um por categoria, os mesmos 10 personagens, na
+- **Desafio Diário** (`server/daily.ts`, aba Diário na home): um por categoria, os mesmos 10 personagens, na
   mesma ordem, para todos (`daily_challenges`, chave dia + modo, sorteado no primeiro pedido). Uma tentativa por
   jogador e categoria, gasta ao **começar** (`daily_attempts`, chave dia + modo + `p:<id>` da conta ou `g:<nick>`
-  do convidado). `games.daily`/`scores.daily` = dia (AAAA-MM-DD de Brasília, UTC−3).
+  do convidado). `games.daily`/`scores.daily` = dia (AAAA-MM-DD de Brasília, UTC−3; `dayKey` em `src/game/daily.ts`).
 - Aba **Desafio** (padrão): o de hoje. Empate: menor `duration_ms` (do sorteio ao envio), depois quem fez primeiro.
 - Aba **Acumulado**: soma de todos os desafios da categoria (um por dia: premia constância). Empate: menos dias.
 
@@ -316,9 +316,10 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   desafio e não tem "Jogar de novo". A home consulta `/api/daily` (ao abrir e ao trocar de categoria); o botão trava
   depois da tentativa e mostra a pontuação.
 - A primeira tela é o nick. Telas fora da home têm "Início" no cabeçalho (na party, sai da sala).
-- Home (`IntroScreen`): título, o seletor de categoria (`ModePicker`, rótulo "Modo" na tela), SOLO/PARTY, o botão do
-  Desafio Diário e o ranking. Solo e Party abrem um painel (um por vez) com a configuração da partida
-  (`DifficultyPicker`, ou `GenerationPicker` no Pokémon) e o Iniciar / Criar sala + entrar por código. `ProfileBar` no canto; no celular vira faixa com nick + saldo, e Loja/Cassino ficam no menu (sanfona).
+- Home (`IntroScreen`): título, o seletor de categoria (`ModePicker`, rótulo "Modo" na tela), as abas SOLO/PARTY/DIÁRIO e
+  o ranking. Cada aba abre um painel (um por vez): Solo e Party com a configuração da partida (`DifficultyPicker`, ou
+  `GenerationPicker` no Pokémon) e o Iniciar / Criar sala + entrar por código; o Diário (sem configuração) com a
+  regra, o Jogar ou a pontuação de hoje (a aba ganha ✓) e o tempo até o próximo. `ProfileBar` no canto; no celular vira faixa com nick + saldo, e Loja/Cassino ficam no menu (sanfona).
 - Se a API falhar, o jogo sorteia localmente (`gameId: null`) e não conta para o ranking.
 - Imagens da partida pré-carregadas no sorteio; URL com `?v=<id da fonte>` para invalidar cache.
 - `?review` só existe em dev (import lazy atrás de `import.meta.env.DEV`).
