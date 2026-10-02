@@ -90,8 +90,8 @@ export default function PartyScreen({ code, pid, nick, token, charactersById, on
         state={state}
         you={you}
         charactersById={charactersById}
-        onSettings={host.onSettings}
         onRestart={() => send({ type: 'start' })}
+        onLobby={() => send({ type: 'lobby' })}
         onLeave={exit}
       />
     );

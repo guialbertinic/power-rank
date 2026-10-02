@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { MODES, type Mode } from '../game/modes';
 import { modeLabel, useI18n } from '../i18n';
+import { useWholePixelWidths } from '../ui/useWholePixelWidths';
 
 interface Props {
   mode: Mode;
@@ -11,9 +13,12 @@ interface Props {
 
 /** Seletor de categoria (Animes / Games / Filmes e Séries / Pokémon / Free for All), exibido na home, acima de Solo/Party (na tela, "Modo"). */
 export default function ModePicker({ mode, onChange, isAvailable, disabled }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const ref = useRef<HTMLDivElement>(null);
+  // "Em breve" muda a largura: entra nas dependências.
+  useWholePixelWidths(ref, [lang, MODES.map((m) => isAvailable(m.id)).join()]);
   return (
-    <div className="mode-picker" role="radiogroup" aria-label={t('mode.category')}>
+    <div className="mode-picker" ref={ref} role="radiogroup" aria-label={t('mode.category')}>
       {MODES.map((m) => {
         const enabled = isAvailable(m.id);
         return (

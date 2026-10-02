@@ -1035,7 +1035,7 @@ input:focus {
   width: 35%;
 }
 
-.leaderboard-loading :is(.skeleton-avatar, .skeleton-bar) {
+:is(.leaderboard-loading, .achievements-loading) :is(.skeleton-avatar, .skeleton-bar) {
   animation: skeleton-pulse 1.2s ease-in-out infinite;
 }
 
@@ -1232,9 +1232,13 @@ input:focus {
   display: grid;
   justify-items: center;
   min-width: 118px;
+  position: relative;
+  isolation: isolate;
   padding: 10px 20px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  /* Contorno em duas camadas: o fundo do botão é a cor da borda e o ::before (1px para dentro, mesma
+     inclinação) é o preenchimento. Uma border comum seria cortada junto nas laterais inclinadas. */
+  border: 1px solid transparent;
+  background: var(--border);
   color: var(--text-2);
   font-family: var(--font-display);
   font-weight: 700;
@@ -1250,6 +1254,15 @@ input:focus {
     background 0.15s;
 }
 
+.mode-option::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--surface);
+  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
+}
+
 .mode-option small {
   font-family: var(--font-body);
   font-size: 0.7rem;
@@ -1263,8 +1276,11 @@ input:focus {
 
 .mode-option.selected {
   background: var(--accent-fill);
-  border-color: transparent;
   color: #fff;
+}
+
+.mode-option.selected::before {
+  display: none;
 }
 
 .mode-option:focus-visible {
@@ -1456,29 +1472,41 @@ input:focus {
 }
 
 /* Solo / Party / Diário: abas iguais; cada uma abre o seu painel (ativo = painel aberto). */
+/* Contorno em duas camadas, como nas categorias (o inset box-shadow sumia nas laterais inclinadas). */
 .btn-play-toggle {
+  position: relative;
+  isolation: isolate;
   padding-inline: 12px;
   color: var(--text);
+  background: var(--border);
+}
+
+.btn-play-toggle::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
   background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--border);
+  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
+}
+
+.btn-play-toggle.active::before {
+  display: none;
 }
 
 .btn-solo.active {
   color: #fff;
   background: var(--accent-fill);
-  box-shadow: none;
 }
 
 .btn-party.active {
   color: var(--bg);
   background: var(--tier-a);
-  box-shadow: none;
 }
 
 .btn-daily.active {
   color: var(--bg);
   background: var(--tier-ss-fill);
-  box-shadow: none;
 }
 
 /* Desafio de hoje já jogado: um check na aba. */
@@ -1604,6 +1632,14 @@ input:focus {
   gap: 14px;
 }
 
+/* Pódio, para o dono: Nova partida e Voltar para o lobby lado a lado (empilham se não couberem). */
+.party-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
 .party-waiting-text,
 .party-waiting-title {
   text-align: center;
@@ -1697,7 +1733,8 @@ input:focus {
   color: var(--tier-c);
 }
 
-.party-spinner {
+.party-spinner,
+.loading-spinner {
   width: 26px;
   height: 26px;
   margin-top: 6px;
@@ -1705,6 +1742,12 @@ input:focus {
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
+}
+
+.loading-spinner {
+  display: inline-block;
+  margin: 0;
+  vertical-align: middle;
 }
 
 @keyframes spin {
@@ -2711,6 +2754,15 @@ input:focus {
   gap: 6px;
 }
 
+/* Abas da loja e do arcade coladas como as categorias (as do admin quebram linha no celular: ficam soltas). */
+.shop-tabs:not(.admin-tabs) {
+  column-gap: 0;
+}
+
+.shop-tabs:not(.admin-tabs) .mode-option + .mode-option {
+  margin-left: calc(var(--slant-seam) - var(--slant));
+}
+
 .shop-error {
   text-align: center;
 }
@@ -3050,7 +3102,9 @@ input:focus {
     gap: 4px;
   }
 
+  /* Pouco padding lateral: inclinação menor para o corte não comer o texto. */
   .shop-tabs .mode-option {
+    --slant: 8px;
     flex: 1 1 0;
     min-width: 0;
     align-content: center;
@@ -4004,18 +4058,41 @@ input:focus {
   font-size: 1rem;
 }
 
-/* Loja e Arcade: na faixa no desktop; dentro do menu (sanfona) no celular. */
-.profile-bar-actions {
-  display: contents;
+/* Navegação: Início / Loja / Conquistas / Arcade colados; ícone + nome (no celular, só o ícone). */
+.profile-nav {
+  display: flex;
 }
 
-/* Loja / Conquistas / Arcade colados (o gap da faixa também vale entre eles: desconta). */
-.profile-bar-actions .btn + .btn {
-  margin-left: calc(var(--slant-seam) - var(--slant) - 12px);
+.profile-nav-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 16px;
 }
 
-.profile-menu-actions {
-  display: none;
+.profile-nav-button + .profile-nav-button {
+  margin-left: calc(var(--slant-seam) - var(--slant));
+}
+
+/* Tela atual: rosa sólido (o gradiente terminava num roxo escuro que fazia a fresta parecer maior). */
+.profile-nav-button.current {
+  --spinner-color: #fff;
+  color: #fff;
+  background: var(--accent);
+}
+
+.nav-icon {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  fill: currentColor;
+}
+
+.nav-icon-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
 .profile-guest {
@@ -4039,13 +4116,14 @@ input:focus {
 }
 
 @media (max-width: 760px) {
-  /* No celular vira uma faixa no topo, acima do título. */
+  /* No celular vira uma faixa no topo, acima do título (sem blur: ele prenderia a barra de abas fixa dentro dela). */
   .profile-bar {
     position: relative;
     top: auto;
     right: auto;
     justify-content: flex-end;
     margin-bottom: 8px;
+    backdrop-filter: none;
   }
 
   .profile-bar {
@@ -4064,8 +4142,50 @@ input:focus {
     flex-shrink: 0;
   }
 
-  .profile-bar-actions {
-    display: none;
+  /* Navegação vira barra de abas fixa no rodapé (padrão de app): ícone em cima, nome embaixo, a atual em rosa. */
+  .profile-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 25;
+    padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(6px);
+  }
+
+  .profile-nav-button {
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    padding: 6px 2px;
+    background: none;
+    color: var(--text-2);
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    clip-path: none;
+  }
+
+  .profile-nav-button + .profile-nav-button {
+    margin-left: 0;
+  }
+
+  .profile-nav-button.current {
+    color: var(--accent);
+    background: none;
+    box-shadow: inset 0 2px 0 var(--accent);
+  }
+
+  .profile-nav .nav-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Espaço no fim da página para a barra de abas não cobrir o rodapé. */
+  .app:has(.profile-nav) {
+    padding-bottom: calc(48px + 56px + env(safe-area-inset-bottom));
   }
 
   /* Sanfona: abre dentro da faixa, empurrando a página para baixo. */
@@ -4086,18 +4206,6 @@ input:focus {
     display: none;
   }
 
-  .profile-menu-actions {
-    display: flex;
-    width: 100%;
-  }
-
-  .profile-menu-actions .btn {
-    flex: 1 1 0;
-  }
-
-  .profile-menu-actions .btn + .btn {
-    margin-left: calc(var(--slant-seam) - var(--slant));
-  }
 
 }
 
@@ -4941,6 +5049,25 @@ input:focus {
   padding: 12px;
   background: var(--surface-2);
   border: 1px solid var(--border);
+}
+
+/* Cartão vazio enquanto as conquistas carregam (mesma altura aproximada de um cartão de verdade). */
+.achievement-placeholder {
+  min-height: 112px;
+}
+
+.achievement-placeholder .achievement-card-body {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.achievement-placeholder .skeleton-bar {
+  width: 80%;
+}
+
+.achievement-placeholder .skeleton-bar.short {
+  width: 45%;
 }
 
 .achievement-card.done {

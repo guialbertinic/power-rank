@@ -76,7 +76,7 @@ export default function PartyLobby({ state, you, onStart, onLeave, onSettings, o
 
       <div className="party-actions">
         {isHost ? (
-          <button className="btn btn-primary btn-lg" onClick={() => start(onStart)} disabled={starting} aria-busy={starting}>
+          <button className="btn btn-primary btn-lg btn-chamfer" onClick={() => start(onStart)} disabled={starting} aria-busy={starting}>
             {t('lobby.start')}
           </button>
         ) : (

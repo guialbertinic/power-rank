@@ -374,6 +374,16 @@ function Game() {
   };
 
   const isHome = state.phase === 'intro' || state.phase === 'nick';
+  // Barra de perfil (com a navegação) fora da partida: home, loja, conquistas, Arcade e conta. Nelas o Início fica na
+  // barra; no resto (partida, party, modo gravação) continua o botão do cabeçalho.
+  const navPhase =
+    state.phase === 'intro'
+      ? ('home' as const)
+      : state.phase === 'shop' || state.phase === 'achievements' || state.phase === 'arcade'
+        ? state.phase
+        : null;
+  const showProfileBar =
+    Boolean(identity) && !showReview && !recording && (navPhase !== null || state.phase === 'account');
   const eyebrow =
     (state.phase === 'playing' || state.phase === 'result') && state.daily
       ? dailyLabel(t, state.mode, true)
@@ -391,10 +401,12 @@ function Game() {
 
   return (
     <main className={`app${recording ? ' recording' : ''}`}>
-      {state.phase === 'intro' && identity && !showReview && !recording && (
+      {showProfileBar && identity && (
         <ProfileBar
           identity={identity}
           profile={profile}
+          current={navPhase}
+          onHome={() => dispatch({ type: 'home' })}
           onOpenShop={() => dispatch({ type: 'shop' })}
           onOpenAchievements={() => dispatch({ type: 'achievements' })}
           onOpenArcade={FEATURES.some((f) => features[f]) ? () => dispatch({ type: 'arcade' }) : undefined}
@@ -412,7 +424,7 @@ function Game() {
             Power<em>dle</em>
           </span>
         </h1>
-        {!isHome && !showReview && (
+        {!isHome && !showReview && !showProfileBar && (
           <button className="home-button" onClick={() => dispatch({ type: 'home' })}>
             {t('app.home')}
           </button>

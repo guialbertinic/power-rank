@@ -63,6 +63,8 @@ export type ClientMessage =
   | { type: 'progress'; placed: number }
   | { type: 'finish'; placements: string[] }
   | { type: 'end' }
+  /** Dono, no pódio: leva todos de volta ao lobby (para mudar a categoria, esperar mais gente...). */
+  | { type: 'lobby' }
   /** Dono, fora da partida: categoria e filtro da próxima rodada. */
   | { type: 'settings'; mode: Mode; generations?: number[]; difficulty?: Difficulty; categories?: Category[] }
   /** Dono: tira um jogador da sala (ele não volta). */

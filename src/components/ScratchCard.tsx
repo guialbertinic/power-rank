@@ -83,6 +83,8 @@ export default function ScratchCard({ identity, profile, onProfileChange }: Prop
     const grid = gridRef.current;
     if (!canvas || !grid) return;
     const draw = () => {
+      // O observador pode disparar com o canvas já fora da página (trocou de aba/tela): aí os tokens vêm vazios.
+      if (!canvas.isConnected) return;
       const { width, height } = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       canvas.width = Math.round(width * dpr);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { confirmAdult } from '../api';
 import type { Profile } from '../game/cosmetics';
 import type { FeatureId, Features } from '../game/features';
@@ -9,6 +9,7 @@ import MysteryBox from './MysteryBox';
 import PlinkoBoard from './PlinkoBoard';
 import ScratchCard from './ScratchCard';
 import SlotMachine from './SlotMachine';
+import { useWholePixelWidths } from '../ui/useWholePixelWidths';
 
 interface Props {
   identity: Identity & { token: string };
@@ -31,8 +32,11 @@ const GAMES: { id: FeatureId; label: string | { key: Key } }[] = [
  * Só para maiores de 18: a conta declara uma vez (o servidor também recusa giros, bolinhas, cartelas e caixas sem a declaração).
  */
 export default function ArcadeScreen(props: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const games = GAMES.filter((g) => props.features[g.id]);
+  const tabsRef = useRef<HTMLDivElement>(null);
+  // Antes do 18+ as abas não existem: refaz quando aparecem.
+  useWholePixelWidths(tabsRef, [lang, games.length, props.profile.adult]);
   const [selected, setGame] = useState<FeatureId | null>(null);
   // A aba escolhida pode ter sido desligada: cai na primeira ligada.
   const game = games.find((g) => g.id === selected)?.id ?? games[0]?.id;
@@ -40,7 +44,7 @@ export default function ArcadeScreen(props: Props) {
   if (!game) return <ArcadeClosed />;
   return (
     <div className="arcade-screen">
-      <div className="shop-tabs arcade-tabs" role="tablist">
+      <div className="shop-tabs arcade-tabs" ref={tabsRef} role="tablist">
         {games.map((g) => (
           <button
             key={g.id}

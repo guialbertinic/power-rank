@@ -334,6 +334,17 @@ export class PartyRoom extends DurableObject<Env> {
         this.enterPodium(room);
         break;
       }
+      case 'lobby': {
+        if (!isHost) return fail('Só o dono da sala pode fazer isso');
+        if (room.phase !== 'podium') return;
+        room.phase = 'lobby';
+        room.characterIds = [];
+        room.ranks = undefined;
+        // No lobby só fica quem está conectado (como ao sair dele). A pontuação guardada continua valendo como
+        // recorde a bater na próxima rodada, mas só aparece no pódio.
+        room.players = room.players.filter((p) => p.connected);
+        break;
+      }
       default:
         return;
     }

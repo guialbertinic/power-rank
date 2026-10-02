@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { podiumOrder, type ClientMessage, type PartyPlayer, type PartyState } from '../../game/party';
+import { podiumOrder, type PartyPlayer, type PartyState } from '../../game/party';
 import { MIN_SCORE_FOR_COINS } from '../../game/economy';
 import { MAX_SCORE, rankLevel } from '../../game/scoring';
 import { useI18n } from '../../i18n';
@@ -9,15 +9,15 @@ import PlayerTag, { PodiumName } from '../PlayerTag';
 import RankBadge from '../RankBadge';
 import RankingComparison from '../RankingComparison';
 import { usePendingClick } from '../../ui/usePendingClick';
-import PartySettings from './PartySettings';
 
 interface Props {
   state: PartyState;
   you: string;
   charactersById: Map<string, CharacterInfo>;
   onRestart: () => void;
+  /** Dono: volta todos ao lobby (onde fica a configuração da próxima rodada). */
+  onLobby: () => void;
   onLeave: () => void;
-  onSettings: (settings: ClientMessage) => void;
 }
 
 /** Degraus do pódio na ordem visual (2º, 1º, 3º), cada um com a cor de um tier: ouro, rosa, ciano. */
@@ -31,10 +31,10 @@ const STEPS = [
  * Resultado da rodada: pódio, classificação completa e a comparação de um ranking com o correto. Tocar num jogador
  * da classificação mostra a lista dele no lugar da sua (uma lista por vez, para não lotar a tela).
  */
-export default function PartyPodium({ state, you, charactersById, onRestart, onLeave, onSettings }: Props) {
+export default function PartyPodium({ state, you, charactersById, onRestart, onLobby, onLeave }: Props) {
   const { t } = useI18n();
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [restarting, restart] = usePendingClick();
+  const [returning, toLobby] = usePendingClick();
   const ranking = podiumOrder(state.players);
   const unfinished = state.players.filter((p) => !p.finished);
   const me = state.players.find((p) => p.id === you);
@@ -135,23 +135,27 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
 
       <div className="party-actions">
         {isHost ? (
-          <button
-            className="btn btn-primary btn-lg"
-            onClick={() => restart(onRestart)}
-            disabled={restarting}
-            aria-busy={restarting}
-          >
-            {t('podium.next')}
-          </button>
+          <div className="party-actions-row">
+            <button
+              className="btn btn-primary btn-chamfer"
+              onClick={() => restart(onRestart)}
+              disabled={restarting || returning}
+              aria-busy={restarting}
+            >
+              {t('podium.next')}
+            </button>
+            <button
+              className="btn btn-secondary btn-chamfer"
+              onClick={() => toLobby(onLobby)}
+              disabled={restarting || returning}
+              aria-busy={returning}
+            >
+              {t('podium.toLobby')}
+            </button>
+          </div>
         ) : (
           <p className="party-waiting-text">{t('podium.waitingHost')}</p>
         )}
-        {isHost && (
-          <button className="link-button" aria-expanded={settingsOpen} onClick={() => setSettingsOpen((o) => !o)}>
-            {t('podium.changeSettings')}
-          </button>
-        )}
-        {isHost && settingsOpen && <PartySettings state={state} onChange={onSettings} />}
         <button className="link-button" onClick={onLeave}>
           {t('party.leave')}
         </button>

@@ -782,6 +782,18 @@ if (section('Party')) {
   h.send({ type: 'end' });
   check('dono pode encerrar', await h.until((c) => c.state.phase === 'podium'));
 
+  // Do pódio de volta ao lobby: só o dono; a rodada some (sorteio, ordem e pontuações).
+  g2.send({ type: 'lobby' });
+  check('só o dono volta ao lobby', await g2.untilError('Só o dono da sala pode fazer isso'));
+  h.send({ type: 'lobby' });
+  check(
+    'dono volta todos ao lobby, sem a rodada anterior',
+    (await g2.until((c) => c.state.phase === 'lobby')) &&
+      g2.state.characterIds.length === 0 &&
+      g2.state.ranks === undefined &&
+      g2.state.players.every((p) => p.score === undefined),
+  );
+
   // Passar a dona e expulsar.
   g2.send({ type: 'kick', id: h.you });
   check('só o dono expulsa', await g2.untilError('Só o dono da sala pode fazer isso'));

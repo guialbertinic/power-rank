@@ -69,12 +69,25 @@ export default function AchievementsScreen({ token }: { token: string }) {
     );
   };
 
+  // Carregando: os grupos já aparecem (são fixos) com cartões vazios pulsando, no lugar de uma tela em branco.
+  const loading = !state && !error;
+  const placeholder = (a: Achievement) => (
+    <li key={a.id} className="achievement-card achievement-placeholder" aria-hidden="true">
+      <span className="skeleton-avatar small" />
+      <div className="achievement-card-body">
+        <span className="skeleton-bar" />
+        <span className="skeleton-bar" />
+        <span className="skeleton-bar short" />
+      </div>
+    </li>
+  );
+
   return (
-    <section className="achievements">
+    <section className={`achievements${loading ? ' achievements-loading' : ''}`} aria-busy={loading}>
       <div className="panel achievements-summary">
         <p className="achievements-summary-value">
-          {state ? unlockedCount : '–'}
-          <span>/{ACHIEVEMENTS.length}</span>
+          {state ? unlockedCount : loading ? <span className="loading-spinner" aria-hidden="true" /> : '–'}
+          {!loading && <span>/{ACHIEVEMENTS.length}</span>}
         </p>
         <p className="achievements-summary-label">{t('ach.unlockedLabel')}</p>
         <span className="achievement-bar" aria-hidden="true">
@@ -85,11 +98,13 @@ export default function AchievementsScreen({ token }: { token: string }) {
 
       {error && <p className="error achievements-error">{t('ach.error')}</p>}
 
-      {state &&
+      {!error &&
         ACHIEVEMENT_GROUPS.map((group) => (
           <section key={group} className="panel achievements-group">
             <h2 className="section-title">{t(`ach.group.${group}`)}</h2>
-            <ul className="achievements-grid">{ACHIEVEMENTS.filter((a) => a.group === group).map((a) => card(a, state))}</ul>
+            <ul className="achievements-grid">
+              {ACHIEVEMENTS.filter((a) => a.group === group).map((a) => (state ? card(a, state) : placeholder(a)))}
+            </ul>
           </section>
         ))}
     </section>

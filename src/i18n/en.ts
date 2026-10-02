@@ -125,6 +125,7 @@ export const en: Record<Key, string> = {
   // Profile bar and menu
   'profile.guest': 'Guest',
   'profile.shop': 'Shop',
+  'profile.nav': 'Navigation',
   'profile.arcade': 'Arcade',
   'profile.logout': 'Log out',
   'profile.login': 'Log in to an account',
@@ -216,7 +217,7 @@ export const en: Record<Key, string> = {
   'podium.yourScore': 'Your score',
   'podium.next': 'New game',
   'podium.waitingHost': 'Waiting for the host...',
-  'podium.changeSettings': 'Change category',
+  'podium.toLobby': 'Back to lobby',
   'podium.newRecord': 'New record!',
   'podium.recordTag': 'record',
   'lobby.settings': 'Next round',

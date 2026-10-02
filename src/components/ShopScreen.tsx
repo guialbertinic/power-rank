@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { buyItem, equipItem } from '../api';
 import { achievementOfReward } from '../game/achievements';
 import { AVATAR_PRICE, avatarItemId, COSMETICS, type Cosmetic, type Profile } from '../game/cosmetics';
@@ -11,6 +11,7 @@ import BadgeIcon from './BadgeIcon';
 import Coins from './Coins';
 import PlayerTag from './PlayerTag';
 import ShopAvatars from './ShopAvatars';
+import { useWholePixelWidths } from '../ui/useWholePixelWidths';
 
 type Tab = 'nameColor' | 'frame' | 'title' | 'badge' | 'avatar';
 
@@ -39,6 +40,8 @@ interface Props {
 /** Loja e personalização do perfil: compra com moedas e equipa o visual que aparece no ranking e na party. */
 export default function ShopScreen({ identity, profile, onProfileChange }: Props) {
   const { t, lang } = useI18n();
+  const tabsRef = useRef<HTMLDivElement>(null);
+  useWholePixelWidths(tabsRef, [lang]);
   const [tab, setTab] = useState<Tab>('nameColor');
   const [confirming, setConfirming] = useState<string | null>(null);
   /** Item cuja compra/equipar está esperando o servidor: só o botão dele mostra o loading. */
@@ -201,7 +204,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
         <p className="muted shop-hint">{t('shop.hint', { min: MIN_SCORE_FOR_COINS })}</p>
       </div>
 
-      <div className="shop-tabs" role="tablist">
+      <div className="shop-tabs" ref={tabsRef} role="tablist">
         {TABS.map((item) => (
           <button
             key={item.id}

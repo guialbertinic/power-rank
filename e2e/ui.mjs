@@ -25,6 +25,8 @@ import {
 
 await ensureServer();
 cleanTestData();
+// Voltar ao início: na barra de perfil (home, loja, conquistas, Arcade, conta) ou no cabeçalho (partida, party).
+const HOME = ':is(.home-button, .profile-nav [data-nav="home"])';
 const b = await launchBrowser();
 
 try {
@@ -190,14 +192,18 @@ try {
   check('tocar no jogador mostra a lista dele', (await listTitle()) === `Ranking de ${nick('Bruno')}` && brunoList === 10, await listTitle());
   check('uma lista por vez', (await ana.$$('.party-comparison .result-columns')).length === 1);
   check('pódio da party sem scroll horizontal no celular', (await overflowX(bruno)) <= 0);
-  await bruno.click('.home-button');
+  await bruno.click(HOME);
   await bruno.waitForSelector('.play-buttons');
   await sleep(500);
   check('"Início" sai da sala', (await text(ana, '.row.offline .player-name')) === nick('Bruno'));
+  // Dono: "Voltar para o lobby" ao lado de "Nova partida"; no lobby, quem saiu já não aparece.
+  await ana.click('.party-actions-row ::-p-text(Voltar para o lobby)');
+  await ana.waitForSelector('.party-settings');
+  check('dono volta ao lobby, sem quem saiu', (await ana.$$('.party-player')).length === 1, String((await ana.$$('.party-player')).length));
 
   // ---------- Loja ----------
   section('Loja');
-  await ana.click('.home-button');
+  await ana.click(HOME);
   await ana.waitForSelector('.profile-bar');
   // A party rendeu conquistas: o aviso aparece na home até a Ana fechar.
   const toast = await ana.waitForSelector('.achievement-unlocked [data-achievement="first-game"]', { timeout: 8000 }).catch(() => null);
@@ -210,8 +216,22 @@ try {
   d1(`UPDATE players SET coins = 2000 WHERE name_key = '${nick('ana').toLowerCase()}'`);
   await ana.reload({ waitUntil: 'networkidle0' });
   await ana.waitForSelector('.profile-bar .coins');
-  await ana.click('.profile-bar .btn');
+  await ana.click('.profile-nav [data-nav="shop"]');
   await ana.waitForSelector('.shop');
+  // Fora da home a barra continua no canto (com o Início): não pode cobrir o título nem a loja.
+  const overlaps = await ana.evaluate(() => {
+    const bar = document.querySelector('.profile-bar').getBoundingClientRect();
+    const hit = (sel) => {
+      const r = document.querySelector(sel).getBoundingClientRect();
+      return r.left < bar.right && bar.left < r.right && r.top < bar.bottom && bar.top < r.bottom;
+    };
+    return { title: hit('.app-header h1'), shop: hit('.shop') };
+  });
+  check(
+    'loja: barra com a loja destacada, sem cobrir título nem conteúdo',
+    !overlaps.title && !overlaps.shop && Boolean(await ana.$('.profile-nav [data-nav="shop"][aria-current="page"]')),
+    JSON.stringify(overlaps),
+  );
 
   /** Espera o botão do item mostrar `label` (e não estar carregando). Devolve o texto final, mesmo se não chegar. */
   async function waitAction(item, label) {
@@ -287,7 +307,7 @@ try {
   const balance = await text(ana, '.shop-balance .coins');
   check('saldo descontado (2000 − 250 − 600 − 50 − 60 − 50)', balance === '990', balance ?? '');
 
-  await ana.click('.home-button');
+  await ana.click(HOME);
   await ana.waitForSelector('.profile-bar .player-tag img');
   const tag = await ana.$eval('.profile-bar .player-tag', (el) => el.innerHTML);
   check('barra de perfil mostra o visual', tag.includes('cosmetic-name-fire') && tag.includes('cosmetic-frame-legend') && tag.includes('goku'));
@@ -297,7 +317,7 @@ try {
   /** Abre a tela Minha conta pelo menu do perfil (convidado: "Nick e criar conta"). */
   async function openAccount(page, label = 'Minha conta') {
     if (!(await page.$('.profile-bar'))) {
-      await page.click('.home-button');
+      await page.click(HOME);
       await page.waitForSelector('.profile-bar');
     }
     await page.waitForSelector('.profile-bar-me:not([disabled])');
@@ -319,18 +339,24 @@ try {
   await bruno.waitForSelector('.account-devices');
   check('convidado cria a conta: a tela vira a da conta (senha, aparelhos)', Boolean(await bruno.$('input[aria-label="Senha atual"]')));
   check('celular: tela da conta (logada) sem scroll horizontal', (await overflowX(bruno)) <= 0);
-  await bruno.click('.home-button');
+  await bruno.click(HOME);
   await bruno.waitForSelector('.profile-bar .coins');
   check('depois de criar a conta, a home tem saldo', !(await bruno.$('.profile-guest')));
-  // Celular: a faixa tem só nick e saldo (sem sobrepor); Loja e Arcade abrem na sanfona.
+  // Celular: no topo só nick (inteiro) e saldo; a navegação é uma barra de abas fixa no rodapé, com os nomes.
   const rect = (sel) => bruno.$eval(sel, (el) => el.getBoundingClientRect().toJSON());
   const me = await rect('.profile-bar-me');
   const coins = await rect('.profile-bar .coins');
-  const shopHidden = !(await bruno.$eval('.profile-bar-actions .btn', (el) => el.offsetParent));
-  check('celular: nick não fica atrás do saldo, Loja fora da faixa', me.right <= coins.left && shopHidden);
+  const nav = await rect('.profile-nav');
+  const nameFits = await bruno.$eval('.profile-bar .player-name', (el) => el.scrollWidth <= el.clientWidth);
+  const labels = await bruno.$$eval('.profile-nav-label', (els) => els.every((el) => el.getBoundingClientRect().width > 1));
+  check(
+    'celular: nick inteiro ao lado do saldo, abas fixas no rodapé com nome',
+    me.right <= coins.left && nameFits && labels && Math.round(nav.bottom) === 844 && nav.left === 0 && nav.right === 390,
+    JSON.stringify({ me: me.right, coins: coins.left, nameFits, labels, nav: [nav.left, nav.right, nav.bottom] }),
+  );
   await bruno.click('.profile-bar-me');
-  await bruno.waitForSelector('.profile-menu-actions ::-p-text(Loja)', { visible: true });
-  check('celular: menu abre como sanfona, com Loja e Arcade', (await bruno.$eval('.profile-menu', (el) => getComputedStyle(el).position)) === 'static');
+  await bruno.waitForSelector('.profile-menu', { visible: true });
+  check('celular: menu abre como sanfona', (await bruno.$eval('.profile-menu', (el) => getComputedStyle(el).position)) === 'static');
   await bruno.keyboard.press('Escape');
 
   // Ana força a sincronização depois de uma mudança feita "em outro dispositivo".
@@ -339,13 +365,14 @@ try {
   check('conta: um aparelho conectado', (await text(ana, '.account-devices')) === 'Conectada só neste aparelho.');
   await ana.click('.account-actions ::-p-text(Forçar sincronização)');
   await ana.waitForSelector('.account-section ::-p-text(Sincronizado)');
-  await ana.click('.home-button');
+  await ana.click(HOME);
   await ana.waitForSelector('.profile-bar .coins');
   check('forçar sincronização traz o saldo do servidor', (await text(ana, '.profile-bar .coins')) === '777');
 
   // Conquistas: botão ao lado da Loja, cartões por grupo.
-  await ana.click('.profile-bar-actions ::-p-text(Conquistas)');
-  await ana.waitForSelector('.achievements-grid');
+  await ana.click('.profile-nav ::-p-text(Conquistas)');
+  // Abre na hora com o skeleton (cartões vazios pulsando): espera os de verdade.
+  await ana.waitForSelector('.achievements[aria-busy="false"] .achievements-grid');
   check(
     'conquistas: 11 cartões em 5 grupos, a da primeira partida desbloqueada',
     (await ana.$$('.achievement-card')).length === 11 &&
@@ -354,7 +381,7 @@ try {
   );
   const [card1, card2] = await ana.$$eval('.achievements-group:first-of-type .achievement-card', (els) => els.map((e) => e.getBoundingClientRect().top));
   check('conquistas: 2 cartões por linha no computador', Math.abs(card1 - card2) < 2, `${card1} / ${card2}`);
-  await ana.click('.home-button');
+  await ana.click(HOME);
   await ana.waitForSelector('.profile-bar .coins');
   const barLayout = await ana.$eval('.profile-bar', (el) => {
     const r = el.getBoundingClientRect();
@@ -380,14 +407,12 @@ try {
   await celular.waitForSelector('.profile-bar .coins');
   check('entra com nick + senha em outro dispositivo', (await text(celular, '.profile-bar .coins')) === '777');
   await celular.waitForSelector('.profile-bar-me:not([disabled])');
-  await celular.click('.profile-bar-me');
-  await (await celular.waitForSelector('.profile-menu ::-p-text(Conquistas)', { visible: true })).click();
-  await celular.waitForSelector('.achievements-grid');
+  await celular.click('.profile-nav [data-nav="achievements"]');
+  await celular.waitForSelector('.achievements[aria-busy="false"] .achievements-grid');
   check('celular: conquistas sem scroll horizontal', (await overflowX(celular)) <= 0);
-  await celular.click('.home-button');
-  await celular.waitForSelector('.profile-bar-me:not([disabled])');
-  await celular.click('.profile-bar-me');
-  await (await celular.waitForSelector('.profile-menu ::-p-text(Loja)', { visible: true })).click();
+  // Da tela de conquistas direto para a loja, pela barra (a tela atual fica destacada).
+  check('celular: conquistas destacada na barra', Boolean(await celular.$('.profile-nav [data-nav="achievements"][aria-current="page"]')));
+  await celular.click('.profile-nav [data-nav="shop"]');
   await celular.waitForSelector('.shop-tabs');
   const shopTabs = await celular.$$eval('.shop-tabs .mode-option', (els) => els.map((e) => [e.textContent, e.scrollWidth, e.clientWidth]));
   check(
@@ -489,7 +514,7 @@ try {
 
   // ---------- Desafio diário ----------
   section('Desafio diário');
-  await ana.click('.home-button');
+  await ana.click(HOME);
   await ana.waitForSelector('.btn-daily.done', { timeout: 5000 });
   await ana.click('.btn-daily');
   await ana.waitForSelector('.daily-entry .daily-done ::-p-text(pts)', { timeout: 5000 });
@@ -516,7 +541,7 @@ try {
   await ana.waitForSelector('.coins-earned');
   check('Solo é partida normal', (await text(ana, '.title-eyebrow')) === 'Animes');
   check('Solo sem posição no ranking, com "Jogar de novo"', !(await ana.$('.ranking-status')) && Boolean(await ana.$('.score-actions .btn-primary')));
-  await ana.click('.home-button');
+  await ana.click(HOME);
 
   // ---------- Arcade ----------
   section('Arcade');
@@ -634,7 +659,7 @@ try {
 
   // ---------- Trocar nick e sair ----------
   section('Trocar nick e sair');
-  await ana.click('.home-button');
+  await ana.click(HOME);
   await ana.waitForSelector('.profile-bar .coins');
   await sleep(800);
   const coinsBefore = await text(ana, '.profile-bar .coins');
@@ -648,7 +673,7 @@ try {
   await ana.type('input[aria-label="Novo nick"]', nick('AnaNova'));
   await ana.click('.change-nick .btn-primary');
   await ana.waitForSelector('.change-nick ::-p-text(Salvo)');
-  await ana.click('.home-button');
+  await ana.click(HOME);
   await ana.waitForSelector(`.profile-bar-me ::-p-text(${nick('AnaNova')})`);
   await sleep(800);
   const coinsAfter = await text(ana, '.profile-bar .coins');

@@ -126,6 +126,7 @@ export const pt = {
   // Barra de perfil e menu
   'profile.guest': 'Convidado',
   'profile.shop': 'Loja',
+  'profile.nav': 'Navegação',
   'profile.arcade': 'Arcade',
   'profile.logout': 'Sair da conta',
   'profile.login': 'Entrar em uma conta',
@@ -217,7 +218,7 @@ export const pt = {
   'podium.yourScore': 'Sua pontuação',
   'podium.next': 'Nova partida',
   'podium.waitingHost': 'Aguardando o dono iniciar...',
-  'podium.changeSettings': 'Mudar categoria',
+  'podium.toLobby': 'Voltar para o lobby',
   'podium.newRecord': 'Novo recorde!',
   'podium.recordTag': 'recorde',
   'lobby.settings': 'Próxima rodada',
