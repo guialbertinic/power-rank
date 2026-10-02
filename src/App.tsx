@@ -14,10 +14,12 @@ import {
   loadGenerations,
   loadIdentity,
   loadMode,
+  loadRecording,
   saveDifficulty,
   saveGenerations,
   saveIdentity,
   saveMode,
+  saveRecording,
   type Identity,
 } from './nick';
 import { clearCodeFromUrl, codeFromUrl, newPid, partyPid, rememberPartyPid } from './party/session';
@@ -32,6 +34,7 @@ import ShopScreen from './components/ShopScreen';
 import ArcadeScreen from './components/ArcadeScreen';
 import SettingsMenu from './components/SettingsMenu';
 import { LegalLink, LegalProvider } from './components/Legal';
+import { SUPPORT_URL } from './links';
 import { dailyLabel, I18nProvider, useI18n } from './i18n';
 
 // Tela de revisão da base (http://localhost:5173/?review). Só existe em dev: sai do build de produção.
@@ -162,6 +165,12 @@ function Game() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [daily, setDaily] = useState<DailyStatus | null>(null);
   const [features, setFeatures] = useState(NO_FEATURES);
+  const [recording, setRecording] = useState(loadRecording);
+
+  const changeRecording = (on: boolean) => {
+    setRecording(on);
+    saveRecording(on);
+  };
 
   /** Trocou o nick, criou a conta ou o nick da conta mudou em outro dispositivo. */
   const changeIdentity = (next: Identity) => {
@@ -334,8 +343,8 @@ function Game() {
       : MODES.find((m) => m.id === (state.phase === 'playing' || state.phase === 'result' ? state.mode : mode))?.label;
 
   return (
-    <main className="app">
-      {state.phase === 'intro' && identity && !showReview && (
+    <main className={`app${recording ? ' recording' : ''}`}>
+      {state.phase === 'intro' && identity && !showReview && !recording && (
         <ProfileBar
           identity={identity}
           profile={profile}
@@ -344,10 +353,11 @@ function Game() {
           onIdentityChange={changeIdentity}
           onLeave={leave}
           onRefresh={refreshProfile}
+          onAccountDeleted={leave}
           disabled={starting}
         />
       )}
-      <SettingsMenu />
+      <SettingsMenu recording={recording} onRecordingChange={changeRecording} />
       <header className={`app-header${isHome && !showReview ? ' hero' : ''}`}>
         {/* Fora da home, o nome da categoria/modo acima do título (na home, o seletor fica na IntroScreen). */}
         {!isHome && <span className="title-eyebrow">{eyebrow}</span>}
@@ -414,8 +424,16 @@ function Game() {
           onExit={() => dispatch({ type: 'home' })}
         />
       )}
-      {state.phase === 'intro' && !showReview && (
+      {state.phase === 'intro' && !showReview && !recording && (
         <footer className="app-footer">
+          {SUPPORT_URL && (
+            <>
+              <a className="link-button support-link" href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
+                {t('support.button')}
+              </a>
+              <span aria-hidden="true">·</span>
+            </>
+          )}
           <LegalLink doc="terms">{t('legal.terms')}</LegalLink>
           <span aria-hidden="true">·</span>
           <LegalLink doc="privacy">{t('legal.privacy')}</LegalLink>

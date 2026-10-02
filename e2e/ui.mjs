@@ -16,6 +16,7 @@ import {
   overflowX,
   PASSWORD,
   PHONE,
+  DESKTOP,
   placeAll,
   section,
   sleep,
@@ -79,6 +80,21 @@ try {
   await ana.waitForSelector('.profile-bar ::-p-text(Loja)');
   await ana.keyboard.press('Escape');
 
+  // ---------- Modo gravação ----------
+  section('Modo gravação');
+  await ana.click('.settings-toggle');
+  await (await ana.waitForSelector('.settings-check input')).click();
+  await ana.waitForFunction(() => !document.querySelector('.profile-bar'));
+  check('modo gravação esconde a barra de perfil e o rodapé', !(await ana.$('.app-footer')) && Boolean(await ana.$('.app.recording')));
+  await ana.reload({ waitUntil: 'networkidle0' });
+  await ana.waitForSelector('.play-buttons');
+  check('modo gravação fica salvo no navegador', !(await ana.$('.profile-bar')));
+  await ana.click('.settings-toggle');
+  await (await ana.waitForSelector('.settings-check input')).click();
+  await ana.waitForSelector('.profile-bar');
+  check('desligar o modo gravação traz a barra de volta', Boolean(await ana.$('.app-footer')));
+  await ana.keyboard.press('Escape');
+
   // ---------- Party ----------
   section('Party');
   await ana.click('.btn-party');
@@ -106,6 +122,37 @@ try {
   await chooseGuest(bruno, nick('Bruno'), '.party-lobby');
   check('convidado entra direto na sala', (await text(bruno, '.party-code')) === room);
   check('URL do convite é limpa', !bruno.url().includes('sala='));
+
+  // Configuração da sala e ações nos jogadores: só o dono.
+  check('dono vê a configuração da sala; convidado não', Boolean(await ana.$('.party-settings')) && !(await bruno.$('.party-settings')));
+  await ana.click('.party-settings .mode-option:nth-child(2)');
+  await bruno.waitForFunction(() => document.querySelector('.party-code-panel .score-label')?.textContent.includes('Games'));
+  check('dono troca a categoria e o outro vê', (await text(bruno, '.party-code-panel .score-label'))?.includes('Games'));
+  await ana.click('.party-player-menu');
+  await ana.waitForSelector('.party-player-actions');
+  check('dono abre as ações do jogador (dono / expulsar)', (await ana.$$('.party-player-actions button')).length === 2 && !(await bruno.$('.party-player-menu')));
+  await ana.click('.party-player-menu');
+  check('lobby sem scroll horizontal no celular', (await overflowX(bruno)) <= 0);
+
+  // Expulsar: quem sai vê o aviso na hora, e ao tentar voltar também.
+  const eva = await b.page();
+  await eva.goto(`http://localhost:5173/?sala=${room}`, { waitUntil: 'networkidle0' });
+  await chooseGuest(eva, nick('Eva'), '.party-lobby');
+  await ana.click(`.party-player-menu[aria-label="Opções de ${nick('Eva')}"]`);
+  await ana.waitForSelector('.party-action-danger');
+  let kickStart = Date.now();
+  await ana.click('.party-action-danger');
+  const removed = () => document.querySelector('.party-message')?.textContent.includes('Você foi removido da sala');
+  await eva.waitForFunction(removed, { timeout: 5000 });
+  const kickMs = Date.now() - kickStart;
+  check('expulso vê "removido da sala" na hora', kickMs < 1500, `${kickMs} ms`);
+  await ana.waitForFunction((n) => !document.querySelector('.party-players')?.textContent.includes(n), {}, nick('Eva'));
+  kickStart = Date.now();
+  await eva.goto(`http://localhost:5173/?sala=${room}`, { waitUntil: 'domcontentloaded' });
+  await eva.waitForFunction(removed, { timeout: 5000 });
+  const backMs = Date.now() - kickStart;
+  check('expulso que volta pelo convite vê o aviso logo', backMs < 2500, `${backMs} ms`);
+  await eva.close();
 
   const carla = await b.page();
   await carla.goto('http://localhost:5173/', { waitUntil: 'networkidle0' });
@@ -528,6 +575,48 @@ try {
   await ana.click('.nick-login');
   await ana.waitForSelector('input[aria-label="Senha"]');
   check('depois de sair, entrar pede a senha', !(await ana.$('input[aria-label="Confirmar senha"]')));
+
+  // ---------- Excluir conta ----------
+  section('Excluir conta');
+  const dora = await b.page(PHONE);
+  await dora.goto('http://localhost:5173/', { waitUntil: 'networkidle0' });
+  await chooseNick(dora, nick('Dora'));
+  await dora.waitForSelector('.profile-bar .coins');
+  await dora.click('.profile-bar-me');
+  await (await dora.waitForSelector('.profile-menu ::-p-text(Excluir minha conta)')).click();
+  await dora.waitForSelector('.delete-account input[type=password]');
+  check('excluir conta: aviso e senha, sem scroll horizontal no celular', Boolean(await text(dora, '.delete-account-warning')) && (await overflowX(dora)) <= 0);
+  // Campo e botões dentro do menu (celular e computador).
+  const insideMenu = () =>
+    dora.evaluate(() => {
+      const menu = document.querySelector('.profile-menu').getBoundingClientRect();
+      return [...document.querySelectorAll('.delete-account input, .delete-account button, .delete-account p')].every((el) => {
+        const r = el.getBoundingClientRect();
+        return r.left >= menu.left - 1 && r.right <= menu.right + 1;
+      });
+    });
+  check('excluir conta: campo e botões dentro do menu no celular', await insideMenu());
+  // Trocar de celular para computador recarrega a página: abre o menu e o formulário de novo.
+  await dora.setViewport(DESKTOP);
+  await dora.waitForSelector('.profile-bar .coins');
+  if (!(await dora.$('.delete-account'))) {
+    if (!(await dora.$('.profile-menu'))) await dora.click('.profile-bar-me');
+    await (await dora.waitForSelector('.profile-menu ::-p-text(Excluir minha conta)')).click();
+    await dora.waitForSelector('.delete-account input[type=password]');
+  }
+  await dora.waitForFunction(() => getComputedStyle(document.querySelector('.profile-menu')).position === 'absolute');
+  check('excluir conta: campo e botões dentro do menu no computador', await insideMenu());
+  await dora.type('.delete-account input[type=password]', 'senha-errada');
+  await dora.click('.delete-account .btn-danger');
+  await dora.waitForSelector('.delete-account .error');
+  check('senha errada não exclui', (await text(dora, '.delete-account .error')) === 'Senha incorreta');
+  await dora.$eval('.delete-account input[type=password]', (el) => (el.value = ''));
+  await dora.type('.delete-account input[type=password]', PASSWORD);
+  await dora.click('.delete-account .btn-danger');
+  await dora.waitForSelector('#nick');
+  const doraStatus = await (await fetch(`http://localhost:5173/api/players/status?name=${nick('Dora')}`)).json();
+  check('conta excluída: volta para o nick e o nick fica livre', doraStatus.exists === false);
+  await dora.close();
 
   // ---------- Celular ----------
   section('Celular');

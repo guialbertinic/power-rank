@@ -26,6 +26,7 @@ const LEGACY_NICK_KEY = 'power-rank:name';
 const MODE_KEY = 'power-rank:mode';
 const GENERATIONS_KEY = 'power-rank:generations';
 const DIFFICULTY_KEY = 'power-rank:difficulty';
+const RECORDING_KEY = 'power-rank:recording';
 
 /** Mesma normalização do servidor: sem diferenciar maiúsculas/minúsculas. */
 export const nickKey = (nick: string) => nick.trim().normalize('NFC').toLocaleLowerCase('pt-BR');
@@ -146,3 +147,7 @@ export function saveMode(mode: Mode) {
     // Storage indisponível: só não lembra a categoria.
   }
 }
+
+/** Modo gravação (layout limpo para gravar a tela), lembrado neste navegador. */
+export const loadRecording = (): boolean => read<boolean>(RECORDING_KEY) === true;
+export const saveRecording = (on: boolean) => write(RECORDING_KEY, on);

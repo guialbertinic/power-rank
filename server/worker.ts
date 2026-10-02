@@ -6,7 +6,7 @@ import { createGame } from './games';
 import { openBox } from './gacha';
 import { json, type Env } from './lib';
 import { connectParty, createParty } from './party';
-import { claimPlayer, playerStatus, renamePlayer, setPassword } from './players';
+import { claimPlayer, deletePlayer, playerStatus, renamePlayer, setPassword } from './players';
 import { drop } from './plinko';
 import { buyItem, confirmAdult, equipItem, getProfile } from './profile';
 import { getLeaderboard, submitScore } from './scores';
@@ -17,6 +17,22 @@ import { getConfig, rateLimit } from './security';
 export { PartyRoom } from './party';
 
 const PARTY_SOCKET = /^\/api\/party\/([A-Za-z]+)\/ws$/;
+
+/**
+ * GET /api/health: o Worker e o D1 respondem? Para um monitor externo (ex: UptimeRobot) avisar quando o site
+ * cair. 503 se o banco não responder. Sem cache.
+ */
+async function health(env: Env): Promise<Response> {
+  const started = Date.now();
+  const headers = { 'Cache-Control': 'no-store' };
+  try {
+    await env.DB.prepare('SELECT 1').first();
+    return json({ ok: true, db: 'ok', ms: Date.now() - started }, { headers });
+  } catch (err) {
+    console.error('health: D1 não respondeu', err);
+    return json({ ok: false, db: 'error' }, { status: 503, headers });
+  }
+}
 
 /**
  * Worker da API. Só recebe /api/* (ver `run_worker_first` no wrangler.jsonc);
@@ -36,6 +52,8 @@ export default {
       if (pathname.startsWith('/api/admin/')) return await handleAdmin(request, env);
 
       switch (route) {
+        case 'GET /api/health':
+          return await health(env);
         case 'GET /api/config':
           return await getConfig(env);
         case 'GET /api/characters':
@@ -70,6 +88,8 @@ export default {
           return await renamePlayer(request, env);
         case 'POST /api/players/password':
           return await setPassword(request, env);
+        case 'POST /api/players/delete':
+          return await deletePlayer(request, env);
         case 'POST /api/profile':
           return await getProfile(request, env);
         case 'POST /api/profile/adult':

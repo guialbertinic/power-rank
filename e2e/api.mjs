@@ -56,11 +56,10 @@ if (section('Pokémon')) {
   const { data: room } = await post('/party', { mode: 'pokemon', pid: 'e2e-pkmn-pid-01', generations: [2] });
   const host = await player('PkmHost');
   const h = partyClient(room.code, 'e2e-pkmn-pid-01', host.name, host.token);
-  await h.ready;
-  await sleep(300);
+  await h.until((c) => c.state);
   check('sala Pokémon guarda o filtro', JSON.stringify(h.state?.generations) === '[2]', JSON.stringify(h.state?.generations));
   h.send({ type: 'start' });
-  await sleep(500);
+  await h.until((c) => c.state?.phase === 'playing');
   check('partida da sala respeita o filtro', h.state?.characterIds.length === 10 && gen(h.state.characterIds).every((g) => g === 2));
   h.ws.close();
 }
@@ -80,12 +79,10 @@ if (section('Dificuldade')) {
   const { data: room } = await post('/party', { mode: 'games', pid: 'e2e-diff-pid-01', difficulty: 'easy' });
   const host = await player('DiffHost');
   const h = partyClient(room.code, 'e2e-diff-pid-01', host.name, host.token);
-  await h.ready;
-  await sleep(300);
+  await h.until((c) => c.state);
   check('sala guarda a dificuldade', h.state?.difficulty === 'easy', String(h.state?.difficulty));
   h.send({ type: 'start' });
-  // Com a suíte inteira rodando, o início pode demorar mais que meio segundo.
-  for (let i = 0; i < 50 && h.state?.phase !== 'playing'; i++) await sleep(100);
+  await h.until((c) => c.state?.phase === 'playing');
   check('partida da sala respeita a dificuldade', h.state?.characterIds.length === 10 && tierOf(h.state.characterIds).every((t) => t === 1), JSON.stringify([h.state?.phase, tierOf(h.state?.characterIds ?? [])]));
   h.ws.close();
 }
@@ -578,98 +575,168 @@ if (section('Party')) {
   check('cria sala com código de 6 letras', /^[A-HJ-NP-Z]{6}$/.test(code ?? ''), code);
 
   const h = partyClient(code, 'e2e-host-pid-01', host.name, host.token);
-  await h.ready;
-  await sleep(300);
+  await h.until((c) => c.state);
   check('dono entra e é host', h.state?.hostId === h.you);
 
   const intruder = partyClient(code, 'e2e-intr-pid-01', guest.name, 'token-falso');
-  await intruder.ready;
-  await sleep(300);
+  await intruder.until((c) => c.errors.length > 0);
   check('token errado é recusado', intruder.errors[0]?.startsWith('Nick não verificado'));
 
   // Duas conexões simultâneas do mesmo jogador (StrictMode, clique duplo): uma vaga só.
   const twin = await player('Twin');
   const t1 = partyClient(code, 'e2e-twin-pid-01', twin.name, twin.token);
   const t2 = partyClient(code, 'e2e-twin-pid-01', twin.name, twin.token);
-  await Promise.all([t1.ready, t2.ready]);
-  await sleep(500);
+  // As duas resolvidas: cada uma recebeu o estado ou foi fechada pela outra.
+  await Promise.all([t1, t2].map((t) => t.until((c) => c.state || c.closed !== null)));
+  await h.until((c) => c.state.players.length >= 2);
   check('conexões simultâneas não duplicam a vaga', h.state.players.length === 2, `${h.state.players.length} jogadores`);
   const partyLog = d1(`SELECT COUNT(*) AS n FROM access_log WHERE event = 'party' AND lower(name) = '${twin.name.toLowerCase()}'`);
   check('entrada na party fica no registro de acesso (uma vez)', /"n": 1\b/.test(partyLog), /"n": \d+/.exec(partyLog)?.[0]);
   t1.ws.close();
   t2.ws.close();
-  await sleep(400);
+  await h.until((c) => c.state.players.length === 1);
 
   // Nick sem conta entra como convidado (e sai: quem cai no lobby sai da sala).
   const visitor = partyClient(code, 'e2e-visi-pid-01', nick('Visitante'), '');
-  await visitor.ready;
-  await sleep(300);
-  check('nick sem conta entra como convidado', h.state.players.some((p) => p.name === nick('Visitante') && p.guest === true));
+  await h.until((c) => c.player(nick('Visitante')));
+  check('nick sem conta entra como convidado', h.player(nick('Visitante'))?.guest === true);
   visitor.ws.close();
-  await sleep(400);
+  await h.until((c) => c.state.players.length === 1);
 
   const g = partyClient(code, 'e2e-gues-pid-01', guest.name, guest.token);
-  await g.ready;
-  await sleep(300);
-  check('segundo jogador entra', h.state.players.length === 2);
+  check('segundo jogador entra', await h.until((c) => c.state.players.length === 2));
   const dup = partyClient(code, 'e2e-dupe-pid-01', guest.name.toLowerCase(), guest.token);
-  await dup.ready;
-  await sleep(300);
+  await dup.until((c) => c.errors.length > 0);
   check('nick repetido na sala é recusado', dup.errors[0] === 'Esse nick já está na sala');
   const missing = partyClient('ZZZZZZ', 'e2e-miss-pid-01', guest.name, guest.token);
-  await missing.ready;
-  await sleep(300);
-  check('sala inexistente é recusada', missing.errors[0] === 'Sala não encontrada');
+  await missing.until((c) => c.errors.length > 0);
+  check('sala inexistente é recusada (erro fatal)', missing.errors[0] === 'Sala não encontrada' && missing.fatal === 'Sala não encontrada');
 
   g.send({ type: 'start' });
-  await sleep(300);
+  await g.untilError('Só o dono da sala pode iniciar');
   check('só o dono inicia', g.errors.includes('Só o dono da sala pode iniciar') && h.state.phase === 'lobby');
+
+  // Categoria da sala: só o dono muda, e todos veem.
+  g.send({ type: 'settings', mode: 'games', difficulty: 'easy' });
+  await g.untilError('Só o dono da sala pode fazer isso');
+  check('só o dono muda a categoria', h.state.mode === 'anime');
+  h.send({ type: 'settings', mode: 'xyz' });
+  check('categoria inválida é recusada', await h.untilError('Categoria inválida'));
+  h.send({ type: 'settings', mode: 'pokemon', generations: [1], difficulty: 'easy' });
+  await g.until((c) => c.state.mode === 'pokemon');
+  check(
+    'dono troca a categoria no lobby (todos veem)',
+    JSON.stringify(g.state.generations) === '[1]' && g.state.difficulty === undefined,
+    JSON.stringify([g.state.mode, g.state.generations, g.state.difficulty]),
+  );
+  h.send({ type: 'settings', mode: 'anime', difficulty: 'hard' });
+  await g.until((c) => c.state.mode === 'anime');
+
   h.send({ type: 'start' });
-  await sleep(400);
+  await g.until((c) => c.state.phase === 'playing');
+  await h.until((c) => c.state.phase === 'playing');
   const ids = h.state.characterIds;
   check('mesmos 10 personagens para todos', ids.length === 10 && JSON.stringify(ids) === JSON.stringify(g.state.characterIds));
 
   g.send({ type: 'progress', placed: 4 });
-  await sleep(300);
-  check('progresso aparece para os outros', h.player(guest.name)?.progress === 4);
+  check('progresso aparece para os outros', await h.until((c) => c.player(guest.name)?.progress === 4));
   g.ws.close();
-  await sleep(400);
-  check('queda aparece como desconectado', h.player(guest.name)?.connected === false);
+  check('queda aparece como desconectado', await h.until((c) => c.player(guest.name)?.connected === false));
   const g2 = partyClient(code, 'e2e-gues-pid-01', guest.name, guest.token);
-  await g2.ready;
-  await sleep(400);
+  await g2.until((c) => c.you);
+  await h.until((c) => c.player(guest.name)?.connected === true);
   check('reconecta na mesma vaga', g2.you === g.you && h.player(guest.name)?.connected === true);
 
   await sleep(MIN_GAME_MS); // o servidor não conta rodada terminada rápido demais
   h.send({ type: 'finish', placements: perfectOrder(ids) });
-  await sleep(400);
+  await h.until((c) => c.player(host.name)?.finished);
   check('pontuação escondida até o pódio', h.state.phase === 'playing' && h.state.players.every((p) => p.score === undefined));
   check('ordem correta escondida até o pódio', h.state.ranks === undefined);
   g2.send({ type: 'finish', placements: ['x'] });
-  await sleep(300);
-  check('posições inválidas são recusadas', g2.errors.includes('Posições inválidas'));
+  check('posições inválidas são recusadas', await g2.untilError('Posições inválidas'));
   g2.send({ type: 'finish', placements: perfectOrder(ids).reverse() });
-  await sleep(600);
+  await h.until((c) => c.state.phase === 'podium');
   const ph = h.player(host.name);
   const pg = h.player(guest.name);
   check('todos terminaram → pódio', h.state.phase === 'podium');
   check('pódio revela a ordem correta (ranks), sem power', Object.keys(h.state.ranks ?? {}).length === 10 && !JSON.stringify(h.state).includes('power'));
   check('1º com 1000 ganha 60 + 20 de pódio', ph.score === 1000 && ph.coinsEarned === 80);
   check('chute não ganha bônus de pódio', pg.score < 400 && pg.coinsEarned === 0, `${pg.score} pts`);
+  check('primeira partida na categoria não é recorde', !ph.newRecord && !pg.newRecord);
+
+  // Revanche: quem chutou e agora acerta bate o próprio recorde; quem já tinha 1000 não.
+  h.send({ type: 'start' });
+  await h.until((c) => c.state.round === 2 && c.state.phase === 'playing');
+  check('revanche limpa a rodada', h.state.round === 2 && h.state.players.every((p) => !p.finished));
+  const ids2 = h.state.characterIds;
+  await sleep(MIN_GAME_MS);
+  g2.send({ type: 'finish', placements: perfectOrder(ids2) });
+  h.send({ type: 'finish', placements: perfectOrder(ids2).reverse() });
+  await h.until((c) => c.state.phase === 'podium');
+  check('bateu o próprio recorde → "novo recorde" no pódio', h.player(guest.name)?.newRecord === true && !h.player(host.name)?.newRecord);
 
   h.send({ type: 'start' });
-  await sleep(400);
-  check('revanche limpa a rodada', h.state.round === 2 && h.state.players.every((p) => !p.finished));
+  await h.until((c) => c.state.round === 3 && c.state.phase === 'playing');
   h.send({ type: 'end' });
-  await sleep(300);
-  check('dono pode encerrar', h.state.phase === 'podium');
-  h.ws.close();
-  await sleep(400);
-  check('dono sai → outro vira dono', g2.state.hostId === g2.you);
-  for (const c of [g2, dup, missing, intruder]) c.ws.close();
+  check('dono pode encerrar', await h.until((c) => c.state.phase === 'podium'));
+
+  // Passar a dona e expulsar.
+  g2.send({ type: 'kick', id: h.you });
+  check('só o dono expulsa', await g2.untilError('Só o dono da sala pode fazer isso'));
+  h.send({ type: 'host', id: g2.you });
+  check('dono passa a dona para outro jogador', await g2.until((c) => c.state.hostId === c.you));
+  let t0 = Date.now();
+  g2.send({ type: 'kick', id: h.you });
+  await h.until((c) => c.fatal);
+  const kickMs = Date.now() - t0;
+  await g2.until((c) => c.state.players.length === 1);
+  check('expulso recebe o aviso na hora (erro fatal)', h.fatal === 'Você foi removido da sala' && kickMs < 1000, `${kickMs} ms`);
+  check('expulso sai da lista', g2.state.players.length === 1 && (await h.until((c) => c.closed !== null)));
+  t0 = Date.now();
+  const back = partyClient(code, 'e2e-host-pid-02', host.name, host.token);
+  await back.until((c) => c.fatal);
+  const backMs = Date.now() - t0;
+  check('expulso não volta (nem por outra aba), e sabe na hora', back.fatal === 'Você foi removido da sala' && backMs < 1000, `${back.fatal} · ${backMs} ms`);
+  for (const c of [g2, dup, missing, intruder, back]) c.ws.close();
+
+  // Se o dono sai, o conectado mais antigo assume.
+  const { data: room2 } = await post('/party', { mode: 'anime', pid: 'e2e-own2-pid-01' });
+  const o = partyClient(room2.code, 'e2e-own2-pid-01', host.name, host.token);
+  await o.until((c) => c.state);
+  const o2 = partyClient(room2.code, 'e2e-gue2-pid-01', guest.name, guest.token);
+  await o2.until((c) => c.state?.players.length === 2);
+  o.ws.close();
+  check('dono sai → outro vira dono', await o2.until((c) => c.state.hostId === c.you));
+  o2.ws.close();
 
   const { scores } = await get('/scores?mode=anime');
   check('resultado da party não entra no ranking (só desafio)', !scores.some((s) => s.name === host.name));
+}
+
+// ---------- Excluir conta ----------
+if (section('Excluir conta')) {
+  const me = await player('Excluir');
+  await playSolo(me);
+  const key = me.name.toLowerCase();
+  const wrong = await post('/players/delete', { token: me.token, password: 'senha-errada' });
+  check('excluir com a senha errada é recusado', wrong.status === 403);
+  check('excluir sem token é recusado', (await post('/players/delete', { token: 'x', password: PASSWORD })).status === 401);
+  const ok = await post('/players/delete', { token: me.token, password: PASSWORD });
+  check('excluir com a senha certa', ok.status === 200, JSON.stringify(ok.data));
+  const left = d1(
+    `SELECT (SELECT COUNT(*) FROM players WHERE name_key = '${key}') + (SELECT COUNT(*) FROM scores WHERE name_key = '${key}') + (SELECT COUNT(*) FROM games WHERE lower(name) = '${key}') AS n`,
+  );
+  check('conta, partidas e pontuações somem', /"n": 0\b/.test(left), /"n": \d+/.exec(left)?.[0]);
+  check('o token da conta excluída deixa de valer', (await post('/profile', { token: me.token })).status === 401);
+  check('o nick fica livre', (await get(`/players/status?name=${me.name}`)).exists === false);
+}
+
+// ---------- Saúde ----------
+if (section('Saúde')) {
+  const res = await fetch(`${BASE}/api/health`);
+  const data = await res.json();
+  check('health responde com o banco ok', res.status === 200 && data.ok === true && data.db === 'ok', JSON.stringify(data));
+  check('health sem cache', res.headers.get('cache-control') === 'no-store');
 }
 
 finish();

@@ -4379,3 +4379,131 @@ input:focus {
     font-size: 1.4rem;
   }
 }
+
+/* ---------- Party: ações do dono, configuração da rodada e recorde ---------- */
+
+/* Ação destrutiva (excluir conta): preenchida na cor de alerta (contorno não combina com o recorte inclinado). */
+.btn-danger {
+  --spinner-color: var(--bg);
+  color: var(--bg);
+  background: var(--tier-s);
+}
+
+.party-player.open {
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+}
+
+.party-player-menu {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.party-player-menu:hover,
+.party-player-menu[aria-expanded='true'] {
+  color: var(--tier-a);
+}
+
+/* Ocupa a linha inteira, embaixo do nick: dois textos pequenos, sem caixa. */
+.party-player-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 18px;
+  flex-basis: 100%;
+}
+
+.party-action {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.party-action:hover {
+  color: var(--text);
+}
+
+.party-action-danger,
+.party-action-danger:hover {
+  color: var(--tier-s);
+}
+
+.party-settings {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+}
+
+.settings-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.settings-check input {
+  margin-top: 3px;
+  accent-color: var(--tier-a);
+}
+
+.settings-check small {
+  display: block;
+  color: var(--text-2);
+  font-size: 0.8rem;
+}
+
+.party-tag-record {
+  background: var(--tier-ss-fill);
+  color: var(--bg);
+}
+
+.party-new-record {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
+  color: var(--tier-ss);
+}
+
+/* ---------- Conta: excluir ---------- */
+
+.delete-account-toggle {
+  color: var(--text-2);
+  font-size: 0.8rem;
+}
+
+.delete-account-warning {
+  color: var(--text-2);
+  font-size: 0.85rem;
+}
+
+/* Os botões quebram linha em vez de passar da largura do menu. */
+.delete-account .change-nick-actions {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+}
+
+/* ---------- Modo gravação: layout limpo (sem barra de perfil, Arcade e rodapé, que nem renderizam) ---------- */
+
+/* A engrenagem fica (é por ela que se sai do modo), mas discreta até passar o mouse ou abrir. */
+.app.recording .settings-toggle:not([aria-expanded='true']):not(:hover):not(:focus-visible) {
+  opacity: 0.3;
+}

@@ -60,9 +60,16 @@ export default function PartyScreen({ code, pid, nick, token, charactersById, on
   const me = state.players.find((p) => p.id === you);
   const iFinished = Boolean(me?.finished) || finishedRound === state.round;
 
+  // Ações do dono: categoria da próxima rodada, expulsar e passar a dona.
+  const host = {
+    onSettings: (settings: Parameters<typeof send>[0]) => send(settings),
+    onKick: (id: string) => send({ type: 'kick', id }),
+    onMakeHost: (id: string) => send({ type: 'host', id }),
+  };
+
   let screen;
   if (state.phase === 'lobby') {
-    screen = <PartyLobby state={state} you={you} onStart={() => send({ type: 'start' })} onLeave={exit} />;
+    screen = <PartyLobby state={state} you={you} {...host} onStart={() => send({ type: 'start' })} onLeave={exit} />;
   } else if (state.phase === 'playing' && !iFinished) {
     screen = (
       <PartyPlay
@@ -76,13 +83,14 @@ export default function PartyScreen({ code, pid, nick, token, charactersById, on
       />
     );
   } else if (state.phase === 'playing') {
-    screen = <PartyWaiting state={state} you={you} onEnd={() => send({ type: 'end' })} onLeave={exit} />;
+    screen = <PartyWaiting state={state} you={you} {...host} onEnd={() => send({ type: 'end' })} onLeave={exit} />;
   } else {
     screen = (
       <PartyPodium
         state={state}
         you={you}
         charactersById={charactersById}
+        onSettings={host.onSettings}
         onRestart={() => send({ type: 'start' })}
         onLeave={exit}
       />

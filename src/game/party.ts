@@ -33,6 +33,8 @@ export interface PartyPlayer {
   finishedAt?: number;
   /** Moedas ganhas na rodada (pontuação + bônus de pódio). */
   coinsEarned?: number;
+  /** Bateu o melhor resultado da conta na categoria. */
+  newRecord?: boolean;
 }
 
 export interface PartyState {
@@ -57,11 +59,18 @@ export type ClientMessage =
   | { type: 'start' }
   | { type: 'progress'; placed: number }
   | { type: 'finish'; placements: string[] }
-  | { type: 'end' };
+  | { type: 'end' }
+  /** Dono, fora da partida: categoria e filtro da próxima rodada. */
+  | { type: 'settings'; mode: Mode; generations?: number[]; difficulty?: Difficulty }
+  /** Dono: tira um jogador da sala (ele não volta). */
+  | { type: 'kick'; id: string }
+  /** Dono: passa a dona da sala para outro jogador conectado. */
+  | { type: 'host'; id: string };
 
 export type ServerMessage =
   | { type: 'state'; state: PartyState; you: string }
-  | { type: 'error'; message: string };
+  /** `fatal`: a sala recusou ou tirou o jogador (sala não encontrada, expulso...); o cliente sai na hora. */
+  | { type: 'error'; message: string; fatal?: boolean };
 
 export function isPartyCode(value: string): boolean {
   return new RegExp(`^[${PARTY_CODE_ALPHABET}]{${PARTY_CODE_LENGTH}}$`).test(value);

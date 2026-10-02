@@ -26,7 +26,8 @@ src/party/                cliente da party: usePartyRoom (WebSocket + reconexão
 src/components/           telas: NickScreen, IntroScreen (home), PlayingScreen, ResultScreen, ShopScreen,
                           ProfileBar, PlayerTag, Leaderboard, RankingComparison, ReviewScreen (dev)...
 src/components/admin/     tela de admin (/admin, pacote separado): AdminApp, chaves, economia, jogadores, registro
-src/components/party/     PartyScreen, PartyLobby, PartyPlay, PartyWaiting, PartyPodium, PlayerList
+src/components/party/     PartyScreen, PartyLobby, PartySettings, PartyPlay, PartyWaiting, PartyPodium, PlayerList
+src/links.ts              links externos (SUPPORT_URL do "Apoie"; vazio = botão escondido)
 src/styles/tokens.css     design tokens · src/styles.css componentes
 src/ui/                   tiers (posição/poder → cor), fallback (URL de imagem, preload, iniciais)
 ```
@@ -133,6 +134,8 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `GET /api/players/status?name=` | `{ exists, hasPassword }`, sem reservar nada (a tela do nick decide o passo seguinte). |
 | `POST /api/players` `{ name, token?, password? }` | Conta. Nick livre + senha: cria (`{ token }`); sem senha, 400. Seu (token): confirma. De outra pessoa: senha certa dá token novo; errada 403; 5 erradas seguidas bloqueiam 5 min (429); sem senha: 409 `{ taken, hasPassword }`. |
 | `POST /api/players/password` `{ token, password }` | Cria a senha de uma conta que ainda não tem (409 se já tem). 6 a 72 caracteres (`src/game/account.ts`). |
+| `POST /api/players/delete` `{ token, password }` | Exclui a conta (senha obrigatória se tiver; mesmo bloqueio do login): tokens, itens, partidas, pontuações, tentativas do desafio e histórico do Arcade, numa transação. O nick fica livre. `access_log` fica até expirar (90 dias); `admin_actions` perde só o `player_id`. |
+| `GET /api/health` | `{ ok, db, ms }`: o Worker e o D1 respondem (`SELECT 1`); 503 se o banco falhar. Sem cache. Para monitor externo (UptimeRobot etc.). |
 | `POST /api/players/rename` `{ token, name }` | Troca o nick da conta, se não for de outra conta (409). Tudo segue a conta (id). |
 | `POST /api/games` `{ name, token?, mode, daily?, generations?, difficulty? }` | Com token: a conta dele (token inválido, 401). Sem token: convidado, se o nick não for de uma conta (401). Sorteia no servidor e grava a partida (com `player_id` da conta). `daily: true`: Desafio Diário da categoria; 409 `daily_done` se já começou o de hoje. |
 | `POST /api/daily` `{ name, token?, mode }` | `{ day, done, score }`: se o jogador (conta ou convidado) já jogou o desafio de hoje da categoria. |
@@ -181,6 +184,8 @@ contas antigas sem senha (criadas antes da 0006) criam a senha; contas têm **Fo
 o perfil do servidor (e adota o nick, se a conta foi renomeada em outro aparelho). **Trocar nick** (`ChangeNick`)
 nunca troca de conta: a conta é renomeada (se o nick não for de outra conta); o convidado só passa a usar outro
 nick livre. **Sair da conta** esquece o token neste navegador; o convidado tem **Entrar em uma conta**.
+**Excluir minha conta** (`DeleteAccount`, no fim do menu, só contas): aviso + senha → `/api/players/delete` e volta
+para a tela do nick.
 Senha: PBKDF2-SHA256 com sal, iterações gravadas no próprio hash (`password_hash`);
 tentativas erradas em `failed_logins`/`locked_until`. Ainda não há troca nem recuperação de senha.
 No navegador, a identidade `{ name, token }` e os tokens de nicks já usados ficam no `localStorage` (`src/nick.ts`).
@@ -299,7 +304,10 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 
 - Sala = Durable Object `PartyRoom` (um por código), WebSocket com hibernação, estado salvo no storage.
 - Fluxo: `lobby` → `playing` → `podium` → (dono inicia) → `playing`. Máximo de 8 jogadores.
-- Protocolo em `src/game/party.ts`. Cliente → sala: `start`, `progress`, `finish`, `end`.
+- Protocolo em `src/game/party.ts`. Cliente → sala: `start`, `progress`, `finish`, `end`, e só do dono: `settings`
+  (categoria e filtro; fora da partida), `kick`, `host` (passa a dona para um conectado).
+  Sala → cliente: `error` com `fatal: true` (sala não encontrada, cheia, expulso...) faz o cliente sair na hora, sem
+  esperar o fechamento da conexão (que pode demorar segundos) nem tentar reconectar.
   Sala → cliente: `state` (completo, a cada mudança) e `error`.
 - Mesmos 10 personagens para todos; **pontuação calculada no servidor**; pontuações, posições e moedas só no pódio.
   Cada resultado é gravado (`games` + `scores`) e rende moedas, mas não entra no ranking (só o Desafio Diário).
@@ -309,6 +317,13 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - Regras: nick repetido na sala é recusado; ninguém entra depois do início; quem cai no lobby sai; se o dono sai,
   o conectado mais antigo assume; pódio quando todos os conectados terminam ou o dono encerra; sala vazia some
   em 30 min (alarm). O progresso ("7/10") só é transmitido, sem gravar.
+- **Dono** (`PartySettings` no lobby e, recolhido em "Mudar categoria", no pódio): troca categoria e
+  dificuldade/gerações. Na `PlayerList` (lobby e espera), o "⋯" de cada jogador abre **Tornar dono** e **Expulsar**. Expulso recebe erro e
+  (fatal) e a conexão fecha com 4000; o pid e a conta ficam em `kickedPids`/`kickedAccounts` e não entram de novo.
+- **Novo recorde**: no `start` (dono) a sala lê `MAX(score)` de cada conta na categoria (antes das checagens) e guarda
+  em `best` (com a pontuação da rodada anterior na sala, que pode ainda não ter sido gravada). `finish` acima de
+  `best` → `newRecord`, revelado no pódio (selo na classificação e "Novo recorde!" no seu placar). Primeira partida na
+  categoria, convidado ou rápido demais não contam.
 - Convite: `/?sala=CODIGO`. Sem nick: escolhe o nick e entra direto na sala. Com nick: entra direto.
 
 ## Front
@@ -317,6 +332,9 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   `playing`/`result` têm `daily`: o título mostra "Desafio diário · <categoria>", o resultado mostra a posição no
   desafio e não tem "Jogar de novo". A home consulta `/api/daily` (ao abrir e ao trocar de categoria); o botão trava
   depois da tentativa e mostra a pontuação.
+- **Modo gravação** (configurações, salvo no navegador): `.app.recording`, sem `ProfileBar` (logo sem Loja/Arcade) e
+  sem rodapé; a engrenagem fica discreta e é por onde se sai.
+- **Apoie**: `SUPPORT_URL` em `src/links.ts`; preenchido, aparece no rodapé da home e no menu do perfil.
 - A primeira tela é o nick. Telas fora da home têm "Início" no cabeçalho (na party, sai da sala).
 - Home (`IntroScreen`): título, o seletor de categoria (`ModePicker`, rótulo "Modo" na tela), as abas SOLO/PARTY/DIÁRIO e
   o ranking. Cada aba abre um painel (um por vez): Solo e Party com a configuração da partida (`DifficultyPicker`, ou

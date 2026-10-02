@@ -45,6 +45,10 @@ interface StoredPlayer {
   coinsEarned?: number;
   /** Terminou rápido demais (script): sem moedas e fora do ranking. */
   tooFast?: boolean;
+  /** Melhor resultado da conta na categoria antes da rodada (null = nunca jogou nela, convidado ou banco fora). */
+  best?: number | null;
+  /** Bateu o `best` nesta rodada. */
+  newRecord?: boolean;
 }
 
 interface StoredRoom {
@@ -57,6 +61,9 @@ interface StoredRoom {
   phase: PartyPhase;
   round: number;
   hostPid: string;
+  /** Quem o dono expulsou: o pid e a conta não entram de novo. */
+  kickedPids?: string[];
+  kickedAccounts?: number[];
   characterIds: string[];
   players: StoredPlayer[];
   createdAt: number;
@@ -123,7 +130,7 @@ export class PartyRoom extends DurableObject<Env> {
     const pid = url.searchParams.get('pid');
     const error = await this.join(server, request, pid, url.searchParams.get('name'), url.searchParams.get('token'));
     if (error) {
-      this.send(server, { type: 'error', message: error });
+      this.send(server, { type: 'error', message: error, fatal: true });
       server.close(4000, error);
     }
     return new Response(null, { status: 101, webSocket: client });
@@ -154,6 +161,9 @@ export class PartyRoom extends DurableObject<Env> {
 
     // Daqui até o push não há nenhum await: checagem e inclusão acontecem juntas.
     const room = this.room!;
+    if (room.kickedPids?.includes(pid) || (access?.kind === 'account' && room.kickedAccounts?.includes(access.id))) {
+      return 'Você foi removido da sala';
+    }
     const existing = room.players.find((p) => p.pid === pid);
     if (existing) {
       // Reconexão: a conexão antiga (se ainda aberta) é substituída. O pid secreto já identifica a vaga.
@@ -203,9 +213,11 @@ export class PartyRoom extends DurableObject<Env> {
       return;
     }
 
-    // Consulta antes das checagens: durante o await outras mensagens rodam (ex: dois "start" seguidos).
-    // Só para o dono (quem pode iniciar): os outros recebem o erro na hora.
-    const catalog = message.type === 'start' && room.hostPid === player.pid ? await loadCatalog(this.env) : null;
+    // Consultas antes das checagens: durante o await outras mensagens rodam (ex: dois "start" seguidos).
+    // Só para o dono (quem pode iniciar ou mudar a categoria): os outros recebem o erro na hora.
+    const hostAction = room.hostPid === player.pid && (message.type === 'start' || message.type === 'settings');
+    const catalog = hostAction ? await loadCatalog(this.env) : null;
+    const bests = hostAction && message.type === 'start' ? await this.bestScores(room) : null;
 
     const isHost = room.hostPid === player.pid;
     const fail = (text: string) => this.send(ws, { type: 'error', message: text });
@@ -225,7 +237,7 @@ export class PartyRoom extends DurableObject<Env> {
         // Quem saiu da sala não entra na nova partida.
         room.players = room.players
           .filter((p) => p.connected)
-          .map(({ pid, id, name, connected, look, playerId }) => ({
+          .map(({ pid, id, name, connected, look, playerId, score, tooFast }) => ({
             pid,
             id,
             name,
@@ -234,7 +246,47 @@ export class PartyRoom extends DurableObject<Env> {
             playerId: playerId ?? null,
             progress: 0,
             finished: false,
+            best: recordToBeat(bests, playerId ?? null, tooFast ? undefined : score),
           }));
+        break;
+      }
+      case 'settings': {
+        if (!isHost) return fail('Só o dono da sala pode fazer isso');
+        if (room.phase === 'playing') return;
+        if (!isMode(message.mode)) return fail('Categoria inválida');
+        const generations = message.mode === 'pokemon' ? parseGenerations(message.generations) : undefined;
+        if (generations === null) return fail('Gerações inválidas');
+        const difficulty = message.mode !== 'pokemon' ? parseDifficulty(message.difficulty) : undefined;
+        if (difficulty === null) return fail('Dificuldade inválida');
+        if (poolFor(message.mode, catalog!.active, { generations, difficulty }).length < SLOTS) {
+          return fail('Categoria sem personagens suficientes');
+        }
+        // A pontuação da rodada anterior não vale como recorde a bater em outra categoria.
+        if (message.mode !== room.mode) for (const p of room.players) p.score = undefined;
+        room.mode = message.mode;
+        room.generations = generations;
+        room.difficulty = difficulty;
+        break;
+      }
+      case 'kick': {
+        if (!isHost) return fail('Só o dono da sala pode fazer isso');
+        const target = room.players.find((p) => p.id === message.id);
+        if (!target || target === player) return fail('Jogador não encontrado');
+        room.players = room.players.filter((p) => p !== target);
+        room.kickedPids = [...(room.kickedPids ?? []), target.pid];
+        if (target.playerId !== null) room.kickedAccounts = [...(room.kickedAccounts ?? []), target.playerId];
+        for (const socket of this.socketsOf(target.pid)) {
+          this.send(socket, { type: 'error', message: 'Você foi removido da sala', fatal: true });
+          socket.close(4000, 'Você foi removido da sala');
+        }
+        if (room.phase === 'playing') this.maybeFinishRound(room);
+        break;
+      }
+      case 'host': {
+        if (!isHost) return fail('Só o dono da sala pode fazer isso');
+        const target = room.players.find((p) => p.id === message.id);
+        if (!target?.connected || target === player) return fail('Jogador não encontrado');
+        room.hostPid = target.pid;
         break;
       }
       case 'progress': {
@@ -268,6 +320,7 @@ export class PartyRoom extends DurableObject<Env> {
           score,
           coinsEarned: player.playerId === null || tooFast ? 0 : coinsForScore(score),
           tooFast,
+          newRecord: player.playerId !== null && !tooFast && player.best != null && score > player.best,
           finishedAt: Date.now(),
         });
         this.ctx.waitUntil(this.recordScore(room.mode, player, room.startedAt));
@@ -349,6 +402,23 @@ export class PartyRoom extends DurableObject<Env> {
     if (next) room.hostPid = next.pid;
   }
 
+  /** Melhor resultado de cada conta da sala na categoria, para o "Novo recorde!" (null se o banco falhar). */
+  private async bestScores(room: StoredRoom): Promise<Map<number, number> | null> {
+    const ids = room.players.filter((p) => p.connected && p.playerId !== null).map((p) => p.playerId as number);
+    if (!ids.length) return new Map();
+    try {
+      const { results } = await this.env.DB.prepare(
+        `SELECT player_id, MAX(score) AS best FROM scores WHERE mode = ? AND player_id IN (${ids.map(() => '?').join(', ')}) GROUP BY player_id`,
+      )
+        .bind(room.mode, ...ids)
+        .all<{ player_id: number; best: number }>();
+      return new Map(results.map((r) => [r.player_id, r.best]));
+    } catch (err) {
+      console.error('party: falha ao ler recordes', err);
+      return null;
+    }
+  }
+
   /** O resultado de cada jogador também vale para o ranking da categoria e rende moedas, como no solo. */
   private async recordScore(mode: Mode, player: StoredPlayer, startedAt: number | undefined) {
     const gameId = crypto.randomUUID();
@@ -426,7 +496,7 @@ export class PartyRoom extends DurableObject<Env> {
       ...(reveal && room.ranks ? { ranks: room.ranks } : {}),
       // Pontuações, posições e moedas só aparecem no pódio.
       players: room.players.map(
-        ({ id, name, connected, progress, finished, look, playerId, score, placements, finishedAt, coinsEarned }) => ({
+        ({ id, name, connected, progress, finished, look, playerId, score, placements, finishedAt, coinsEarned, newRecord }) => ({
           id,
           name,
           connected,
@@ -434,7 +504,7 @@ export class PartyRoom extends DurableObject<Env> {
           progress,
           finished,
           look: look ?? EMPTY_LOOK,
-          ...(reveal ? { score, placements, finishedAt, coinsEarned } : {}),
+          ...(reveal ? { score, placements, finishedAt, coinsEarned, ...(newRecord ? { newRecord } : {}) } : {}),
         }),
       ),
     };
@@ -455,6 +525,16 @@ export class PartyRoom extends DurableObject<Env> {
   private socketsOf(pid: string): WebSocket[] {
     return this.ctx.getWebSockets().filter((ws) => this.pidOf(ws) === pid);
   }
+}
+
+/**
+ * Recorde a bater na rodada: o melhor da conta no banco ou a pontuação dela na rodada anterior da sala (que pode
+ * ainda não ter sido gravada). Convidado, ou banco indisponível, fica sem.
+ */
+function recordToBeat(bests: Map<number, number> | null, playerId: number | null, lastScore: number | undefined): number | null {
+  if (playerId === null || bests === null) return null;
+  const scores = [bests.get(playerId), lastScore].filter((n): n is number => n !== undefined);
+  return scores.length ? Math.max(...scores) : null;
 }
 
 function randomCode(): string {

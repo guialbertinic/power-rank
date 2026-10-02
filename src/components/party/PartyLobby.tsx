@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { MODES } from '../../game/modes';
-import { PARTY_MAX_PLAYERS, type PartyState } from '../../game/party';
+import { PARTY_MAX_PLAYERS, type ClientMessage, type PartyState } from '../../game/party';
 import { inviteLink } from '../../party/session';
 import { usePendingClick } from '../../ui/usePendingClick';
 import { useI18n } from '../../i18n';
+import PartySettings from './PartySettings';
 import PlayerList from './PlayerList';
 
 interface Props {
@@ -11,6 +12,9 @@ interface Props {
   you: string;
   onStart: () => void;
   onLeave: () => void;
+  onSettings: (settings: ClientMessage) => void;
+  onKick: (id: string) => void;
+  onMakeHost: (id: string) => void;
 }
 
 async function copy(text: string): Promise<boolean> {
@@ -23,7 +27,7 @@ async function copy(text: string): Promise<boolean> {
 }
 
 /** Sala antes da partida: código para convidar, quem já entrou e o botão de iniciar (só o dono). */
-export default function PartyLobby({ state, you, onStart, onLeave }: Props) {
+export default function PartyLobby({ state, you, onStart, onLeave, onSettings, onKick, onMakeHost }: Props) {
   const { t } = useI18n();
   const [copied, setCopied] = useState<'code' | 'link' | null>(null);
   const [starting, start] = usePendingClick();
@@ -65,8 +69,10 @@ export default function PartyLobby({ state, you, onStart, onLeave }: Props) {
         <h3 className="section-title">
           {t('lobby.players', { n: state.players.length, max: PARTY_MAX_PLAYERS })}
         </h3>
-        <PlayerList state={state} you={you} />
+        <PlayerList state={state} you={you} onKick={onKick} onMakeHost={onMakeHost} />
       </div>
+
+      {isHost && <PartySettings state={state} onChange={onSettings} />}
 
       <div className="party-actions">
         {isHost ? (

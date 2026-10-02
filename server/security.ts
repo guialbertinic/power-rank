@@ -14,6 +14,7 @@ const RATE_LIMITED: Record<string, Limiter> = {
   'POST /api/players': 'RL_AUTH',
   'POST /api/players/rename': 'RL_AUTH',
   'POST /api/players/password': 'RL_AUTH',
+  'POST /api/players/delete': 'RL_AUTH',
   'POST /api/games': 'RL_PLAY',
   'POST /api/scores': 'RL_PLAY',
   'POST /api/party': 'RL_PLAY',

@@ -8,10 +8,12 @@ interface Props {
   you: string;
   onEnd: () => void;
   onLeave: () => void;
+  onKick: (id: string) => void;
+  onMakeHost: (id: string) => void;
 }
 
 /** Depois de terminar: acompanha o progresso de quem ainda está jogando. O dono pode encerrar. */
-export default function PartyWaiting({ state, you, onEnd, onLeave }: Props) {
+export default function PartyWaiting({ state, you, onEnd, onLeave, onKick, onMakeHost }: Props) {
   const { t } = useI18n();
   const [ending, end] = usePendingClick();
   const isHost = state.hostId === you;
@@ -30,7 +32,7 @@ export default function PartyWaiting({ state, you, onEnd, onLeave }: Props) {
 
       <div className="panel">
         <h3 className="section-title">{t('waiting.progress')}</h3>
-        <PlayerList state={state} you={you} />
+        <PlayerList state={state} you={you} onKick={onKick} onMakeHost={onMakeHost} />
       </div>
 
       <div className="party-actions">

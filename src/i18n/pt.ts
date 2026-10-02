@@ -26,6 +26,13 @@ export const pt = {
   'settings.title': 'Configurações',
   'settings.language': 'Idioma',
   'settings.legal': 'Termos e privacidade',
+  'settings.recording': 'Modo gravação',
+  'settings.recordingHint': 'Esconde o perfil, o Arcade e o rodapé para gravar a tela.',
+  'support.button': 'Apoie o projeto',
+  'deleteAccount.title': 'Excluir minha conta',
+  'deleteAccount.warning': 'Apaga a conta, as moedas, os itens e as partidas, para sempre. O nick fica livre para outra pessoa.',
+  'deleteAccount.password': 'Sua senha',
+  'deleteAccount.confirm': 'Excluir conta',
 
   // Termos, privacidade e 18+
   'legal.terms': 'Termos de uso',
@@ -192,6 +199,13 @@ export const pt = {
   'podium.yourScore': 'Sua pontuação',
   'podium.next': 'Nova partida',
   'podium.waitingHost': 'Aguardando o dono iniciar...',
+  'podium.changeSettings': 'Mudar categoria',
+  'podium.newRecord': 'Novo recorde!',
+  'podium.recordTag': 'recorde',
+  'lobby.settings': 'Próxima rodada',
+  'party.manage': 'Opções de {name}',
+  'party.makeHost': 'Tornar dono',
+  'party.kick': 'Expulsar',
 
   // Loja
   'shop.hint': 'Ganhe moedas fazendo {min}+ pontos.',

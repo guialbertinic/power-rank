@@ -164,12 +164,38 @@ export function partyClient(code, pid, name, token = '') {
   const params = new URLSearchParams({ pid, name, token });
   const ws = new WebSocket(`${BASE.replace(/^http/, 'ws')}/api/party/${code}/ws?${params}`);
   const client = { ws, state: null, you: null, errors: [], closed: null };
+  // Quem espera uma condição (until) é avisado a cada mensagem e no fechamento.
+  const waiters = new Set();
+  const wake = () => waiters.forEach((w) => w());
   ws.addEventListener('message', (e) => {
     const msg = JSON.parse(e.data);
     if (msg.type === 'state') Object.assign(client, { state: msg.state, you: msg.you });
     if (msg.type === 'error') client.errors.push(msg.message);
+    if (msg.type === 'error' && msg.fatal) client.fatal = msg.message;
+    wake();
   });
-  ws.addEventListener('close', (e) => (client.closed = e.code));
+  ws.addEventListener('close', (e) => {
+    client.closed = e.code;
+    wake();
+  });
+  /**
+   * Espera até a condição valer (checada a cada mensagem da sala), sem sleep fixo. Devolve true, ou false se
+   * passar do prazo (o check seguinte acusa o que faltou).
+   */
+  client.until = (predicate, timeoutMs = 5000) =>
+    new Promise((resolve) => {
+      if (predicate(client)) return resolve(true);
+      const done = (ok) => {
+        waiters.delete(waiter);
+        clearTimeout(timer);
+        resolve(ok);
+      };
+      const waiter = () => predicate(client) && done(true);
+      const timer = setTimeout(() => done(false), timeoutMs);
+      waiters.add(waiter);
+    });
+  /** Espera até a sala mandar esse erro. */
+  client.untilError = (message, timeoutMs) => client.until((c) => c.errors.includes(message), timeoutMs);
   client.send = (m) => ws.send(JSON.stringify(m));
   client.ready = new Promise((resolve) => {
     ws.addEventListener('open', resolve);

@@ -24,6 +24,13 @@ export const en: Record<Key, string> = {
   // Settings
   'settings.title': 'Settings',
   'settings.language': 'Language',
+  'settings.recording': 'Recording mode',
+  'settings.recordingHint': 'Hides the profile, the Arcade and the footer for screen recording.',
+  'support.button': 'Support the project',
+  'deleteAccount.title': 'Delete my account',
+  'deleteAccount.warning': 'Deletes the account, coins, items and games, forever. The nick becomes free for someone else.',
+  'deleteAccount.password': 'Your password',
+  'deleteAccount.confirm': 'Delete account',
   'settings.legal': 'Terms and privacy',
 
   // Terms, privacy and 18+
@@ -191,6 +198,13 @@ export const en: Record<Key, string> = {
   'podium.yourScore': 'Your score',
   'podium.next': 'New game',
   'podium.waitingHost': 'Waiting for the host...',
+  'podium.changeSettings': 'Change category',
+  'podium.newRecord': 'New record!',
+  'podium.recordTag': 'record',
+  'lobby.settings': 'Next round',
+  'party.manage': 'Options for {name}',
+  'party.makeHost': 'Make host',
+  'party.kick': 'Kick',
 
   // Shop
   'shop.hint': 'Earn coins by scoring {min}+.',

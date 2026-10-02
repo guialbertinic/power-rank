@@ -7,11 +7,17 @@ const LANGS: { id: Lang; label: string }[] = [
   { id: 'en', label: 'English' },
 ];
 
+interface Props {
+  /** Modo gravação: esconde a barra de perfil, o Arcade e o rodapé, para gravar a tela. */
+  recording: boolean;
+  onRecordingChange: (on: boolean) => void;
+}
+
 /**
- * Configurações (engrenagem no canto superior esquerdo, em todas as telas): idioma e links de termos/privacidade.
- * A escolha fica salva neste navegador.
+ * Configurações (engrenagem no canto superior esquerdo, em todas as telas): idioma, modo gravação e links de
+ * termos/privacidade. As escolhas ficam salvas neste navegador.
  */
-export default function SettingsMenu() {
+export default function SettingsMenu({ recording, onRecordingChange }: Props) {
   const { t, lang, setLang } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -64,6 +70,13 @@ export default function SettingsMenu() {
               </button>
             ))}
           </div>
+          <label className="settings-check">
+            <input type="checkbox" checked={recording} onChange={(e) => onRecordingChange(e.target.checked)} />
+            <span>
+              {t('settings.recording')}
+              <small>{t('settings.recordingHint')}</small>
+            </span>
+          </label>
           <p className="settings-label">{t('settings.legal')}</p>
           <div className="settings-legal">
             <LegalLink doc="terms">{t('legal.terms')}</LegalLink>

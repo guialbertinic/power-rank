@@ -39,6 +39,8 @@ const EXACT_EN: Record<string, string> = {
   'Posições inválidas': 'Invalid positions',
   'Só o dono da sala pode iniciar': 'Only the room host can start',
   'Só o dono da sala pode encerrar': 'Only the room host can end the game',
+  'Só o dono da sala pode fazer isso': 'Only the room host can do that',
+  'Você foi removido da sala': 'You were removed from the room',
   'Não foi possível criar a sala': "Couldn't create the room",
   'Conexão encerrada pela sala': 'Connection closed by the room',
   'Não foi possível reconectar à sala': "Couldn't reconnect to the room",

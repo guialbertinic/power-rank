@@ -246,6 +246,7 @@ const PRIVACY_PT: LegalText = {
       title: 'Seus direitos',
       body: [
         'Você pode pedir para confirmar quais dados temos, acessar, corrigir ou excluir seus dados e sua conta, entre outros direitos da LGPD. Escreva para {email} informando o nick; podemos pedir uma confirmação de que a conta é sua.',
+        'Você também pode excluir a conta sozinho, no menu do perfil (toque no seu nick → "Excluir minha conta"): a conta, as moedas, os itens e as partidas são apagados na hora e o nick fica livre. O registro de acesso (IP) continua até expirar, em 90 dias.',
       ],
     },
     {
@@ -330,6 +331,7 @@ const PRIVACY_EN: LegalText = {
       title: 'Your rights',
       body: [
         'You can ask to confirm what data we hold, and to access, correct or delete your data and your account, among other LGPD rights. Write to {email} with your nick; we may ask you to confirm the account is yours.',
+        'You can also delete the account yourself from the profile menu (tap your nick → "Delete my account"): the account, coins, items and games are erased right away and the nick becomes free. Access logs (IP) remain until they expire, in 90 days.',
       ],
     },
     {

@@ -108,6 +108,11 @@ export async function renameNick(token: string, name: string): Promise<string> {
   return data.name;
 }
 
+/** Exclui a conta e os dados dela (a senha é pedida se a conta tiver uma). */
+export async function deleteAccount(token: string, password: string): Promise<void> {
+  await request('/api/players/delete', { method: 'POST', body: JSON.stringify({ token, password }) });
+}
+
 /**
  * Sorteia uma partida no servidor. `'unauthorized'` se o nick não for mais deste navegador;
  * null se a API não estiver disponível (o jogo sorteia localmente).

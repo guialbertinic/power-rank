@@ -177,6 +177,13 @@ async function login(request: Request, env: Env, owner: OwnerRow, password: stri
     await logAccess(env, request, 'login', { playerId: owner.id, name: owner.name });
     return json({ name: owner.name, token: await issueToken(env, owner.id) });
   }
+  await recordFailedLogin(env, owner.id);
+  await logAccess(env, request, 'login_failed', { playerId: owner.id, name: owner.name });
+  return json({ error: 'Senha incorreta' }, { status: 403 });
+}
+
+/** Senha errada: conta para o bloqueio de alguns minutos depois de várias seguidas. */
+async function recordFailedLogin(env: Env, playerId: number) {
   // Os dois SET usam o valor antigo de failed_logins; ao bloquear, a contagem recomeça.
   await env.DB.prepare(
     `UPDATE players SET
@@ -184,10 +191,8 @@ async function login(request: Request, env: Env, owner: OwnerRow, password: stri
        failed_logins = CASE WHEN failed_logins + 1 >= ?1 THEN 0 ELSE failed_logins + 1 END
      WHERE id = ?3`,
   )
-    .bind(MAX_FAILED_LOGINS, Date.now() + LOCK_MS, owner.id)
+    .bind(MAX_FAILED_LOGINS, Date.now() + LOCK_MS, playerId)
     .run();
-  await logAccess(env, request, 'login_failed', { playerId: owner.id, name: owner.name });
-  return json({ error: 'Senha incorreta' }, { status: 403 });
 }
 
 /**
@@ -236,4 +241,49 @@ export async function renamePlayer(request: Request, env: Env): Promise<Response
     throw err;
   }
   return json({ name });
+}
+
+/**
+ * POST /api/players/delete: { token, password } — exclui a conta e os dados ligados a ela (LGPD): tokens, itens,
+ * partidas, pontuações, tentativas do desafio e o histórico do Arcade. O nick fica livre. Conta com senha precisa
+ * dela (com o mesmo bloqueio do login). O registro de acesso (IP) fica até expirar (90 dias), como diz a política,
+ * e o registro das ações do admin perde só a ligação com a conta.
+ */
+export async function deletePlayer(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => null)) as { token?: unknown; password?: unknown } | null;
+  const account = await accountByToken(env, body?.token);
+  if (!account) return unauthorized();
+  const owner = await env.DB.prepare('SELECT id, name, password_hash, failed_logins, locked_until FROM players WHERE id = ?')
+    .bind(account.id)
+    .first<OwnerRow>();
+  if (!owner) return unauthorized();
+  if (owner.password_hash) {
+    if (owner.locked_until > Date.now()) {
+      return json({ error: 'Muitas tentativas. Espere alguns minutos e tente de novo.' }, { status: 429 });
+    }
+    const password = typeof body?.password === 'string' ? body.password : '';
+    if (!(await checkPassword(password, owner.password_hash))) {
+      await recordFailedLogin(env, owner.id);
+      return json({ error: 'Senha incorreta' }, { status: 403 });
+    }
+  }
+
+  const id = owner.id;
+  const run = (sql: string, ...params: unknown[]) => env.DB.prepare(sql).bind(...params);
+  // Tudo numa transação (batch): ou some tudo, ou nada. Os filhos antes da conta (chaves estrangeiras).
+  await env.DB.batch([
+    run('DELETE FROM player_tokens WHERE player_id = ?', id),
+    run('DELETE FROM player_items WHERE player_id = ?', id),
+    run('DELETE FROM scores WHERE player_id = ?', id),
+    run('DELETE FROM games WHERE player_id = ?', id),
+    run('DELETE FROM daily_attempts WHERE player_key = ?', `p:${id}`),
+    run('DELETE FROM casino_spins WHERE player_id = ?', id),
+    run('DELETE FROM plinko_drops WHERE player_id = ?', id),
+    run('DELETE FROM scratch_cards WHERE player_id = ?', id),
+    run('DELETE FROM gacha_openings WHERE player_id = ?', id),
+    run('UPDATE casino_pot SET last_winner_id = NULL WHERE last_winner_id = ?', id),
+    run('UPDATE admin_actions SET player_id = NULL WHERE player_id = ?', id),
+    run('DELETE FROM players WHERE id = ?', id),
+  ]);
+  return json({ ok: true });
 }

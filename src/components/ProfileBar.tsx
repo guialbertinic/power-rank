@@ -3,8 +3,10 @@ import type { Profile } from '../game/cosmetics';
 import { EMPTY_LOOK } from '../game/cosmetics';
 import { useI18n } from '../i18n';
 import type { Identity } from '../nick';
+import { SUPPORT_URL } from '../links';
 import ChangeNick from './ChangeNick';
 import Coins from './Coins';
+import DeleteAccount from './DeleteAccount';
 import PlayerTag from './PlayerTag';
 import SyncDevice from './SyncDevice';
 
@@ -21,6 +23,8 @@ interface Props {
   onLeave: () => void;
   /** Forçar sincronização: recarrega o perfil do servidor. */
   onRefresh: () => Promise<void>;
+  /** A conta foi excluída: volta para a tela do nick. */
+  onAccountDeleted: () => void;
   disabled?: boolean;
 }
 
@@ -29,7 +33,8 @@ interface Props {
  * sair/entrar numa conta ficam num menu que abre ao tocar no nick (são usados raramente).
  * No celular a faixa mostra só o nick e o saldo; Loja e Arcade vão para o menu, que abre como sanfona.
  */
-export default function ProfileBar({ identity, profile, onOpenShop, onOpenArcade, onIdentityChange, onLeave, onRefresh, disabled }: Props) {
+export default function ProfileBar(props: Props) {
+  const { identity, profile, onOpenShop, onOpenArcade, onIdentityChange, onLeave, onRefresh, onAccountDeleted, disabled } = props;
   const { t } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -102,6 +107,14 @@ export default function ProfileBar({ identity, profile, onOpenShop, onOpenArcade
           >
             {identity.token ? t('profile.logout') : t('profile.login')}
           </button>
+          {SUPPORT_URL && (
+            <a className="link-button profile-support" href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
+              {t('support.button')}
+            </a>
+          )}
+          {identity.token && profile && (
+            <DeleteAccount token={identity.token} hasPassword={profile.hasPassword} onDeleted={onAccountDeleted} />
+          )}
         </div>
       )}
     </div>

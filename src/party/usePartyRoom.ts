@@ -51,6 +51,12 @@ export function usePartyRoom(code: string, pid: string, name: string, token: str
         if (message.type === 'state') {
           setState(message.state);
           setYou(message.you);
+        } else if (message.fatal) {
+          // Recusado ou expulso: sai na hora, sem esperar o fechamento da conexão nem tentar reconectar.
+          leavingRef.current = true;
+          setFatalError(message.message);
+          setStatus('failed');
+          ws.close(1000);
         } else {
           lastError = message.message;
           setNotice(message.message);

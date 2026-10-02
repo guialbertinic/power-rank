@@ -21,7 +21,7 @@ Objetivo: **abrir o site para pessoas testarem**. Na ordem:
 | 4 | Termos de uso + privacidade (LGPD), trava 18+ no cassino/Mystery Box, registro de IP para abuso | Feature | 🟢 | ✅ |
 
 Quick wins logo depois: trocar os sprites do cassino por arte própria · ~~termos de uso e privacidade~~ ✅ · botão
-"Apoie" (Patreon) · ~~trava 18+ no cassino~~ ✅ · ~~compartilhar resultado~~ ✅.
+"Apoie" (✅ pronto, falta o link em `src/links.ts`) · ~~trava 18+ no cassino~~ ✅ · ~~compartilhar resultado~~ ✅.
 
 ## Visão
 
@@ -150,15 +150,16 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
 
 - 💡 Testar em produção com amigos, em redes diferentes (4G + Wi-Fi), e observar a latência real · `Manutenção` 🟢
 - 💡 Party nos novos modos (Desafio Diário em grupo, Size Comparison "quem vai mais longe") · `Feature` 🟡
-- 💡 "Novo recorde!" na party quando bater o melhor do jogador; dono troca a categoria no lobby; expulsar
-  jogador / transferir dono; contagem regressiva opcional · `Feature` 🟢 cada
+- ✅ "Novo recorde!" na party quando bater o melhor do jogador; dono troca a categoria no lobby (e no pódio); expulsar
+  jogador / transferir dono. (A contagem 3, 2, 1 antes da rodada foi testada e removida.)
 
 ## Criadores de conteúdo e crescimento
 
 - ✅ **Compartilhar resultado** (solo): imagem pronta para story/TikTok (ranking do jogador + pontuação + nick) e
   texto estilo Wordle sem spoiler (pontuação + quadrados de acerto + link). É o principal motor de crescimento.
   💡 Depois: na party (pódio), e link de desafio junto.
-- 💡 "Modo gravação" · `Feature` 🟢: layout vertical limpo (sem barra de perfil, sem cassino), ideal para gravar a tela.
+- ✅ "Modo gravação" (nas configurações): sem barra de perfil, Arcade e rodapé. 💡 Depois: layout vertical fixo no
+  desktop (hoje vale o layout de celular quando a janela é estreita).
 - 💡 Link de desafio · `Feature` 🟡: "tente bater meu resultado" com a mesma partida (seed) do amigo.
 
 ## Conteúdo
@@ -167,14 +168,15 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
 - 🧭 Revisar o poder de lore dos 1025 Pokémon (proposta: legendários à mão, o resto pelos status base) · `Manutenção` 🟡
 - 💡 Mais personagens de games (meta: ~200), prioridade para franquias famosas com artigo na Wikipédia ·
   `Manutenção` 🟡
-- 💡 Revisar imagens aceitáveis mas não ideais: Xehanort (colagem), The Knight (capa do jogo) · `Manutenção` 🟢
+- ✅ Imagens novas do Xehanort e do The Knight.
 
 ## Monetização e legal
 
 (Resumo da conversa; não é aconselhamento jurídico — validar com advogado antes de monetizar.)
 - ✅ **Arte própria no caça-níquel:** os símbolos do Game Corner (Pokémon) viraram os badges dos tiers (SS … D),
   em CSS; a moldura e o título "Game Corner" viraram "Arcade" (ids mantidos).
-- 💡 **Linkar Patreon** (ou Apoia.se / Ko-fi) · `Feature` 🟢 (botão) / 🟡 (selo automático):
+- 🚧 **Linkar Patreon** (ou Apoia.se / Ko-fi) · `Feature` 🟢 (botão) / 🟡 (selo automático): botão pronto, aparece quando
+  `SUPPORT_URL` (`src/links.ts`) for preenchido.
   - Botão "Apoie" no rodapé e no menu do perfil; página de agradecimento com os apoiadores (opt-in).
   - Benefício só cosmético: selo/título/moldura "Apoiador" exclusivo — **nunca moedas**, caixas nem vantagem no
     cassino (mantém as moedas "sem valor", o que protege o cassino).
@@ -189,7 +191,7 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
   - Opção futura: apoiador não vê anúncios.
 - ✅ Páginas de **termos de uso** (moedas sem valor, não compráveis) e **política de privacidade** (LGPD), com
   registro de acesso (IP, 90 dias) para investigar abuso; remoção de imagem e exclusão de dados pelo e-mail de
-  contato. 💡 Falta: e-mail definitivo (placeholder em `src/i18n/legal.ts`) e botão "excluir minha conta" · `Feature` 🟢
+  contato. ✅ Botão "excluir minha conta" (menu do perfil). 💡 Falta: e-mail definitivo (placeholder em `src/i18n/legal.ts`).
 - ✅ Idade mínima (13+ nos termos) e trava 18+ no cassino/Mystery Box (ECA Digital, loot boxes)
 
 ## Dados: personagens no banco
@@ -244,9 +246,9 @@ economia e jogadores. O resto abaixo continua 💡.
 
 ## Técnico
 
-- 💡 Testes da party no `e2e:api` esperam com `sleep` fixo: trocar por "esperar até o estado X" · `Manutenção` 🟢
-- 💡 Endpoint de saúde e alerta simples de erro (observability já está ligado no `wrangler.jsonc`) ·
-  `Arquitetura` 🟢
+- ✅ Testes da party no `e2e:api` esperam o estado (`client.until`) em vez de `sleep` fixo.
+- ✅ `GET /api/health` (Worker + D1). 💡 Falta ligar um monitor externo (UptimeRobot) nele e, no painel da
+  Cloudflare, uma notificação de erros do Worker.
 
 ---
 
@@ -256,7 +258,8 @@ economia e jogadores. O resto abaixo continua 💡.
   categorias Animes / Games / Free for All; resultado sem valores de poder.
 - Categoria Pokémon: 1025 espécies (PokeAPI, gerações 1–9) com filtro de gerações no solo e na party; fora do Free for All.
 - Dificuldade (fácil / médio / difícil) pelo `tier` de fama de cada personagem, no painel do Solo e da Party.
-- Party (Durable Objects): sala por código/convite, espera ao vivo, pódio, revanche, reconexão.
+- Party (Durable Objects): sala por código/convite, espera ao vivo, pódio, revanche, reconexão; dono troca a categoria, expulsa e passa a dona; "Novo recorde!" no pódio.
+- Excluir a própria conta (menu do perfil), modo gravação (configurações), botão "Apoie" (falta o link), `/api/health`.
 - Conta (nick + senha) ou convidado; jogador por id (trocar nick renomeia a conta); sincronizar dispositivo.
 - Rankings do Desafio Diário (o de hoje, desempate por tempo) e Acumulado (soma dos desafios), pódio dos 3 primeiros, skeleton.
 - Desafio Diário: os mesmos 10 (Free for All) para todos no dia, uma tentativa, aba Diário na home (regra, status e tempo até o próximo), ranking próprio (aba Desafio).

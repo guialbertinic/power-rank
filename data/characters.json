@@ -1632,7 +1632,8 @@
     "tier": 2,
     "power": 75,
     "wikipedia": "Xehanort",
-    "image": "chars/xehanort.webp"
+    "image": "chars/xehanort.webp",
+    "imageVersion": "mur0hvk3"
   },
   {
     "id": "knuckles",
@@ -4272,7 +4273,8 @@
     "tier": 2,
     "power": 50,
     "wikipedia": "The Knight (Hollow Knight)",
-    "image": "chars/the-knight.webp"
+    "image": "chars/the-knight.webp",
+    "imageVersion": "mur0hw30"
   },
   {
     "id": "artorias",

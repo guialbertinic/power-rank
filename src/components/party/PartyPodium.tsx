@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { podiumOrder, type PartyPlayer, type PartyState } from '../../game/party';
+import { podiumOrder, type ClientMessage, type PartyPlayer, type PartyState } from '../../game/party';
 import { MIN_SCORE_FOR_COINS } from '../../game/economy';
 import { MAX_SCORE, rankLevel } from '../../game/scoring';
 import { useI18n } from '../../i18n';
@@ -9,6 +9,7 @@ import PlayerTag from '../PlayerTag';
 import RankBadge from '../RankBadge';
 import RankingComparison from '../RankingComparison';
 import { usePendingClick } from '../../ui/usePendingClick';
+import PartySettings from './PartySettings';
 
 interface Props {
   state: PartyState;
@@ -16,6 +17,7 @@ interface Props {
   charactersById: Map<string, CharacterInfo>;
   onRestart: () => void;
   onLeave: () => void;
+  onSettings: (settings: ClientMessage) => void;
 }
 
 /** Degraus do pódio na ordem visual (2º, 1º, 3º), cada um com a cor de um tier: ouro, rosa, ciano. */
@@ -29,8 +31,9 @@ const STEPS = [
  * Resultado da rodada: pódio, classificação completa e a comparação de um ranking com o correto. Tocar num jogador
  * da classificação mostra a lista dele no lugar da sua (uma lista por vez, para não lotar a tela).
  */
-export default function PartyPodium({ state, you, charactersById, onRestart, onLeave }: Props) {
+export default function PartyPodium({ state, you, charactersById, onRestart, onLeave, onSettings }: Props) {
   const { t } = useI18n();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [restarting, restart] = usePendingClick();
   const ranking = podiumOrder(state.players);
   const unfinished = state.players.filter((p) => !p.finished);
@@ -95,6 +98,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
               <RankBadge position={i + 1} small />
               <span className="row-name">
                 <PlayerTag name={p.name} look={p.look} />
+                {p.newRecord && <span className="party-tag party-tag-record">{t('podium.recordTag')}</span>}
                 {!p.connected && <span className="party-tag party-tag-left">{t('podium.left')}</span>}
               </span>
               <span className="row-score">{p.score}</span>
@@ -118,6 +122,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
             <span>/{MAX_SCORE}</span>
           </p>
           <p className="title-badge">{t(`rank.${rankLevel(me.score)}`)}</p>
+          {me.newRecord && <p className="party-new-record">{t('podium.newRecord')}</p>}
           <p className="coins-earned">
             {me.guest
               ? t('coins.guest')
@@ -141,6 +146,12 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
         ) : (
           <p className="party-waiting-text">{t('podium.waitingHost')}</p>
         )}
+        {isHost && (
+          <button className="link-button" aria-expanded={settingsOpen} onClick={() => setSettingsOpen((o) => !o)}>
+            {t('podium.changeSettings')}
+          </button>
+        )}
+        {isHost && settingsOpen && <PartySettings state={state} onChange={onSettings} />}
         <button className="link-button" onClick={onLeave}>
           {t('party.leave')}
         </button>
