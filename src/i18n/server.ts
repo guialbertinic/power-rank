@@ -18,10 +18,14 @@ const EXACT_EN: Record<string, string> = {
   'Muitas tentativas seguidas. Espere um minuto e tente de novo.': 'Too many attempts in a row. Wait a minute and try again.',
   'Confirme que você não é um robô.': 'Confirm you are not a robot.',
   'Só para maiores de 18 anos.': 'Adults only (18+).',
+  'Esta conta foi suspensa.': 'This account has been suspended.',
+  'Essa conta ainda não tem senha': 'This account doesn’t have a password yet',
+  'Denúncia inválida': 'Invalid report',
   // Partida
   'Você já jogou o desafio de hoje.': 'You already played today’s challenge.',
   'Categoria inválida': 'Invalid category',
   'Gerações inválidas': 'Invalid generations',
+  'Categorias inválidas': 'Invalid categories',
   'Dificuldade inválida': 'Invalid difficulty',
   'Categoria ainda sem personagens suficientes': 'This category doesn’t have enough characters yet',
   'Categoria sem personagens suficientes': 'This category doesn’t have enough characters',
@@ -52,6 +56,17 @@ const EXACT_EN: Record<string, string> = {
   'Informe o motivo': 'Enter the reason',
   'O saldo não pode ficar negativo': 'The balance cannot go negative',
   'Jogador não encontrado': 'Player not found',
+  'Prazo inválido': 'Invalid duration',
+  'Essa conta não está suspensa': 'This account isn’t suspended',
+  'Personagem não encontrado': 'Character not found',
+  'Nome inválido': 'Invalid name',
+  'Obra inválida': 'Invalid series',
+  'Versão inválida': 'Invalid version',
+  'Poder inválido (0 a 100)': 'Invalid power (0 to 100)',
+  'Fama inválida': 'Invalid fame',
+  'Ativo inválido': 'Invalid active flag',
+  'Imagem inválida': 'Invalid image',
+  'Nada para fechar': 'Nothing to close',
   // Loja e Arcade
   'Este minigame está desligado no momento.': 'This minigame is turned off right now.',
   'Moedas insuficientes': 'Not enough coins',
@@ -72,6 +87,7 @@ const PATTERNS_EN: [RegExp, string][] = [
   [/^A senha pode ter até (\d+) caracteres$/, 'Password can be at most $1 characters'],
   [/^Parecido demais com o nick (.+)\. Escolha outro\.$/, 'Too similar to the nick $1. Choose another.'],
   [/^Sala cheia \(máximo (\d+)\)$/, 'Room full (max $1)'],
+  [/^Esta conta está suspensa até (\d{2})\/(\d{2})\/(\d{4})\.$/, 'This account is suspended until $3-$2-$1.'],
 ];
 
 /** Mensagem do servidor no idioma da tela. */

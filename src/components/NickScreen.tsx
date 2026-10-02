@@ -183,7 +183,7 @@ export default function NickScreen({ inviteCode, reason, onDone }: Props) {
         <p className="nick-screen-text">
           <strong>{step.name}</strong>
           {t('nick.noPasswordBefore')}
-          <strong>{t('sync.title')}</strong>
+          <strong>{t('account.title')}</strong>
           {t('nick.noPasswordAfter')}
         </p>
         {back}

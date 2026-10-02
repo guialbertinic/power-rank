@@ -10,3 +10,16 @@ export function passwordProblem(password: unknown): string | null {
   if (password.length > PASSWORD_MAX_LENGTH) return `A senha pode ter até ${PASSWORD_MAX_LENGTH} caracteres`;
   return null;
 }
+
+/** `players.banned_until` de uma suspensão permanente (bem depois de qualquer data real). */
+export const BAN_FOREVER = 8_000_000_000_000_000;
+/** Suspensões temporárias que o admin oferece, em dias (além da permanente). */
+export const BAN_DAYS = [1, 7, 30] as const;
+
+/** Mensagem (em português, traduzida no site) para quem tenta entrar numa conta suspensa. */
+export function banMessage(bannedUntil: number): string {
+  if (bannedUntil >= BAN_FOREVER) return 'Esta conta foi suspensa.';
+  // Data de Brasília (UTC−3), como o resto do jogo.
+  const [y, m, d] = new Date(bannedUntil - 3 * 60 * 60 * 1000).toISOString().slice(0, 10).split('-');
+  return `Esta conta está suspensa até ${d}/${m}/${y}.`;
+}

@@ -1,19 +1,31 @@
+import { drawCharacters } from './draw';
 import type { Category, CharacterInfo } from './types';
 
 /** Modo de jogo: uma categoria ou o free for all. Cada modo tem seu próprio ranking. */
 export type Mode = Category | 'all';
 
-export const MODES: { id: Mode; label: string }[] = [
-  { id: 'anime', label: 'Animes' },
-  { id: 'games', label: 'Games' },
-  { id: 'pokemon', label: 'Pokémon' },
-  { id: 'all', label: 'Free for All' },
-];
+/** Modos na ordem do seletor (o nome na tela vem de `modeLabel`, em src/i18n). */
+export const MODES: { id: Mode }[] = [{ id: 'anime' }, { id: 'games' }, { id: 'movies' }, { id: 'pokemon' }, { id: 'all' }];
 
 export const DEFAULT_MODE: Mode = 'anime';
 
-/** Categorias que entram no Free for All (os Pokémon ficam só no modo deles). */
-const ALL_CATEGORIES: readonly Category[] = ['anime', 'games'];
+/** Categorias que o Free for All pode misturar (o jogador escolhe), na ordem do seletor. */
+export const FFA_CATEGORIES: readonly Category[] = ['anime', 'games', 'movies', 'pokemon'];
+/** As que vêm ligadas (o Desafio Diário do Free for All usa sempre estas). Pokémon só se o jogador ligar. */
+export const DEFAULT_FFA_CATEGORIES: readonly Category[] = ['anime', 'games', 'movies'];
+
+/**
+ * Categorias do Free for All vindas do cliente: lista sem repetição, na ordem de FFA_CATEGORIES, ou null se inválida
+ * (vazia, desconhecida). undefined/null = o padrão.
+ */
+export function parseCategories(value: unknown): Category[] | null | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (!Array.isArray(value) || value.length === 0 || value.length > FFA_CATEGORIES.length) return null;
+  if (!value.every((c) => (FFA_CATEGORIES as readonly unknown[]).includes(c))) return null;
+  const list = FFA_CATEGORIES.filter((c) => value.includes(c));
+  // Igual ao padrão é o mesmo que sem filtro.
+  return list.join() === DEFAULT_FFA_CATEGORIES.join() ? undefined : list;
+}
 
 /**
  * Dificuldade (Animes, Games e Free for All): limita o sorteio pela fama do personagem (`tier`: 1 mainstream,
@@ -59,10 +71,11 @@ export function parseGenerations(value: unknown): number[] | null | undefined {
   return list.length === GENERATIONS.length ? undefined : list;
 }
 
-/** Filtros de uma partida ou sala: gerações (só no modo pokemon) e dificuldade (só fora dele). */
+/** Filtros de uma partida ou sala: gerações (só no modo pokemon), dificuldade (fora dele) e categorias (Free for All). */
 export interface PoolFilter {
   generations?: readonly number[];
   difficulty?: Difficulty;
+  categories?: readonly Category[];
 }
 
 /** Personagem sem `tier` conta como obscuro: só aparece no difícil. */
@@ -70,22 +83,62 @@ const maxTier = (difficulty: Difficulty | undefined) => DIFFICULTIES.find((d) =>
 
 /**
  * Personagens sorteáveis no modo. Quem ainda não tem imagem fica de fora até ganhar uma.
- * Sem filtro, todos (gerações e tiers).
+ * Sem filtro, todos (gerações e tiers); no Free for All, as categorias padrão. Pokémon não tem fama: no Free for All
+ * entra em qualquer dificuldade (o sorteio equilibrado por categoria impede que domine).
  */
 export function poolFor<T extends CharacterInfo>(mode: Mode, characters: readonly T[], filter: PoolFilter = {}): T[] {
   const { generations, difficulty } = filter;
+  const categories = filter.categories ?? DEFAULT_FFA_CATEGORIES;
   const limit = maxTier(difficulty);
   return characters.filter(
     (c) =>
       c.image &&
-      (mode === 'all' ? ALL_CATEGORIES.includes(c.category) : c.category === mode) &&
-      (mode === 'pokemon' ? !generations || generations.includes(c.generation ?? 0) : (c.tier ?? 3) <= limit),
+      (mode === 'all' ? categories.includes(c.category) : c.category === mode) &&
+      (c.category === 'pokemon' ? mode !== 'pokemon' || !generations || generations.includes(c.generation ?? 0) : (c.tier ?? 3) <= limit),
   );
 }
 
-/** Filtro que vale para o modo: gerações no Pokémon, dificuldade nos outros (o que não vale fica de fora). */
+/**
+ * Sorteia a partida do modo. No Free for All, cada casa sorteia primeiro a categoria (entre as que ainda têm
+ * personagem) e depois o personagem: a mistura fica equilibrada mesmo com 1025 Pokémon ligados.
+ */
+export function drawFor<T extends CharacterInfo>(mode: Mode, pool: readonly T[], count: number, rng: () => number = Math.random): T[] {
+  if (mode !== 'all') return drawCharacters(pool, count, rng);
+  if (pool.length < count) throw new Error(`Pool tem ${pool.length} personagens, precisa de pelo menos ${count}`);
+  const groups = new Map<Category, T[]>();
+  for (const c of pool) groups.set(c.category, [...(groups.get(c.category) ?? []), c]);
+  const drawn: T[] = [];
+  while (drawn.length < count) {
+    const open = [...groups.values()].filter((g) => g.length > 0);
+    const group = open[Math.floor(rng() * open.length)];
+    drawn.push(group.splice(Math.floor(rng() * group.length), 1)[0]);
+  }
+  return drawn;
+}
+
+/** Filtro que vale para o modo: gerações no Pokémon, dificuldade nos outros e categorias no Free for All. */
 export function filterFor(mode: Mode, filter: PoolFilter): PoolFilter {
-  return mode === 'pokemon'
-    ? filter.generations ? { generations: filter.generations } : {}
-    : filter.difficulty ? { difficulty: filter.difficulty } : {};
+  if (mode === 'pokemon') return filter.generations ? { generations: filter.generations } : {};
+  return {
+    ...(filter.difficulty ? { difficulty: filter.difficulty } : {}),
+    ...(mode === 'all' && filter.categories ? { categories: filter.categories } : {}),
+  };
+}
+
+/**
+ * Filtro vindo do cliente (partida solo, sala da party), já validado para o modo: o que não vale para o modo é
+ * ignorado. Devolve a mensagem de erro (em português, traduzida no site) se algo for inválido.
+ */
+export function parseFilter(mode: Mode, body: { generations?: unknown; difficulty?: unknown; categories?: unknown }): PoolFilter | string {
+  const generations = mode === 'pokemon' ? parseGenerations(body.generations) : undefined;
+  if (generations === null) return 'Gerações inválidas';
+  const difficulty = mode !== 'pokemon' ? parseDifficulty(body.difficulty) : undefined;
+  if (difficulty === null) return 'Dificuldade inválida';
+  const categories = mode === 'all' ? parseCategories(body.categories) : undefined;
+  if (categories === null) return 'Categorias inválidas';
+  return {
+    ...(generations ? { generations } : {}),
+    ...(difficulty ? { difficulty } : {}),
+    ...(categories ? { categories } : {}),
+  };
 }

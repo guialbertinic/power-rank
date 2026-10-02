@@ -1,5 +1,5 @@
 import { MODES, type Mode } from '../game/modes';
-import { useI18n } from '../i18n';
+import { modeLabel, useI18n } from '../i18n';
 
 interface Props {
   mode: Mode;
@@ -9,7 +9,7 @@ interface Props {
   disabled?: boolean;
 }
 
-/** Seletor de categoria (Animes / Games / Free for All), exibido na home, acima de Solo/Party (na tela, "Modo"). */
+/** Seletor de categoria (Animes / Games / Filmes e Séries / Pokémon / Free for All), exibido na home, acima de Solo/Party (na tela, "Modo"). */
 export default function ModePicker({ mode, onChange, isAvailable, disabled }: Props) {
   const { t } = useI18n();
   return (
@@ -26,7 +26,7 @@ export default function ModePicker({ mode, onChange, isAvailable, disabled }: Pr
             onClick={() => onChange(m.id)}
             disabled={disabled || !enabled}
           >
-            {m.label}
+            {modeLabel(t, m.id)}
             {!enabled && <small>{t('mode.soon')}</small>}
           </button>
         );

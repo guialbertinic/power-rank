@@ -73,6 +73,17 @@
     "anilistId": 76348
   },
   {
+    "id": "mv-dormammu",
+    "name": "Dormammu",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 2,
+    "power": 98,
+    "wikipedia": "Dormammu",
+    "image": "chars/mv-dormammu.webp",
+    "imageVersion": "mur5kigl"
+  },
+  {
     "id": "vegeta",
     "name": "Vegeta",
     "category": "anime",
@@ -187,6 +198,17 @@
     "image": "chars/pkm-giratina.webp"
   },
   {
+    "id": "mv-thanos",
+    "name": "Thanos",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "version": "Manopla do Infinito",
+    "power": 96,
+    "wikipedia": "Thanos (Marvel Cinematic Universe)",
+    "image": "chars/mv-thanos.webp"
+  },
+  {
     "id": "yhwach",
     "name": "Yhwach",
     "category": "anime",
@@ -228,6 +250,28 @@
     "power": 95,
     "wikipedia": "Liu Kang",
     "image": "chars/liu-kang.webp"
+  },
+  {
+    "id": "mv-ego",
+    "name": "Ego",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 2,
+    "power": 95,
+    "wikipedia": "Ego the Living Planet",
+    "image": "chars/mv-ego.webp",
+    "imageVersion": "mur5kibc"
+  },
+  {
+    "id": "mv-darkseid",
+    "name": "Darkseid",
+    "category": "movies",
+    "series": "DC Extended Universe",
+    "tier": 2,
+    "power": 95,
+    "wikipedia": "Darkseid",
+    "image": "chars/mv-darkseid.webp",
+    "imageVersion": "mur5kimj"
   },
   {
     "id": "zamasu",
@@ -290,6 +334,18 @@
     "power": 92,
     "image": "chars/bayonetta.webp",
     "igdbId": 2432
+  },
+  {
+    "id": "mv-phoenix",
+    "name": "Phoenix",
+    "category": "movies",
+    "series": "X-Men",
+    "tier": 2,
+    "version": "Fênix (filmes)",
+    "power": 92,
+    "wikipedia": "Jean Grey",
+    "image": "chars/mv-phoenix.webp",
+    "imageVersion": "mur5ki5k"
   },
   {
     "id": "father",
@@ -385,6 +441,37 @@
     "power": 90,
     "pokeapiId": 800,
     "image": "chars/pkm-necrozma.webp"
+  },
+  {
+    "id": "lavos",
+    "name": "Lavos",
+    "category": "games",
+    "series": "Chrono Trigger",
+    "tier": 2,
+    "power": 90,
+    "wikipedia": "Lavos",
+    "image": "chars/lavos.webp",
+    "imageVersion": "mur5l6n0"
+  },
+  {
+    "id": "mv-scarlet-witch",
+    "name": "Scarlet Witch",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "power": 90,
+    "wikipedia": "Wanda Maximoff (Marvel Cinematic Universe)",
+    "image": "chars/mv-scarlet-witch.webp"
+  },
+  {
+    "id": "mv-superman",
+    "name": "Superman",
+    "category": "movies",
+    "series": "DC Extended Universe",
+    "tier": 1,
+    "power": 90,
+    "wikipedia": "Superman (DC Extended Universe)",
+    "image": "chars/mv-superman.webp"
   },
   {
     "id": "naruto",
@@ -542,6 +629,26 @@
     "power": 88,
     "wikipedia": "Giygas",
     "image": "chars/giygas.webp"
+  },
+  {
+    "id": "mv-captain-marvel",
+    "name": "Captain Marvel",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "power": 88,
+    "wikipedia": "Carol Danvers (Marvel Cinematic Universe)",
+    "image": "chars/mv-captain-marvel.webp"
+  },
+  {
+    "id": "mv-doctor-strange",
+    "name": "Doctor Strange",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "power": 88,
+    "wikipedia": "Stephen Strange (Marvel Cinematic Universe)",
+    "image": "chars/mv-doctor-strange.webp"
   },
   {
     "id": "luffy",
@@ -763,6 +870,37 @@
     "power": 85,
     "image": "chars/super-sonic.webp",
     "igdbId": 3153
+  },
+  {
+    "id": "exdeath",
+    "name": "Exdeath",
+    "category": "games",
+    "series": "Final Fantasy V",
+    "tier": 3,
+    "power": 85,
+    "wikipedia": "Exdeath",
+    "image": "chars/exdeath.webp"
+  },
+  {
+    "id": "mv-thor",
+    "name": "Thor",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "power": 85,
+    "wikipedia": "Thor (Marvel Cinematic Universe)",
+    "image": "chars/mv-thor.webp"
+  },
+  {
+    "id": "mv-zod",
+    "name": "General Zod",
+    "category": "movies",
+    "series": "DC Extended Universe",
+    "tier": 2,
+    "power": 85,
+    "wikipedia": "Zod (DC Extended Universe)",
+    "image": "chars/mv-zod.webp",
+    "imageVersion": "mur5kh9r"
   },
   {
     "id": "boros",
@@ -1107,6 +1245,28 @@
     "image": "chars/kefka-palazzo.webp"
   },
   {
+    "id": "mv-hela",
+    "name": "Hela",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 2,
+    "power": 82,
+    "wikipedia": "Hela (character)",
+    "image": "chars/mv-hela.webp",
+    "imageVersion": "mur5kiro"
+  },
+  {
+    "id": "mv-doomsday",
+    "name": "Doomsday",
+    "category": "movies",
+    "series": "DC Extended Universe",
+    "tier": 2,
+    "power": 82,
+    "wikipedia": "Doomsday (DC Comics)",
+    "image": "chars/mv-doomsday.webp",
+    "imageVersion": "mur5kiwi"
+  },
+  {
     "id": "eren",
     "name": "Eren Yeager",
     "category": "anime",
@@ -1341,6 +1501,36 @@
     "power": 80,
     "wikipedia": "Sarah Kerrigan",
     "image": "chars/sarah-kerrigan.webp"
+  },
+  {
+    "id": "bahamut",
+    "name": "Bahamut",
+    "category": "games",
+    "series": "Final Fantasy",
+    "tier": 2,
+    "power": 80,
+    "wikipedia": "Bahamut (Final Fantasy)",
+    "image": "chars/bahamut.webp"
+  },
+  {
+    "id": "mv-wonder-woman",
+    "name": "Wonder Woman",
+    "category": "movies",
+    "series": "DC Extended Universe",
+    "tier": 1,
+    "power": 80,
+    "wikipedia": "Wonder Woman (DC Extended Universe)",
+    "image": "chars/mv-wonder-woman.webp"
+  },
+  {
+    "id": "mv-godzilla",
+    "name": "Godzilla",
+    "category": "movies",
+    "series": "Godzilla",
+    "tier": 1,
+    "power": 80,
+    "wikipedia": "Godzilla",
+    "image": "chars/mv-godzilla.webp"
   },
   {
     "id": "zoro",
@@ -1654,6 +1844,17 @@
     "power": 75,
     "wikipedia": "Dracula (Castlevania)",
     "image": "chars/dracula-castlevania.webp"
+  },
+  {
+    "id": "mv-sauron",
+    "name": "Sauron",
+    "category": "movies",
+    "series": "The Lord of the Rings",
+    "tier": 1,
+    "power": 75,
+    "wikipedia": "Sauron",
+    "image": "chars/mv-sauron.webp",
+    "imageVersion": "mur5kjiz"
   },
   {
     "id": "makima",
@@ -2186,6 +2387,68 @@
     "image": "chars/shulk.webp"
   },
   {
+    "id": "ardyn-izunia",
+    "name": "Ardyn Izunia",
+    "category": "games",
+    "series": "Final Fantasy XV",
+    "tier": 2,
+    "power": 70,
+    "wikipedia": "Ardyn Izunia",
+    "image": "chars/ardyn-izunia.webp"
+  },
+  {
+    "id": "mv-magneto",
+    "name": "Magneto",
+    "category": "movies",
+    "series": "X-Men",
+    "tier": 1,
+    "power": 70,
+    "wikipedia": "Magneto (film character)",
+    "image": "chars/mv-magneto.webp"
+  },
+  {
+    "id": "mv-flash",
+    "name": "The Flash",
+    "category": "movies",
+    "series": "DC Extended Universe",
+    "tier": 2,
+    "power": 70,
+    "wikipedia": "Barry Allen (DC Extended Universe)",
+    "image": "chars/mv-flash.webp"
+  },
+  {
+    "id": "mv-shazam",
+    "name": "Shazam",
+    "category": "movies",
+    "series": "DC Extended Universe",
+    "tier": 2,
+    "power": 70,
+    "wikipedia": "Shazam (DC Comics)",
+    "image": "chars/mv-shazam.webp",
+    "imageVersion": "mur5kj3x"
+  },
+  {
+    "id": "mv-neo",
+    "name": "Neo",
+    "category": "movies",
+    "series": "The Matrix",
+    "tier": 1,
+    "power": 70,
+    "wikipedia": "Neo (The Matrix)",
+    "image": "chars/mv-neo.webp"
+  },
+  {
+    "id": "mv-pennywise",
+    "name": "Pennywise",
+    "category": "movies",
+    "series": "It",
+    "tier": 1,
+    "power": 70,
+    "wikipedia": "It (character)",
+    "image": "chars/mv-pennywise.webp",
+    "imageVersion": "mur5khty"
+  },
+  {
     "id": "frieren",
     "name": "Frieren",
     "category": "anime",
@@ -2487,6 +2750,48 @@
     "power": 65,
     "wikipedia": "Alucard (Castlevania)",
     "image": "chars/alucard-castlevania.webp"
+  },
+  {
+    "id": "terra-branford",
+    "name": "Terra Branford",
+    "category": "games",
+    "series": "Final Fantasy VI",
+    "tier": 2,
+    "power": 65,
+    "wikipedia": "Terra Branford",
+    "image": "chars/terra-branford.webp"
+  },
+  {
+    "id": "mv-hulk",
+    "name": "Hulk",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "power": 65,
+    "wikipedia": "Bruce Banner (Marvel Cinematic Universe)",
+    "image": "chars/mv-hulk.webp",
+    "imageVersion": "mur5khox"
+  },
+  {
+    "id": "mv-homelander",
+    "name": "Homelander",
+    "category": "movies",
+    "series": "The Boys",
+    "tier": 1,
+    "power": 65,
+    "wikipedia": "Homelander",
+    "image": "chars/mv-homelander.webp",
+    "imageVersion": "mur5l6hs"
+  },
+  {
+    "id": "mv-agent-smith",
+    "name": "Agent Smith",
+    "category": "movies",
+    "series": "The Matrix",
+    "tier": 1,
+    "power": 65,
+    "wikipedia": "Agent Smith",
+    "image": "chars/mv-agent-smith.webp"
   },
   {
     "id": "nappa",
@@ -3229,6 +3534,69 @@
     "image": "chars/tails.webp"
   },
   {
+    "id": "rinoa-heartilly",
+    "name": "Rinoa Heartilly",
+    "category": "games",
+    "series": "Final Fantasy VIII",
+    "tier": 2,
+    "power": 60,
+    "wikipedia": "Rinoa Heartilly",
+    "image": "chars/rinoa-heartilly.webp"
+  },
+  {
+    "id": "mv-loki",
+    "name": "Loki",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "power": 60,
+    "wikipedia": "Loki (Marvel Cinematic Universe)",
+    "image": "chars/mv-loki.webp",
+    "imageVersion": "mur5khzv"
+  },
+  {
+    "id": "mv-professor-x",
+    "name": "Professor X",
+    "category": "movies",
+    "series": "X-Men",
+    "tier": 2,
+    "power": 60,
+    "wikipedia": "Charles Xavier (film character)",
+    "image": "chars/mv-professor-x.webp"
+  },
+  {
+    "id": "mv-gandalf",
+    "name": "Gandalf",
+    "category": "movies",
+    "series": "The Lord of the Rings",
+    "tier": 1,
+    "power": 60,
+    "wikipedia": "Gandalf",
+    "image": "chars/mv-gandalf.webp",
+    "imageVersion": "mur5kjo4"
+  },
+  {
+    "id": "mv-balrog",
+    "name": "Balrog",
+    "category": "movies",
+    "series": "The Lord of the Rings",
+    "tier": 2,
+    "power": 60,
+    "wikipedia": "Balrog",
+    "image": "chars/mv-balrog.webp",
+    "imageVersion": "mur5kgey"
+  },
+  {
+    "id": "mv-castiel",
+    "name": "Castiel",
+    "category": "movies",
+    "series": "Supernatural",
+    "tier": 2,
+    "power": 60,
+    "wikipedia": "Castiel (Supernatural)",
+    "image": "chars/mv-castiel.webp"
+  },
+  {
     "id": "kenshiro",
     "name": "Kenshiro",
     "category": "anime",
@@ -3933,6 +4301,130 @@
     "image": "chars/midna.webp"
   },
   {
+    "id": "king-k-rool",
+    "name": "King K. Rool",
+    "category": "games",
+    "series": "Donkey Kong",
+    "tier": 1,
+    "power": 55,
+    "wikipedia": "King K. Rool",
+    "image": "chars/king-k-rool.webp"
+  },
+  {
+    "id": "zidane-tribal",
+    "name": "Zidane Tribal",
+    "category": "games",
+    "series": "Final Fantasy IX",
+    "tier": 2,
+    "power": 55,
+    "wikipedia": "Zidane Tribal",
+    "image": "chars/zidane-tribal.webp"
+  },
+  {
+    "id": "morrigan-aensland",
+    "name": "Morrigan Aensland",
+    "category": "games",
+    "series": "Darkstalkers",
+    "tier": 2,
+    "power": 55,
+    "wikipedia": "Morrigan Aensland",
+    "image": "chars/morrigan-aensland.webp"
+  },
+  {
+    "id": "crono",
+    "name": "Crono",
+    "category": "games",
+    "series": "Chrono Trigger",
+    "tier": 2,
+    "power": 55,
+    "wikipedia": "Crono",
+    "image": "chars/crono.webp"
+  },
+  {
+    "id": "mv-vision",
+    "name": "Vision",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 2,
+    "power": 55,
+    "wikipedia": "Vision (Marvel Cinematic Universe)",
+    "image": "chars/mv-vision.webp",
+    "imageVersion": "mur5khk0"
+  },
+  {
+    "id": "mv-ultron",
+    "name": "Ultron",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 2,
+    "power": 55,
+    "wikipedia": "Ultron",
+    "image": "chars/mv-ultron.webp",
+    "imageVersion": "mur5kj8t"
+  },
+  {
+    "id": "mv-iron-man",
+    "name": "Iron Man",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "power": 55,
+    "wikipedia": "Tony Stark (Marvel Cinematic Universe)",
+    "image": "chars/mv-iron-man.webp"
+  },
+  {
+    "id": "mv-palpatine",
+    "name": "Palpatine",
+    "category": "movies",
+    "series": "Star Wars",
+    "tier": 1,
+    "power": 55,
+    "wikipedia": "Palpatine",
+    "image": "chars/mv-palpatine.webp"
+  },
+  {
+    "id": "mv-king-kong",
+    "name": "King Kong",
+    "category": "movies",
+    "series": "King Kong",
+    "tier": 1,
+    "power": 55,
+    "wikipedia": "King Kong",
+    "image": "chars/mv-king-kong.webp"
+  },
+  {
+    "id": "mv-optimus-prime",
+    "name": "Optimus Prime",
+    "category": "movies",
+    "series": "Transformers",
+    "tier": 1,
+    "power": 55,
+    "wikipedia": "Optimus Prime",
+    "image": "chars/mv-optimus-prime.webp",
+    "imageVersion": "mur5kkjs"
+  },
+  {
+    "id": "mv-megatron",
+    "name": "Megatron",
+    "category": "movies",
+    "series": "Transformers",
+    "tier": 2,
+    "power": 55,
+    "wikipedia": "Megatron",
+    "image": "chars/mv-megatron.webp",
+    "imageVersion": "mur5kkoy"
+  },
+  {
+    "id": "mv-vecna",
+    "name": "Vecna",
+    "category": "movies",
+    "series": "Stranger Things",
+    "tier": 2,
+    "power": 55,
+    "wikipedia": "Vecna (Stranger Things)",
+    "image": "chars/mv-vecna.webp"
+  },
+  {
     "id": "genos",
     "name": "Genos",
     "category": "anime",
@@ -4437,6 +4929,78 @@
     "imageVersion": "muqgsk1s"
   },
   {
+    "id": "vivi-ornitier",
+    "name": "Vivi Ornitier",
+    "category": "games",
+    "series": "Final Fantasy IX",
+    "tier": 2,
+    "power": 50,
+    "wikipedia": "Vivi Ornitier",
+    "image": "chars/vivi-ornitier.webp"
+  },
+  {
+    "id": "byleth",
+    "name": "Byleth",
+    "category": "games",
+    "series": "Fire Emblem",
+    "tier": 2,
+    "power": 50,
+    "wikipedia": "Byleth (Fire Emblem)",
+    "image": "chars/byleth.webp",
+    "imageVersion": "mur5kl49"
+  },
+  {
+    "id": "ermac",
+    "name": "Ermac",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "tier": 2,
+    "power": 50,
+    "wikipedia": "Ermac",
+    "image": "chars/ermac.webp"
+  },
+  {
+    "id": "mv-aquaman",
+    "name": "Aquaman",
+    "category": "movies",
+    "series": "DC Extended Universe",
+    "tier": 1,
+    "power": 50,
+    "wikipedia": "Aquaman (DC Extended Universe)",
+    "image": "chars/mv-aquaman.webp"
+  },
+  {
+    "id": "mv-yoda",
+    "name": "Yoda",
+    "category": "movies",
+    "series": "Star Wars",
+    "tier": 1,
+    "power": 50,
+    "wikipedia": "Yoda",
+    "image": "chars/mv-yoda.webp"
+  },
+  {
+    "id": "mv-smaug",
+    "name": "Smaug",
+    "category": "movies",
+    "series": "The Hobbit",
+    "tier": 2,
+    "power": 50,
+    "wikipedia": "Smaug",
+    "image": "chars/mv-smaug.webp",
+    "imageVersion": "mur5kjt4"
+  },
+  {
+    "id": "mv-night-king",
+    "name": "Night King",
+    "category": "movies",
+    "series": "Game of Thrones",
+    "tier": 2,
+    "power": 50,
+    "wikipedia": "Night King",
+    "image": "chars/mv-night-king.webp"
+  },
+  {
     "id": "pkm-salamence",
     "name": "Salamence",
     "category": "pokemon",
@@ -4646,6 +5210,16 @@
     "power": 48,
     "wikipedia": "Mileena",
     "image": "chars/mileena.webp"
+  },
+  {
+    "id": "mv-dumbledore",
+    "name": "Albus Dumbledore",
+    "category": "movies",
+    "series": "Harry Potter",
+    "tier": 1,
+    "power": 48,
+    "wikipedia": "Albus Dumbledore",
+    "image": "chars/mv-dumbledore.webp"
   },
   {
     "id": "pkm-roaring-moon",
@@ -5047,6 +5621,66 @@
     "power": 45,
     "image": "chars/chun-li.webp",
     "imageVersion": "muqgsix8"
+  },
+  {
+    "id": "cecil-harvey",
+    "name": "Cecil Harvey",
+    "category": "games",
+    "series": "Final Fantasy IV",
+    "tier": 3,
+    "power": 45,
+    "wikipedia": "Cecil Harvey",
+    "image": "chars/cecil-harvey.webp"
+  },
+  {
+    "id": "mv-darth-vader",
+    "name": "Darth Vader",
+    "category": "movies",
+    "series": "Star Wars",
+    "tier": 1,
+    "power": 45,
+    "wikipedia": "Darth Vader",
+    "image": "chars/mv-darth-vader.webp"
+  },
+  {
+    "id": "mv-luke",
+    "name": "Luke Skywalker",
+    "category": "movies",
+    "series": "Star Wars",
+    "tier": 1,
+    "power": 45,
+    "wikipedia": "Luke Skywalker",
+    "image": "chars/mv-luke.webp"
+  },
+  {
+    "id": "mv-rey",
+    "name": "Rey",
+    "category": "movies",
+    "series": "Star Wars",
+    "tier": 2,
+    "power": 45,
+    "wikipedia": "Rey (Star Wars)",
+    "image": "chars/mv-rey.webp"
+  },
+  {
+    "id": "mv-voldemort",
+    "name": "Lord Voldemort",
+    "category": "movies",
+    "series": "Harry Potter",
+    "tier": 1,
+    "power": 45,
+    "wikipedia": "Lord Voldemort",
+    "image": "chars/mv-voldemort.webp"
+  },
+  {
+    "id": "mv-eleven",
+    "name": "Eleven",
+    "category": "movies",
+    "series": "Stranger Things",
+    "tier": 1,
+    "power": 45,
+    "wikipedia": "Eleven (Stranger Things)",
+    "image": "chars/mv-eleven.webp"
   },
   {
     "id": "pkm-nihilego",
@@ -5498,6 +6132,16 @@
     "power": 42,
     "image": "chars/guile.webp",
     "imageVersion": "muqgsjhd"
+  },
+  {
+    "id": "mv-kylo-ren",
+    "name": "Kylo Ren",
+    "category": "movies",
+    "series": "Star Wars",
+    "tier": 2,
+    "power": 42,
+    "wikipedia": "Kylo Ren",
+    "image": "chars/mv-kylo-ren.webp"
   },
   {
     "id": "pkm-gyarados",
@@ -6381,6 +7025,88 @@
     "image": "chars/ike.webp"
   },
   {
+    "id": "solaire-of-astora",
+    "name": "Solaire of Astora",
+    "category": "games",
+    "series": "Dark Souls",
+    "tier": 2,
+    "power": 40,
+    "wikipedia": "Solaire of Astora",
+    "image": "chars/solaire-of-astora.webp"
+  },
+  {
+    "id": "juri",
+    "name": "Juri",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 3,
+    "power": 40,
+    "wikipedia": "Juri (Street Fighter)",
+    "image": "chars/juri.webp"
+  },
+  {
+    "id": "iori-yagami",
+    "name": "Iori Yagami",
+    "category": "games",
+    "series": "The King of Fighters",
+    "tier": 2,
+    "power": 40,
+    "wikipedia": "Iori Yagami",
+    "image": "chars/iori-yagami.webp"
+  },
+  {
+    "id": "kyo-kusanagi",
+    "name": "Kyo Kusanagi",
+    "category": "games",
+    "series": "The King of Fighters",
+    "tier": 2,
+    "power": 40,
+    "wikipedia": "Kyo Kusanagi",
+    "image": "chars/kyo-kusanagi.webp"
+  },
+  {
+    "id": "mv-obi-wan",
+    "name": "Obi-Wan Kenobi",
+    "category": "movies",
+    "series": "Star Wars",
+    "tier": 1,
+    "power": 40,
+    "wikipedia": "Obi-Wan Kenobi",
+    "image": "chars/mv-obi-wan.webp"
+  },
+  {
+    "id": "mv-freddy-krueger",
+    "name": "Freddy Krueger",
+    "category": "movies",
+    "series": "A Nightmare on Elm Street",
+    "tier": 1,
+    "power": 40,
+    "wikipedia": "Freddy Krueger",
+    "image": "chars/mv-freddy-krueger.webp",
+    "imageVersion": "mur5kjyo"
+  },
+  {
+    "id": "mv-davy-jones",
+    "name": "Davy Jones",
+    "category": "movies",
+    "series": "Pirates of the Caribbean",
+    "tier": 2,
+    "power": 40,
+    "wikipedia": "Davy Jones (Pirates of the Caribbean)",
+    "image": "chars/mv-davy-jones.webp"
+  },
+  {
+    "id": "mv-the-doctor",
+    "name": "The Doctor",
+    "category": "movies",
+    "series": "Doctor Who",
+    "tier": 2,
+    "version": "Décimo Doutor",
+    "power": 40,
+    "wikipedia": "Tenth Doctor",
+    "image": "chars/mv-the-doctor.webp"
+  },
+  {
     "id": "pkm-luxray",
     "name": "Luxray",
     "category": "pokemon",
@@ -6939,6 +7665,16 @@
     "power": 38,
     "wikipedia": "Cammy",
     "image": "chars/cammy.webp"
+  },
+  {
+    "id": "e-honda",
+    "name": "E. Honda",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 2,
+    "power": 38,
+    "wikipedia": "E. Honda",
+    "image": "chars/e-honda.webp"
   },
   {
     "id": "pkm-tinkaton",
@@ -8642,6 +9378,58 @@
     "image": "chars/sans.webp"
   },
   {
+    "id": "mr-x",
+    "name": "Mr. X",
+    "category": "games",
+    "series": "Resident Evil",
+    "tier": 2,
+    "version": "Tyrant T-103",
+    "power": 35,
+    "wikipedia": "Mr. X (Resident Evil)",
+    "image": "chars/mr-x.webp"
+  },
+  {
+    "id": "terry-bogard",
+    "name": "Terry Bogard",
+    "category": "games",
+    "series": "The King of Fighters",
+    "tier": 2,
+    "power": 35,
+    "wikipedia": "Terry Bogard",
+    "image": "chars/terry-bogard.webp"
+  },
+  {
+    "id": "robin-fire-emblem",
+    "name": "Robin",
+    "category": "games",
+    "series": "Fire Emblem",
+    "tier": 2,
+    "power": 35,
+    "wikipedia": "Robin (Fire Emblem)",
+    "image": "chars/robin-fire-emblem.webp",
+    "imageVersion": "mur5kl92"
+  },
+  {
+    "id": "mv-spider-man",
+    "name": "Spider-Man",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "power": 35,
+    "wikipedia": "Peter Parker (Marvel Cinematic Universe)",
+    "image": "chars/mv-spider-man.webp"
+  },
+  {
+    "id": "mv-starlight",
+    "name": "Starlight",
+    "category": "movies",
+    "series": "The Boys",
+    "tier": 2,
+    "power": 35,
+    "wikipedia": "Starlight (The Boys)",
+    "image": "chars/mv-starlight.webp"
+  },
+  {
     "id": "pkm-pidgeot",
     "name": "Pidgeot",
     "category": "pokemon",
@@ -10062,6 +10850,119 @@
     "image": "chars/spyro.webp"
   },
   {
+    "id": "sakura-kasugano",
+    "name": "Sakura Kasugano",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 2,
+    "power": 30,
+    "wikipedia": "Sakura Kasugano",
+    "image": "chars/sakura-kasugano.webp"
+  },
+  {
+    "id": "jade-mortal-kombat",
+    "name": "Jade",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "tier": 2,
+    "power": 30,
+    "wikipedia": "Jade (Mortal Kombat)",
+    "image": "chars/jade-mortal-kombat.webp"
+  },
+  {
+    "id": "lady-dimitrescu",
+    "name": "Lady Dimitrescu",
+    "category": "games",
+    "series": "Resident Evil Village",
+    "tier": 1,
+    "power": 30,
+    "wikipedia": "Lady Dimitrescu",
+    "image": "chars/lady-dimitrescu.webp"
+  },
+  {
+    "id": "mv-ant-man",
+    "name": "Ant-Man",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 2,
+    "power": 30,
+    "wikipedia": "Scott Lang (Marvel Cinematic Universe)",
+    "image": "chars/mv-ant-man.webp"
+  },
+  {
+    "id": "mv-wolverine",
+    "name": "Wolverine",
+    "category": "movies",
+    "series": "X-Men",
+    "tier": 1,
+    "power": 30,
+    "wikipedia": "Logan (film character)",
+    "image": "chars/mv-wolverine.webp"
+  },
+  {
+    "id": "mv-deadpool",
+    "name": "Deadpool",
+    "category": "movies",
+    "series": "Deadpool",
+    "tier": 1,
+    "power": 30,
+    "wikipedia": "Wade Wilson (film character)",
+    "image": "chars/mv-deadpool.webp"
+  },
+  {
+    "id": "mv-butcher",
+    "name": "Billy Butcher",
+    "category": "movies",
+    "series": "The Boys",
+    "tier": 2,
+    "version": "Com o Composto V temporário",
+    "power": 30,
+    "wikipedia": "Billy Butcher",
+    "image": "chars/mv-butcher.webp"
+  },
+  {
+    "id": "mv-harry-potter",
+    "name": "Harry Potter",
+    "category": "movies",
+    "series": "Harry Potter",
+    "tier": 1,
+    "power": 30,
+    "wikipedia": "Harry Potter (character)",
+    "image": "chars/mv-harry-potter.webp"
+  },
+  {
+    "id": "mv-snape",
+    "name": "Severus Snape",
+    "category": "movies",
+    "series": "Harry Potter",
+    "tier": 1,
+    "power": 30,
+    "wikipedia": "Severus Snape",
+    "image": "chars/mv-snape.webp"
+  },
+  {
+    "id": "mv-sam-winchester",
+    "name": "Sam Winchester",
+    "category": "movies",
+    "series": "Supernatural",
+    "tier": 2,
+    "power": 30,
+    "wikipedia": "Sam Winchester",
+    "image": "chars/mv-sam-winchester.webp"
+  },
+  {
+    "id": "mv-daenerys",
+    "name": "Daenerys Targaryen",
+    "category": "movies",
+    "series": "Game of Thrones",
+    "tier": 1,
+    "version": "Com os dragões",
+    "power": 30,
+    "wikipedia": "Daenerys Targaryen",
+    "image": "chars/mv-daenerys.webp",
+    "imageVersion": "mur5khet"
+  },
+  {
     "id": "pkm-dedenne",
     "name": "Dedenne",
     "category": "pokemon",
@@ -11313,6 +12214,77 @@
     "image": "chars/cuphead.webp"
   },
   {
+    "id": "psycho-mantis",
+    "name": "Psycho Mantis",
+    "category": "games",
+    "series": "Metal Gear Solid",
+    "tier": 2,
+    "power": 25,
+    "wikipedia": "Psycho Mantis",
+    "image": "chars/psycho-mantis.webp"
+  },
+  {
+    "id": "mai-shiranui",
+    "name": "Mai Shiranui",
+    "category": "games",
+    "series": "The King of Fighters",
+    "tier": 2,
+    "power": 25,
+    "wikipedia": "Mai Shiranui",
+    "image": "chars/mai-shiranui.webp"
+  },
+  {
+    "id": "mv-groot",
+    "name": "Groot",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 2,
+    "power": 25,
+    "wikipedia": "Groot (Marvel Cinematic Universe)",
+    "image": "chars/mv-groot.webp"
+  },
+  {
+    "id": "mv-grogu",
+    "name": "Grogu",
+    "category": "movies",
+    "series": "Star Wars",
+    "tier": 1,
+    "power": 25,
+    "wikipedia": "Grogu",
+    "image": "chars/mv-grogu.webp"
+  },
+  {
+    "id": "mv-hermione",
+    "name": "Hermione Granger",
+    "category": "movies",
+    "series": "Harry Potter",
+    "tier": 1,
+    "power": 25,
+    "wikipedia": "Hermione Granger",
+    "image": "chars/mv-hermione.webp"
+  },
+  {
+    "id": "mv-jason",
+    "name": "Jason Voorhees",
+    "category": "movies",
+    "series": "Friday the 13th",
+    "tier": 1,
+    "power": 25,
+    "wikipedia": "Jason Voorhees",
+    "image": "chars/mv-jason.webp"
+  },
+  {
+    "id": "mv-t-1000",
+    "name": "T-1000",
+    "category": "movies",
+    "series": "The Terminator",
+    "tier": 2,
+    "power": 25,
+    "wikipedia": "T-1000",
+    "image": "chars/mv-t-1000.webp",
+    "imageVersion": "mur5kgju"
+  },
+  {
     "id": "pkm-poliwhirl",
     "name": "Poliwhirl",
     "category": "pokemon",
@@ -11621,6 +12593,27 @@
     "power": 22,
     "pokeapiId": 698,
     "image": "chars/pkm-amaura.webp"
+  },
+  {
+    "id": "mv-black-panther",
+    "name": "Black Panther",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "power": 22,
+    "wikipedia": "T'Challa (Marvel Cinematic Universe)",
+    "image": "chars/mv-black-panther.webp"
+  },
+  {
+    "id": "mv-t-800",
+    "name": "T-800",
+    "category": "movies",
+    "series": "The Terminator",
+    "tier": 1,
+    "power": 22,
+    "wikipedia": "Terminator (character)",
+    "image": "chars/mv-t-800.webp",
+    "imageVersion": "mur5kgp3"
   },
   {
     "id": "pkm-aipom",
@@ -12021,6 +13014,56 @@
     "power": 20,
     "wikipedia": "Pac-Man (character)",
     "image": "chars/pac-man.webp"
+  },
+  {
+    "id": "kano",
+    "name": "Kano",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "tier": 2,
+    "power": 20,
+    "wikipedia": "Kano (Mortal Kombat)",
+    "image": "chars/kano.webp"
+  },
+  {
+    "id": "dan-hibiki",
+    "name": "Dan Hibiki",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 2,
+    "power": 20,
+    "wikipedia": "Dan Hibiki",
+    "image": "chars/dan-hibiki.webp"
+  },
+  {
+    "id": "mv-captain-america",
+    "name": "Captain America",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "power": 20,
+    "wikipedia": "Steve Rogers (Marvel Cinematic Universe)",
+    "image": "chars/mv-captain-america.webp"
+  },
+  {
+    "id": "mv-michael-myers",
+    "name": "Michael Myers",
+    "category": "movies",
+    "series": "Halloween",
+    "tier": 1,
+    "power": 20,
+    "wikipedia": "Michael Myers (Halloween)",
+    "image": "chars/mv-michael-myers.webp"
+  },
+  {
+    "id": "mv-predator",
+    "name": "Predator",
+    "category": "movies",
+    "series": "Predator",
+    "tier": 1,
+    "power": 20,
+    "wikipedia": "Predator (fictional species)",
+    "image": "chars/mv-predator.webp"
   },
   {
     "id": "pkm-spritzee",
@@ -12601,6 +13644,26 @@
     "power": 18,
     "wikipedia": "Commander Shepard",
     "image": "chars/commander-shepard.webp"
+  },
+  {
+    "id": "mv-xenomorph",
+    "name": "Xenomorph",
+    "category": "movies",
+    "series": "Alien",
+    "tier": 1,
+    "power": 18,
+    "wikipedia": "Alien (creature in Alien franchise)",
+    "image": "chars/mv-xenomorph.webp"
+  },
+  {
+    "id": "mv-robocop",
+    "name": "RoboCop",
+    "category": "movies",
+    "series": "RoboCop",
+    "tier": 2,
+    "power": 18,
+    "wikipedia": "RoboCop (character)",
+    "image": "chars/mv-robocop.webp"
   },
   {
     "id": "pkm-clefairy",
@@ -13803,6 +14866,88 @@
     "imageVersion": "muqgsl6b"
   },
   {
+    "id": "glados",
+    "name": "GLaDOS",
+    "category": "games",
+    "series": "Portal",
+    "tier": 2,
+    "power": 15,
+    "wikipedia": "GLaDOS",
+    "image": "chars/glados.webp",
+    "imageVersion": "mur5kkzk"
+  },
+  {
+    "id": "d-va",
+    "name": "D.Va",
+    "category": "games",
+    "series": "Overwatch",
+    "tier": 2,
+    "power": 15,
+    "wikipedia": "D.Va",
+    "image": "chars/d-va.webp"
+  },
+  {
+    "id": "mercy",
+    "name": "Mercy",
+    "category": "games",
+    "series": "Overwatch",
+    "tier": 2,
+    "power": 15,
+    "wikipedia": "Mercy (Overwatch)",
+    "image": "chars/mercy.webp"
+  },
+  {
+    "id": "ling-xiaoyu",
+    "name": "Ling Xiaoyu",
+    "category": "games",
+    "series": "Tekken",
+    "tier": 2,
+    "power": 15,
+    "wikipedia": "Ling Xiaoyu",
+    "image": "chars/ling-xiaoyu.webp"
+  },
+  {
+    "id": "eddy-gordo",
+    "name": "Eddy Gordo",
+    "category": "games",
+    "series": "Tekken",
+    "tier": 2,
+    "power": 15,
+    "wikipedia": "Eddy Gordo",
+    "image": "chars/eddy-gordo.webp"
+  },
+  {
+    "id": "mv-star-lord",
+    "name": "Star-Lord",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 2,
+    "power": 15,
+    "wikipedia": "Peter Quill (Marvel Cinematic Universe)",
+    "image": "chars/mv-star-lord.webp"
+  },
+  {
+    "id": "mv-legolas",
+    "name": "Legolas",
+    "category": "movies",
+    "series": "The Lord of the Rings",
+    "tier": 1,
+    "power": 15,
+    "wikipedia": "Legolas",
+    "image": "chars/mv-legolas.webp",
+    "imageVersion": "mur5kgz3"
+  },
+  {
+    "id": "mv-shrek",
+    "name": "Shrek",
+    "category": "movies",
+    "series": "Shrek",
+    "tier": 1,
+    "power": 15,
+    "wikipedia": "Shrek (character)",
+    "image": "chars/mv-shrek.webp"
+  },
+  {
     "id": "pkm-tinkatink",
     "name": "Tinkatink",
     "category": "pokemon",
@@ -14021,6 +15166,17 @@
     "power": 14,
     "pokeapiId": 694,
     "image": "chars/pkm-helioptile.webp"
+  },
+  {
+    "id": "mv-aragorn",
+    "name": "Aragorn",
+    "category": "movies",
+    "series": "The Lord of the Rings",
+    "tier": 1,
+    "power": 14,
+    "wikipedia": "Aragorn",
+    "image": "chars/mv-aragorn.webp",
+    "imageVersion": "mur5kgu5"
   },
   {
     "id": "pkm-ekans",
@@ -14464,6 +15620,76 @@
     "imageVersion": "muqgslqz"
   },
   {
+    "id": "kazuma-kiryu",
+    "name": "Kazuma Kiryu",
+    "category": "games",
+    "series": "Yakuza",
+    "tier": 1,
+    "power": 12,
+    "wikipedia": "Kazuma Kiryu",
+    "image": "chars/kazuma-kiryu.webp"
+  },
+  {
+    "id": "widowmaker",
+    "name": "Widowmaker",
+    "category": "games",
+    "series": "Overwatch",
+    "tier": 2,
+    "power": 12,
+    "wikipedia": "Widowmaker (Overwatch)",
+    "image": "chars/widowmaker.webp"
+  },
+  {
+    "id": "garrus-vakarian",
+    "name": "Garrus Vakarian",
+    "category": "games",
+    "series": "Mass Effect",
+    "tier": 2,
+    "power": 12,
+    "wikipedia": "Garrus",
+    "image": "chars/garrus-vakarian.webp"
+  },
+  {
+    "id": "mv-chewbacca",
+    "name": "Chewbacca",
+    "category": "movies",
+    "series": "Star Wars",
+    "tier": 1,
+    "power": 12,
+    "wikipedia": "Chewbacca",
+    "image": "chars/mv-chewbacca.webp"
+  },
+  {
+    "id": "mv-mandalorian",
+    "name": "The Mandalorian",
+    "category": "movies",
+    "series": "Star Wars",
+    "tier": 1,
+    "power": 12,
+    "wikipedia": "Din Djarin",
+    "image": "chars/mv-mandalorian.webp"
+  },
+  {
+    "id": "mv-dean-winchester",
+    "name": "Dean Winchester",
+    "category": "movies",
+    "series": "Supernatural",
+    "tier": 2,
+    "power": 12,
+    "wikipedia": "Dean Winchester",
+    "image": "chars/mv-dean-winchester.webp"
+  },
+  {
+    "id": "mv-the-mountain",
+    "name": "The Mountain",
+    "category": "movies",
+    "series": "Game of Thrones",
+    "tier": 2,
+    "power": 12,
+    "wikipedia": "Gregor Clegane",
+    "image": "chars/mv-the-mountain.webp"
+  },
+  {
     "id": "pkm-jigglypuff",
     "name": "Jigglypuff",
     "category": "pokemon",
@@ -14844,6 +16070,47 @@
     "image": "chars/creeper.webp"
   },
   {
+    "id": "sackboy",
+    "name": "Sackboy",
+    "category": "games",
+    "series": "LittleBigPlanet",
+    "tier": 2,
+    "power": 10,
+    "wikipedia": "Sackboy",
+    "image": "chars/sackboy.webp"
+  },
+  {
+    "id": "mv-rocket",
+    "name": "Rocket",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 2,
+    "power": 10,
+    "wikipedia": "Rocket (Marvel Cinematic Universe)",
+    "image": "chars/mv-rocket.webp"
+  },
+  {
+    "id": "mv-batman",
+    "name": "Batman",
+    "category": "movies",
+    "series": "Batman",
+    "tier": 1,
+    "version": "Trilogia de Christopher Nolan",
+    "power": 10,
+    "wikipedia": "Bruce Wayne (Dark Knight trilogy)",
+    "image": "chars/mv-batman.webp"
+  },
+  {
+    "id": "mv-jon-snow",
+    "name": "Jon Snow",
+    "category": "movies",
+    "series": "Game of Thrones",
+    "tier": 1,
+    "power": 10,
+    "wikipedia": "Jon Snow (character)",
+    "image": "chars/mv-jon-snow.webp"
+  },
+  {
     "id": "pkm-pidgey",
     "name": "Pidgey",
     "category": "pokemon",
@@ -15034,6 +16301,26 @@
     "image": "chars/agent-47.webp"
   },
   {
+    "id": "mv-john-wick",
+    "name": "John Wick",
+    "category": "movies",
+    "series": "John Wick",
+    "tier": 1,
+    "power": 9,
+    "wikipedia": "John Wick (character)",
+    "image": "chars/mv-john-wick.webp"
+  },
+  {
+    "id": "mv-rambo",
+    "name": "John Rambo",
+    "category": "movies",
+    "series": "Rambo",
+    "tier": 1,
+    "power": 9,
+    "wikipedia": "John Rambo",
+    "image": "chars/mv-rambo.webp"
+  },
+  {
     "id": "pkm-toxel",
     "name": "Toxel",
     "category": "pokemon",
@@ -15154,6 +16441,47 @@
     "image": "chars/isaac-clarke.webp"
   },
   {
+    "id": "john-marston",
+    "name": "John Marston",
+    "category": "games",
+    "series": "Red Dead Redemption",
+    "tier": 1,
+    "power": 8,
+    "wikipedia": "John Marston",
+    "image": "chars/john-marston.webp",
+    "imageVersion": "mur5kldv"
+  },
+  {
+    "id": "max-payne",
+    "name": "Max Payne",
+    "category": "games",
+    "series": "Max Payne",
+    "tier": 2,
+    "power": 8,
+    "wikipedia": "Max Payne (character)",
+    "image": "chars/max-payne.webp"
+  },
+  {
+    "id": "mv-black-widow",
+    "name": "Black Widow",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 1,
+    "power": 8,
+    "wikipedia": "Natasha Romanoff (Marvel Cinematic Universe)",
+    "image": "chars/mv-black-widow.webp"
+  },
+  {
+    "id": "mv-han-solo",
+    "name": "Han Solo",
+    "category": "movies",
+    "series": "Star Wars",
+    "tier": 1,
+    "power": 8,
+    "wikipedia": "Han Solo",
+    "image": "chars/mv-han-solo.webp"
+  },
+  {
     "id": "pkm-wimpod",
     "name": "Wimpod",
     "category": "pokemon",
@@ -15182,6 +16510,37 @@
     "power": 7,
     "wikipedia": "Trevor Philips",
     "image": "chars/trevor-philips.webp"
+  },
+  {
+    "id": "mv-hawkeye",
+    "name": "Hawkeye",
+    "category": "movies",
+    "series": "Marvel Cinematic Universe",
+    "tier": 2,
+    "power": 7,
+    "wikipedia": "Clint Barton (Marvel Cinematic Universe)",
+    "image": "chars/mv-hawkeye.webp"
+  },
+  {
+    "id": "mv-rocky",
+    "name": "Rocky Balboa",
+    "category": "movies",
+    "series": "Rocky",
+    "tier": 1,
+    "power": 7,
+    "wikipedia": "Rocky Balboa",
+    "image": "chars/mv-rocky.webp"
+  },
+  {
+    "id": "mv-james-bond",
+    "name": "James Bond",
+    "category": "movies",
+    "series": "James Bond",
+    "tier": 1,
+    "power": 7,
+    "wikipedia": "James Bond",
+    "image": "chars/mv-james-bond.webp",
+    "imageVersion": "mur5kke2"
   },
   {
     "id": "pkm-burmy",
@@ -15263,6 +16622,77 @@
     "power": 6,
     "wikipedia": "Carl Johnson (Grand Theft Auto)",
     "image": "chars/cj.webp"
+  },
+  {
+    "id": "abby",
+    "name": "Abby",
+    "category": "games",
+    "series": "The Last of Us",
+    "tier": 2,
+    "power": 6,
+    "wikipedia": "Abby (The Last of Us)",
+    "image": "chars/abby.webp"
+  },
+  {
+    "id": "chell",
+    "name": "Chell",
+    "category": "games",
+    "series": "Portal",
+    "tier": 2,
+    "power": 6,
+    "wikipedia": "Chell (Portal)",
+    "image": "chars/chell.webp"
+  },
+  {
+    "id": "mv-harley-quinn",
+    "name": "Harley Quinn",
+    "category": "movies",
+    "series": "DC Extended Universe",
+    "tier": 1,
+    "power": 6,
+    "wikipedia": "Harley Quinn (DC Extended Universe)",
+    "image": "chars/mv-harley-quinn.webp"
+  },
+  {
+    "id": "mv-indiana-jones",
+    "name": "Indiana Jones",
+    "category": "movies",
+    "series": "Indiana Jones",
+    "tier": 1,
+    "power": 6,
+    "wikipedia": "Indiana Jones (character)",
+    "image": "chars/mv-indiana-jones.webp"
+  },
+  {
+    "id": "mv-jack-sparrow",
+    "name": "Jack Sparrow",
+    "category": "movies",
+    "series": "Pirates of the Caribbean",
+    "tier": 1,
+    "power": 6,
+    "wikipedia": "Jack Sparrow",
+    "image": "chars/mv-jack-sparrow.webp"
+  },
+  {
+    "id": "mv-wednesday",
+    "name": "Wednesday Addams",
+    "category": "movies",
+    "series": "Wednesday",
+    "tier": 1,
+    "power": 6,
+    "wikipedia": "Wednesday Addams",
+    "image": "chars/mv-wednesday.webp",
+    "imageVersion": "mur5kk8z"
+  },
+  {
+    "id": "mv-rick-grimes",
+    "name": "Rick Grimes",
+    "category": "movies",
+    "series": "The Walking Dead",
+    "tier": 1,
+    "power": 6,
+    "wikipedia": "Rick Grimes",
+    "image": "chars/mv-rick-grimes.webp"
   },
   {
     "id": "pkm-sentret",
@@ -15383,6 +16813,37 @@
     "power": 5,
     "wikipedia": "Madeline (Celeste)",
     "image": "chars/madeline-celeste.webp"
+  },
+  {
+    "id": "mv-joker",
+    "name": "Joker",
+    "category": "movies",
+    "series": "Batman",
+    "tier": 1,
+    "version": "The Dark Knight",
+    "power": 5,
+    "wikipedia": "Joker (The Dark Knight)",
+    "image": "chars/mv-joker.webp"
+  },
+  {
+    "id": "mv-gollum",
+    "name": "Gollum",
+    "category": "movies",
+    "series": "The Lord of the Rings",
+    "tier": 1,
+    "power": 5,
+    "wikipedia": "Gollum",
+    "image": "chars/mv-gollum.webp"
+  },
+  {
+    "id": "mv-chucky",
+    "name": "Chucky",
+    "category": "movies",
+    "series": "Child's Play",
+    "tier": 1,
+    "power": 5,
+    "wikipedia": "Chucky (Child's Play)",
+    "image": "chars/mv-chucky.webp"
   },
   {
     "id": "pkm-metapod",
@@ -15565,6 +17026,17 @@
     "image": "chars/pkm-feebas.webp"
   },
   {
+    "id": "mv-frodo",
+    "name": "Frodo Baggins",
+    "category": "movies",
+    "series": "The Lord of the Rings",
+    "tier": 1,
+    "power": 3,
+    "wikipedia": "Frodo Baggins",
+    "image": "chars/mv-frodo.webp",
+    "imageVersion": "mur5kh4g"
+  },
+  {
     "id": "pkm-snom",
     "name": "Snom",
     "category": "pokemon",
@@ -15644,6 +17116,37 @@
     "power": 2,
     "wikipedia": "Isabelle (Animal Crossing)",
     "image": "chars/isabelle.webp"
+  },
+  {
+    "id": "phoenix-wright",
+    "name": "Phoenix Wright",
+    "category": "games",
+    "series": "Ace Attorney",
+    "tier": 2,
+    "power": 2,
+    "wikipedia": "Phoenix Wright",
+    "image": "chars/phoenix-wright.webp"
+  },
+  {
+    "id": "mv-sherlock",
+    "name": "Sherlock Holmes",
+    "category": "movies",
+    "series": "Sherlock",
+    "tier": 1,
+    "power": 2,
+    "wikipedia": "Sherlock Holmes",
+    "image": "chars/mv-sherlock.webp",
+    "imageVersion": "mur5kk3o"
+  },
+  {
+    "id": "mv-walter-white",
+    "name": "Walter White",
+    "category": "movies",
+    "series": "Breaking Bad",
+    "tier": 1,
+    "power": 2,
+    "wikipedia": "Walter White (Breaking Bad)",
+    "image": "chars/mv-walter-white.webp"
   },
   {
     "id": "pkm-wishiwashi",

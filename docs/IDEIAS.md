@@ -36,7 +36,7 @@ A home vira um seletor de **modos**; cada modo tem suas **categorias**, seu rank
 
 | Modo | Categorias | Status |
 |---|---|---|
-| **Blind Power Ranking** (o jogo de hoje) | Animes, Games, Pokémon (filtro de gerações), Free for All; + Filmes, Séries | ✅ (4 categorias) / 💡 (novas) |
+| **Blind Power Ranking** (o jogo de hoje) | Animes, Games, Filmes e Séries, Pokémon (filtro de gerações), Free for All (categorias à escolha) | ✅ (5 categorias) |
 | **Desafio Diário** | uma partida igual para todos, por dia e categoria | ✅ |
 | **Blind Rating Ranking** | Filmes, Séries, Games, Animes (por nota) | 💡 |
 | **Size Comparison** | Games, Séries, Animes | 💡 |
@@ -61,8 +61,8 @@ Pontos de arquitetura que valem para todos (decidir uma vez) — `Arquitetura` �
   (conquista); link de desafio na party. Convidado pode repetir trocando de nick (aceitável por ora).
 
 ### 💡 Blind Power Ranking — novas categorias
-- **Filmes** e **Séries** (power scaling de personagens) · `Manutenção` 🟡 — decidir se heróis de quadrinhos entram
-  pela versão de cinema; imagens via Wikipédia (o TMDB só tem foto de ator).
+- ✅ **Filmes e Séries** (uma categoria, 103 personagens; heróis pela versão da tela; imagens da Wikipédia).
+- ✅ **Free for All** com escolha das categorias (Pokémon desligado por padrão; sorteio equilibrado por categoria).
 - ✅ Níveis de dificuldade · `Feature` 🟡: fácil / médio / difícil pela fama (`tier`) do personagem, no solo e na
   party (Pokémon usa o filtro de gerações). Ideia futura: poderes espaçados no fácil.
 - Modo "consenso da comunidade" · `Feature` 🔴: gabarito = média das posições escolhidas pelos jogadores (precisa
@@ -166,8 +166,7 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
 
 - 🧭 Revisar os valores de `power` em `/?review` (principalmente games e os anime mais discutíveis) · `Manutenção` 🟡
 - 🧭 Revisar o poder de lore dos 1025 Pokémon (proposta: legendários à mão, o resto pelos status base) · `Manutenção` 🟡
-- 💡 Mais personagens de games (meta: ~200), prioridade para franquias famosas com artigo na Wikipédia ·
-  `Manutenção` 🟡
+- ✅ Personagens de games: 206 (+43 com artigo e imagem na Wikipédia: FF, KOF, Street Fighter, MK, Overwatch...).
 - ✅ Imagens novas do Xehanort e do The Knight.
 
 ## Monetização e legal
@@ -210,19 +209,21 @@ o site — qualquer um que abra o código do site vê o `power` de todos. Migrar
 
 ## Tela de admin · `Feature` 🔴 (no total; cada parte 🟡)
 
-✅ Primeira entrega em `/admin` (Cloudflare Access + JWT conferido no Worker, registro de toda ação): chaves,
-economia e jogadores. O resto abaixo continua 💡.
+✅ Em `/admin` (Cloudflare Access + JWT conferido no Worker, registro de toda ação): chaves, economia, jogadores,
+personagens e moderação.
 
 Área restrita para operar o jogo sem mexer em código nem em SQL:
-- 💡 **Personagens:** buscar, editar `power`/nome/obra/imagem, ativar/desativar (ex: pedido de remoção de imagem),
-  adicionar novos. Depende de "Personagens no banco".
-- ✅ **Jogadores:** buscar conta, ver histórico, ajustar moedas, renomear, senha temporária. 💡 Falta: banir/bloquear
-  (coluna nova + checagem no login, partidas e party), marcar apoiador (Patreon).
+- ✅ **Personagens:** buscar, editar `power`/nome/obra/versão/fama, ativar/desativar e trocar a imagem (guardada no
+  D1, sem deploy), com histórico. O `characters:sync` respeita o que o admin editou; `characters:pull` traz para o
+  JSON. 💡 Falta: adicionar personagem novo pelo admin.
+- ✅ **Jogadores:** buscar conta, ver histórico, ajustar moedas, renomear, senha temporária, suspender (1/7/30 dias
+  ou permanente: desconecta, recusa o login e tira do ranking). 💡 Falta: marcar apoiador (Patreon).
 - ✅ **Economia:** moedas em circulação, fluxo (partidas, admin, caça-níquel, Mystery Box), retorno real, raridades
   reais × configuradas, itens com mais donos. 💡 Falta: ajustar o pote; histórico de compras da loja (hoje sem preço).
 - ✅ **Chaves (feature flags)** na tabela `features`: caça-níquel e Mystery Box, pela aba Chaves. 💡 Falta: chaves
   para anúncios e modos novos.
-- 💡 **Moderação:** fila de pedidos de remoção de imagem e denúncias de nick.
+- ✅ **Moderação:** "Denunciar nick" (ranking e party) e "Reportar imagem" (resultado) entram numa fila, juntos por
+  alvo, com atalho para a conta ou o personagem. 💡 Depois: aviso no admin quando chega denúncia nova.
 - ✅ Acesso: Cloudflare Access + JWT e lista de e-mails conferidos em toda rota `/api/admin/*`; toda ação em
   `admin_actions`.
 
@@ -239,8 +240,8 @@ economia e jogadores. O resto abaixo continua 💡.
 - **Placar honesto:** recusar tempos impossíveis (partida de 10 personagens em 2 s) · 🟢
 
 ### 💡 Depois
-- **Conta:** trocar senha (pedindo a atual), recuperar senha esquecida (exige e-mail — decidir se vale pedir),
-  expirar tokens antigos, listar aparelhos e "sair de todos" · 🟡
+- ✅ **Conta:** tela "Minha conta" (nick, senha, aparelhos, excluir), trocar senha pedindo a atual, "sair de todos os
+  aparelhos". 💡 Falta: recuperar senha esquecida (exige e-mail — decidir se vale pedir), expirar tokens antigos · 🟡
 - **Revisão de segurança** periódica do código (autenticação, SQL, Durable Object) e dos segredos do Cloudflare ·
   `Manutenção` 🟢
 
@@ -259,10 +260,12 @@ economia e jogadores. O resto abaixo continua 💡.
 - Categoria Pokémon: 1025 espécies (PokeAPI, gerações 1–9) com filtro de gerações no solo e na party; fora do Free for All.
 - Dificuldade (fácil / médio / difícil) pelo `tier` de fama de cada personagem, no painel do Solo e da Party.
 - Party (Durable Objects): sala por código/convite, espera ao vivo, pódio, revanche, reconexão; dono troca a categoria, expulsa e passa a dona; "Novo recorde!" no pódio.
-- Excluir a própria conta (menu do perfil), modo gravação (configurações), botão "Apoie" (falta o link), `/api/health`.
+- Tela "Minha conta" (nick, trocar senha, aparelhos e "sair de todos", excluir conta), modo gravação (configurações), botão "Apoie" (falta o link), `/api/health`.
 - Conta (nick + senha) ou convidado; jogador por id (trocar nick renomeia a conta); sincronizar dispositivo.
 - Rankings do Desafio Diário (o de hoje, desempate por tempo) e Acumulado (soma dos desafios), pódio dos 3 primeiros, skeleton.
 - Desafio Diário: os mesmos 10 (Free for All) para todos no dia, uma tentativa, aba Diário na home (regra, status e tempo até o próximo), ranking próprio (aba Desafio).
+- Admin: chaves, economia, jogadores (moedas, nick, senha temporária, suspensão), personagens (poder e imagem sem
+  deploy) e moderação (denúncias de nick e de imagem).
 - Moedas, loja de cosméticos (cores, molduras, títulos, avatares), Arcade (caça-níquel, Plinko, Raspadinha e Mystery Box).
 - Design system "Dark Battle Interface"; testes e2e (`e2e:api`, `e2e:ui`); skills do projeto (`.claude/skills/`).
 - Produção: migrações 0001–0014; deploy pela `main` via GitHub Actions, só se build + `npm test` + `e2e:api` passarem.

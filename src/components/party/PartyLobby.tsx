@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { MODES } from '../../game/modes';
 import { PARTY_MAX_PLAYERS, type ClientMessage, type PartyState } from '../../game/party';
 import { inviteLink } from '../../party/session';
 import { usePendingClick } from '../../ui/usePendingClick';
-import { useI18n } from '../../i18n';
+import { modeLabel, useI18n } from '../../i18n';
 import PartySettings from './PartySettings';
 import PlayerList from './PlayerList';
 
@@ -32,13 +31,14 @@ export default function PartyLobby({ state, you, onStart, onLeave, onSettings, o
   const [copied, setCopied] = useState<'code' | 'link' | null>(null);
   const [starting, start] = usePendingClick();
   const isHost = state.hostId === you;
-  const label = MODES.find((m) => m.id === state.mode)?.label ?? '';
-  // Filtro da sala: gerações (Pokémon) ou dificuldade (os outros modos).
-  const filter = state.generations
-    ? t('gen.short', { list: state.generations.join(', ') })
-    : state.difficulty
-      ? t(`diff.${state.difficulty}`)
-      : null;
+  const label = modeLabel(t, state.mode);
+  // Filtro da sala: gerações (Pokémon) ou dificuldade (os outros modos); no Free for All, as categorias escolhidas.
+  const filter = [
+    state.categories?.map((c) => modeLabel(t, c)).join(' + '),
+    state.generations ? t('gen.short', { list: state.generations.join(', ') }) : state.difficulty ? t(`diff.${state.difficulty}`) : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
   const mode = filter ? `${label} · ${filter}` : label;
 
   const onCopy = async (what: 'code' | 'link') => {

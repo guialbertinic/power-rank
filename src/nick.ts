@@ -1,13 +1,16 @@
 import {
   DEFAULT_DIFFICULTY,
+  DEFAULT_FFA_CATEGORIES,
   DEFAULT_MODE,
   GENERATIONS,
   isDifficulty,
   isMode,
+  parseCategories,
   parseGenerations,
   type Difficulty,
   type Mode,
 } from './game/modes';
+import type { Category } from './game/types';
 
 export const NICK_MAX_LENGTH = 20;
 
@@ -26,6 +29,7 @@ const LEGACY_NICK_KEY = 'power-rank:name';
 const MODE_KEY = 'power-rank:mode';
 const GENERATIONS_KEY = 'power-rank:generations';
 const DIFFICULTY_KEY = 'power-rank:difficulty';
+const CATEGORIES_KEY = 'power-rank:ffa-categories';
 const RECORDING_KEY = 'power-rank:recording';
 
 /** Mesma normalização do servidor: sem diferenciar maiúsculas/minúsculas. */
@@ -137,6 +141,24 @@ export function saveDifficulty(difficulty: Difficulty) {
     localStorage.setItem(DIFFICULTY_KEY, difficulty);
   } catch {
     // Storage indisponível: só não lembra a dificuldade.
+  }
+}
+
+/** Categorias ligadas no Free for All neste navegador (padrão: Animes, Games e Filmes e Séries). */
+export function loadCategories(): Category[] {
+  try {
+    const saved = parseCategories(JSON.parse(localStorage.getItem(CATEGORIES_KEY) ?? 'null'));
+    return saved ?? [...DEFAULT_FFA_CATEGORIES];
+  } catch {
+    return [...DEFAULT_FFA_CATEGORIES];
+  }
+}
+
+export function saveCategories(categories: Category[]) {
+  try {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+  } catch {
+    // Storage indisponível: só não lembra as categorias.
   }
 }
 

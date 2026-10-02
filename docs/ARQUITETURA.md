@@ -6,7 +6,8 @@ Referência detalhada, lida sob demanda. As regras de trabalho estão no `CLAUDE
 
 ```
 data/characters.json      base de personagens (fonte de edição, ordenada por power desc); `npm run characters:sync`
-                          copia para a tabela `characters` do D1, que é o que o jogo usa
+                          copia para a tabela `characters` do D1, que é o que o jogo usa (menos o que o admin
+                          editou; `npm run characters:pull` traz essas edições de volta para o JSON)
 public/chars/<id>.webp    imagens 240px (≈18 KB cada)
 public/_headers           cache: /chars 7 dias, /assets imutável
 migrations/               schema do D1 (0001 scores · 0002 melhor por jogador · 0003 categorias ·
@@ -14,18 +15,21 @@ migrations/               schema do D1 (0001 scores · 0002 melhor por jogador �
                           0006 senha do nick · 0007 jogador por id · 0008 títulos ·
                           0009 tempo da partida · 0010 cassino · 0011 mystery box ·
                           0012 personagens no banco · 0013 18+ e registro de acesso · 0014/0015 desafio diário ·
-                          0016 chaves dos minigames · 0017 registro do admin)
-scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet (+ lib/images.mjs)
+                          0016 chaves dos minigames · 0017 registro do admin · … · 0022 suspensão, edição de
+                          personagens pelo admin, imagens no banco e denúncias)
+scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet, sync/pull-characters (+ lib/images.mjs)
 e2e/                      testes e2e: api.mjs (sem navegador), ui.mjs (Edge headless), lib.mjs (utilitários)
 server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick),
-                          profile.ts (moedas, loja), party.ts (Durable Object), admin.ts + accessJwt.ts (admin), lib.ts
+                          profile.ts (moedas, loja), party.ts (Durable Object), admin.ts + accessJwt.ts (admin),
+                          reports.ts (denúncias e imagens enviadas pelo admin), lib.ts
 src/game/                 lógica pura, compartilhada com o server (sem DOM): types, draw, scoring, modes,
                           party (protocolo), economy (moedas), cosmetics (catálogo da loja)
 src/data.ts               base de personagens para o front (POOL, POOL_BY_ID)
 src/party/                cliente da party: usePartyRoom (WebSocket + reconexão), session (pid, convite)
 src/components/           telas: NickScreen, IntroScreen (home), PlayingScreen, ResultScreen, ShopScreen,
-                          ProfileBar, PlayerTag, Leaderboard, RankingComparison, ReviewScreen (dev)...
-src/components/admin/     tela de admin (/admin, pacote separado): AdminApp, chaves, economia, jogadores, registro
+                          AccountScreen, ProfileBar, PlayerTag, Leaderboard, RankingComparison, ReportForm, ReviewScreen (dev)...
+src/components/admin/     tela de admin (/admin, pacote separado): AdminApp, chaves, economia, jogadores, personagens,
+                          moderação, registro
 src/components/party/     PartyScreen, PartyLobby, PartySettings, PartyPlay, PartyWaiting, PartyPodium, PlayerList
 src/links.ts              links externos (SUPPORT_URL do "Apoie"; vazio = botão escondido)
 src/styles/tokens.css     design tokens · src/styles.css componentes
@@ -96,6 +100,14 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
   mostra a ordem correta com `withRanks` (mesmo resultado que o poder real, provado em `scoring.test.ts`). Na party,
   os `ranks` são calculados no início da rodada e só vão para o site no pódio.
 - `/?review` usa `GET /api/dev/characters` (com `power`), que só responde em localhost.
+- **Edição pelo admin** (aba Personagens): poder, nome, obra, versão, fama, ativo e imagem, sem deploy. Cada campo
+  editado entra em `characters.admin_fields` (JSON) e o `characters:sync` deixa de sobrescrevê-lo (`CASE` no
+  `ON CONFLICT`). `npm run characters:pull [-- --remote]` grava essas edições no JSON (e as imagens em
+  `public/chars/`); depois do deploy com as imagens, `-- --remote --unlock` limpa `admin_fields` e
+  `character_images`, e o JSON volta a valer. A edição limpa o cache do catálogo do isolate (os outros, em até 5 min).
+- **Imagem enviada pelo admin**: o navegador converte para WebP 240×320 (cortar pelo topo/centro ou inteira) e manda
+  em base64; o servidor confere `RIFF…WEBP` e até 200 KB, guarda em `character_images` e aponta `image` para
+  `api/img/<id>` com `image_version` nova. `GET /api/img/:id` serve com cache de 1 ano (a versão vai no `?v=`).
 
 ## Regras do jogo
 
@@ -112,8 +124,16 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
   exato 100 · 1 casa 70 · 2 casas 40 · 3 casas 15 · 4+ 0 (`POINTS_BY_DISTANCE`); a soma vai de 0 a 1000. Empate de
   poder: qualquer posição da faixa conta como exata. Ordem aleatória ≈ 330; quem sabe o poder de todos faz ≈ 690 de
   mediana (às cegas, já ocupou a casa de quem vem depois). Títulos (`rankLevel`) nas mesmas faixas das moedas.
-- **Modos** (`modes.ts`): `anime`, `games`, `pokemon`, `all` (Free for All = anime + games; Pokémon fica
-  fora), cada um com o próprio ranking. Disponível com ≥ 10 personagens sorteáveis.
+- **Modos** (`modes.ts`): `anime`, `games`, `movies` (Filmes e Séries), `pokemon`, `all` (Free for All), cada um com
+  o próprio ranking. Disponível com ≥ 10 personagens sorteáveis. O nome na tela vem de `modeLabel` (`mode.name.*`).
+- **Filmes e Séries** (`movies`, ids `mv-<nome>`): personagens de filme e série, heróis de quadrinhos pela **versão da
+  tela** (MCU, DCEU, The Boys; `version` quando importa, ex: Thanos com a Manopla). Imagem do artigo da Wikipédia da
+  versão de cinema quando existe (ex: "Logan (film character)"); senão vem arte de quadrinho.
+- **Free for All:** o jogador escolhe as categorias (`CategoryPicker`, solo e sala; lembradas no navegador); padrão
+  Animes + Games + Filmes e Séries (`DEFAULT_FFA_CATEGORIES`), Pokémon só se ligar. Vai como `categories` em
+  `/api/games`, `/api/party` e no `settings` da sala (`parseFilter` valida os três filtros de uma vez). O sorteio
+  (`drawFor`) equilibra: cada casa sorteia a categoria e depois o personagem. Pokémon não tem fama e entra em
+  qualquer dificuldade. O Desafio Diário usa sempre as categorias padrão.
 - **Pokémon:** todas as espécies (forma padrão, gerações 1–9), ids `pkm-<nome>`, criadas por
   `npm run pokemon:import` (PokeAPI GraphQL) com uma proposta de poder de lore (tabela `LORE` no script para
   legendários e casos conhecidos, o resto pelo total de status base); quem já existe mantém o `power`.
@@ -134,6 +154,10 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `GET /api/players/status?name=` | `{ exists, hasPassword }`, sem reservar nada (a tela do nick decide o passo seguinte). |
 | `POST /api/players` `{ name, token?, password? }` | Conta. Nick livre + senha: cria (`{ token }`); sem senha, 400. Seu (token): confirma. De outra pessoa: senha certa dá token novo; errada 403; 5 erradas seguidas bloqueiam 5 min (429); sem senha: 409 `{ taken, hasPassword }`. |
 | `POST /api/players/password` `{ token, password }` | Cria a senha de uma conta que ainda não tem (409 se já tem). 6 a 72 caracteres (`src/game/account.ts`). |
+| `POST /api/players/change-password` `{ token, current, password }` | Troca a senha pedindo a atual (mesmo bloqueio do login) e desconecta os **outros** aparelhos; este continua. 409 se a conta não tem senha. |
+| `POST /api/players/logout-all` `{ token }` | Apaga todos os tokens da conta, inclusive o deste aparelho. |
+| `POST /api/reports` `{ token?, kind: nick\|image, target, reason }` | Denúncia de nick (`target` = nick) ou pedido de remoção de imagem (`target` = id do personagem). Motivos em `src/game/reports.ts`. Quem denuncia: `p:<id>` da conta ou `ip:<hash>`; uma aberta por pessoa e alvo (índice único). Limite `RL_AUTH`. |
+| `GET /api/img/:id` | Imagem enviada pelo admin (`character_images`), cache de 1 ano. |
 | `POST /api/players/delete` `{ token, password }` | Exclui a conta (senha obrigatória se tiver; mesmo bloqueio do login): tokens, itens, partidas, pontuações, tentativas do desafio e histórico do Arcade, numa transação. O nick fica livre. `access_log` fica até expirar (90 dias); `admin_actions` perde só o `player_id`. |
 | `GET /api/health` | `{ ok, db, ms }`: o Worker e o D1 respondem (`SELECT 1`); 503 se o banco falhar. Sem cache. Para monitor externo (UptimeRobot etc.). |
 | `POST /api/players/rename` `{ token, name }` | Troca o nick da conta, se não for de outra conta (409). Tudo segue a conta (id). |
@@ -152,12 +176,13 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/scratch/buy` `{ token, bet }` | Só contas 18+. Aposta de 1 a 10. Sorteia o trio e monta a cartela no servidor, debita/credita no mesmo UPDATE e devolve `{ cells (9 símbolos), symbol (trio ou null), multiplier, prize, coins }`. 402 sem saldo, 403 `feature_disabled` com a chave `scratch` desligada. Limite `RL_CASINO`. |
 | `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado e `hasPassword`. |
 | `POST /api/shop/buy` `{ token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
-| `/api/admin/*` | Só admin (ver "Admin"; 403 `admin_denied`). `GET me` · `GET/POST features` `{ id, enabled }` · `GET economy` · `GET players?q=&sort=recent|coins` · `GET players/:id` · `POST players/:id/coins` `{ delta, reason }` · `POST players/:id/rename` `{ name }` · `POST players/:id/password` → `{ password, player }` · `GET actions`. |
+| `/api/admin/*` | Só admin (ver "Admin"; 403 `admin_denied`). `GET me` · `GET/POST features` `{ id, enabled }` · `GET economy` · `GET players?q=&sort=recent|coins` · `GET players/:id` · `POST players/:id/coins` `{ delta, reason }` · `POST players/:id/rename` `{ name }` · `POST players/:id/password` → `{ password, player }` · `POST players/:id/ban` `{ days: 1\|7\|30\|null, reason }` · `POST players/:id/unban` · `GET characters?q=&category=` · `GET/POST characters/:id` (edição) · `POST characters/:id/image` `{ data }` · `GET reports` · `POST reports/close` `{ kind, target, status }` · `GET actions`. |
 | `POST /api/profile/equip` `{ token, slot, itemId \| null }` | Equipa (ou tira) um item que o jogador tem. |
 
 `scores` guarda todas as partidas (inclusive de convidados, com `player_id` NULL, que não entram no ranking).
 **Rankings** (`server/scores.ts`): só o **Desafio Diário** conta (solo e party rendem moedas, mas não entram).
-Uma linha por conta mesmo depois de trocar o nick; convidado joga, mas não entra.
+Uma linha por conta mesmo depois de trocar o nick; convidado joga, mas não entra. Conta suspensa some do ranking
+enquanto durar a suspensão.
 - **Desafio Diário** (`server/daily.ts`, aba Diário na home): um por categoria, os mesmos 10 personagens, na
   mesma ordem, para todos (`daily_challenges`, chave dia + modo, sorteado no primeiro pedido). Uma tentativa por
   jogador e categoria, gasta ao **começar** (`daily_attempts`, chave dia + modo + `p:<id>` da conta ou `g:<nick>`
@@ -179,15 +204,23 @@ sem reservar nada: não entra no ranking, não ganha moedas nem usa a loja (`pla
 decide conta/convidado em `/api/games` e na party; `PartyPlayer.guest`).
 Tela do nick (`NickScreen`): **Login** consulta `/api/players/status` — conta: pede a senha (ou entra direto se o
 token do nick está neste navegador); nick livre: senha + confirmar cria a conta. **Convidado**: entra se o nick não
-for de uma conta. "Sincronizar dispositivo" (menu da `ProfileBar`, `SyncDevice`): o convidado cria a conta ali;
-contas antigas sem senha (criadas antes da 0006) criam a senha; contas têm **Forçar sincronização**, que recarrega
+for de uma conta. O menu da `ProfileBar` tem só Loja/Arcade (no celular), **Minha conta**, sair/entrar e Apoie.
+**Minha conta** (`AccountScreen`, fase `account`): nick (`ChangeNick`), senha (`ChangePassword` pedindo a atual, ou
+`CreateAccountForm` para criar), aparelhos (quantos tokens, **Forçar sincronização**, **Sair de todos os aparelhos**,
+este só com senha), sair e **Excluir minha conta**. O convidado vê nick + `CreateAccountForm` (cria a conta com
+o nick atual) + "Entrar em uma conta". Token que deixou de valer (outro aparelho saiu de todos, senha trocada,
+suspensão) faz a home voltar para a tela do nick com aviso.
+Contas antigas sem senha (criadas antes da 0006) criam a senha ali; **Forçar sincronização** recarrega
 o perfil do servidor (e adota o nick, se a conta foi renomeada em outro aparelho). **Trocar nick** (`ChangeNick`)
 nunca troca de conta: a conta é renomeada (se o nick não for de outra conta); o convidado só passa a usar outro
 nick livre. **Sair da conta** esquece o token neste navegador; o convidado tem **Entrar em uma conta**.
-**Excluir minha conta** (`DeleteAccount`, no fim do menu, só contas): aviso + senha → `/api/players/delete` e volta
+**Excluir minha conta** (`DeleteAccount`, no fim da tela da conta): aviso + senha → `/api/players/delete` e volta
 para a tela do nick.
 Senha: PBKDF2-SHA256 com sal, iterações gravadas no próprio hash (`password_hash`);
-tentativas erradas em `failed_logins`/`locked_until`. Ainda não há troca nem recuperação de senha.
+tentativas erradas em `failed_logins`/`locked_until`. Troca de senha sim; recuperação (sem e-mail) não.
+**Suspensão** (`players.banned_until`, 0 = liberada, `BAN_FOREVER` = permanente; `ban_reason`): o admin suspende por
+1/7/30 dias ou para sempre; apaga os tokens, `accountByToken` ignora conta suspensa e o login responde 403
+`code: banned` com "Esta conta está suspensa até DD/MM/AAAA." (`banMessage` em `src/game/account.ts`).
 No navegador, a identidade `{ name, token }` e os tokens de nicks já usados ficam no `localStorage` (`src/nick.ts`).
 
 ## Economia e cosméticos
@@ -208,10 +241,13 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 ## Admin (/admin)
 
 - **Tela** em `/admin` (`main.tsx` carrega `components/admin/AdminApp` à parte; o jogo não baixa esse código).
-  Abas: **Chaves** (liga/desliga minigame), **Economia** (só leitura: saldos, fluxo de moedas tudo/7 dias,
+  Abas: **Chaves** (liga/desliga minigame), **Personagens** (busca, edição, imagem e histórico; ver "Personagens:
+  banco"), **Moderação** (denúncias abertas juntas por alvo, com atalho para a conta ou o personagem; resolver ou
+  descartar fecha todas as do alvo), **Economia** (só leitura: saldos, fluxo de moedas tudo/7 dias,
   retorno real do caça-níquel, raridades reais × configuradas, itens com mais donos), **Jogadores** (busca por
   parte do nick; detalhe com partidas, acessos e ações; ajustar moedas com motivo, renomear sem o filtro de
-  nick, gerar senha temporária, que desbloqueia e desconecta todos os aparelhos) e **Registro**.
+  nick, gerar senha temporária, que desbloqueia e desconecta todos os aparelhos, suspender ou tirar a suspensão) e
+  **Registro**.
 - **Acesso, em duas camadas:** o Cloudflare Access pede o login (e-mail) antes de `/admin` e `/api/admin/*`
   chegarem ao site; o Worker (`handleAdmin` em `server/admin.ts`) confere o JWT do header
   `Cf-Access-Jwt-Assertion` (`accessJwt.ts`: RS256 com as chaves do time, `iss`, `aud`, prazo) e o e-mail
@@ -219,7 +255,8 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   (secret) = 403 para todos. No dev local (host localhost) entra como `local`, sem Access.
 - POST do admin só com `Content-Type: application/json` (outro site não consegue sem CORS: protege contra CSRF
   com o cookie do Access).
-- **Registro** `admin_actions` (admin, ação `feature|coins|rename|password`, jogador, JSON do antes/depois):
+- **Registro** `admin_actions` (admin, ação `feature|coins|rename|password|ban|unban|character|image|report`,
+  jogador, JSON do antes/depois; `character`/`image` levam o id do personagem em `details.id`):
   cada mudança vai no mesmo `batch` (transação) que o registro. Moedas: `UPDATE ... WHERE coins + delta >= 0` e
   o `INSERT ... WHERE changes() = 1` (só registra se o saldo mudou); limite de ±100.000 por ação.
 - **Configurado em produção** (time `crimson-dream-8892`, valores no `wrangler.jsonc`, `ADMIN_EMAILS` como secret).
@@ -328,7 +365,7 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 
 ## Front
 
-- `App.tsx`: reducer `nick` → `intro` (home) → `playing` → `result`, ou `intro` → `party` / `shop`.
+- `App.tsx`: reducer `nick` → `intro` (home) → `playing` → `result`, ou `intro` → `party` / `shop` / `arcade` / `account`.
   `playing`/`result` têm `daily`: o título mostra "Desafio diário · <categoria>", o resultado mostra a posição no
   desafio e não tem "Jogar de novo". A home consulta `/api/daily` (ao abrir e ao trocar de categoria); o botão trava
   depois da tentativa e mostra a pontuação.
@@ -340,6 +377,9 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   o ranking. Cada aba abre um painel (um por vez): Solo e Party com a configuração da partida (`DifficultyPicker`, ou
   `GenerationPicker` no Pokémon) e o Iniciar / Criar sala + entrar por código; o Diário (sem configuração) com a
   regra, o Jogar ou a pontuação de hoje (a aba ganha ✓) e o tempo até o próximo. `ProfileBar` no canto; no celular vira faixa com nick + saldo, e Loja/Cassino ficam no menu (sanfona).
+- **Denúncias** (`ReportForm`): "Denunciar nick" embaixo do ranking (escolhe o nick, sem o próprio) e no "⋯" de
+  cada jogador da party (todos veem; dono também tem passar a dona/expulsar); "Reportar imagem" embaixo da
+  comparação do resultado solo. Escondidos no modo gravação.
 - Se a API falhar, o jogo sorteia localmente (`gameId: null`) e não conta para o ranking.
 - Imagens da partida pré-carregadas no sorteio; URL com `?v=<id da fonte>` para invalidar cache.
 - `?review` só existe em dev (import lazy atrás de `import.meta.env.DEV`).

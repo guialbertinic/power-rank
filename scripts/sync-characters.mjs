@@ -2,6 +2,7 @@
 // Uso: npm run characters:sync            → banco local (dev)
 //      npm run characters:sync -- --remote → produção (só o usuário roda)
 // Personagem que saiu do JSON fica com active = 0 (continua valendo em partidas e avatares antigos).
+// Campos editados pelo admin (`admin_fields`) não são sobrescritos: `npm run characters:pull` os traz para o JSON.
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -26,13 +27,16 @@ const imageVersion = (c) =>
 const sql = (v) => (v === undefined || v === null ? 'NULL' : typeof v === 'number' ? String(v) : `'${String(v).replace(/'/g, "''")}'`);
 const now = Date.now();
 
+/** Campo editado pelo admin (`admin_fields`) fica como está no banco; o resto vem do JSON. */
+const keep = (column, field = column) =>
+  `${column} = CASE WHEN instr(COALESCE(characters.admin_fields, ''), '"${field}"') > 0 THEN characters.${column} ELSE excluded.${column} END`;
+
 const statements = characters.map(
   (c) =>
     `INSERT INTO characters (id, name, category, series, tier, generation, version, power, image, anilist_id, image_version, active, updated_at) ` +
     `VALUES (${[c.id, c.name, c.category, c.series, c.tier, c.generation, c.version, c.power, c.image, c.anilistId, imageVersion(c)].map(sql).join(', ')}, 1, ${now}) ` +
-    `ON CONFLICT (id) DO UPDATE SET name = excluded.name, category = excluded.category, series = excluded.series, ` +
-    `tier = excluded.tier, generation = excluded.generation, version = excluded.version, power = excluded.power, image = excluded.image, anilist_id = excluded.anilist_id, ` +
-    `image_version = excluded.image_version, active = 1, updated_at = excluded.updated_at;`,
+    `ON CONFLICT (id) DO UPDATE SET ${[keep('name'), 'category = excluded.category', keep('series'), keep('tier'), 'generation = excluded.generation', keep('version'), keep('power'), keep('image'), keep('anilist_id', 'image'), keep('image_version', 'image'), keep('active')].join(', ')}, ` +
+    `updated_at = excluded.updated_at;`,
 );
 statements.push(`UPDATE characters SET active = 0, updated_at = ${now} WHERE id NOT IN (${characters.map((c) => sql(c.id)).join(', ')});`);
 

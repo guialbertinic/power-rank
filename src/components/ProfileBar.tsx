@@ -4,11 +4,8 @@ import { EMPTY_LOOK } from '../game/cosmetics';
 import { useI18n } from '../i18n';
 import type { Identity } from '../nick';
 import { SUPPORT_URL } from '../links';
-import ChangeNick from './ChangeNick';
 import Coins from './Coins';
-import DeleteAccount from './DeleteAccount';
 import PlayerTag from './PlayerTag';
-import SyncDevice from './SyncDevice';
 
 interface Props {
   identity: Identity;
@@ -17,24 +14,20 @@ interface Props {
   onOpenShop: () => void;
   /** Abre o Arcade; sem ele, o botão não aparece (todos os minigames desligados). */
   onOpenArcade?: () => void;
-  /** Trocou o nick ou o convidado criou a conta pelo menu. */
-  onIdentityChange: (identity: Identity) => void;
+  /** Abre a tela Minha conta (nick, senha, aparelhos, excluir). */
+  onOpenAccount: () => void;
   /** Conta: sair dela neste navegador. Convidado: ir para a tela do nick entrar numa conta. */
   onLeave: () => void;
-  /** Forçar sincronização: recarrega o perfil do servidor. */
-  onRefresh: () => Promise<void>;
-  /** A conta foi excluída: volta para a tela do nick. */
-  onAccountDeleted: () => void;
   disabled?: boolean;
 }
 
 /**
- * Canto superior direito da home: quem está jogando, saldo e loja. "Trocar nick", "Sincronizar dispositivo" e
+ * Canto superior direito da home: quem está jogando, saldo e loja. "Minha conta" (nick, senha, aparelhos) e
  * sair/entrar numa conta ficam num menu que abre ao tocar no nick (são usados raramente).
  * No celular a faixa mostra só o nick e o saldo; Loja e Arcade vão para o menu, que abre como sanfona.
  */
 export default function ProfileBar(props: Props) {
-  const { identity, profile, onOpenShop, onOpenArcade, onIdentityChange, onLeave, onRefresh, onAccountDeleted, disabled } = props;
+  const { identity, profile, onOpenShop, onOpenArcade, onOpenAccount, onLeave, disabled } = props;
   const { t } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -92,10 +85,18 @@ export default function ProfileBar(props: Props) {
       {menuOpen && (
         <div className="panel profile-menu" role="menu">
           {profile && <div className="profile-menu-actions">{actions}</div>}
-          <ChangeNick identity={identity} onChanged={onIdentityChange} />
-          <SyncDevice identity={identity} profile={profile} onRefresh={onRefresh} onAccountCreated={onIdentityChange} />
-          {profile && !profile.hasPassword && profile.coins > 0 && (
-            <p className="muted sync-warning">{t('profile.passwordWarning')}</p>
+          <button
+            className="btn btn-secondary btn-sm profile-account"
+            role="menuitem"
+            onClick={() => {
+              setMenuOpen(false);
+              onOpenAccount();
+            }}
+          >
+            {identity.token ? t('account.title') : t('account.guestOpen')}
+          </button>
+          {(!identity.token || (profile && !profile.hasPassword && profile.coins > 0)) && (
+            <p className="muted sync-warning">{identity.token ? t('profile.passwordWarning') : t('profile.guestWarning')}</p>
           )}
           <button
             className="link-button profile-leave"
@@ -111,9 +112,6 @@ export default function ProfileBar(props: Props) {
             <a className="link-button profile-support" href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
               {t('support.button')}
             </a>
-          )}
-          {identity.token && profile && (
-            <DeleteAccount token={identity.token} hasPassword={profile.hasPassword} onDeleted={onAccountDeleted} />
           )}
         </div>
       )}

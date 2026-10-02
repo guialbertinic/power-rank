@@ -1,7 +1,10 @@
 // Testes e2e da API (sem navegador): nick, economia/loja e party por WebSocket.
 // Uso: com `npm run dev` rodando, `npm run e2e:api`.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   BASE,
+  ROOT,
   check,
   cleanTestData,
   MIN_GAME_MS,
@@ -52,7 +55,7 @@ if (section('Pokémon')) {
   check('geração inválida é recusada', (await post('/games', { name: nick('Pokemon'), mode: 'pokemon', generations: [0] })).status === 400);
   check('filtro vazio é recusado', (await post('/games', { name: nick('Pokemon'), mode: 'pokemon', generations: [] })).status === 400);
   const ffa = (await post('/games', { name: nick('Pokemon'), mode: 'all' })).data;
-  check('Free for All não tem Pokémon', ffa.characters?.length === 10 && !ffa.characters.some((c) => c.category === 'pokemon'));
+  check('Free for All padrão não tem Pokémon', ffa.characters?.length === 10 && !ffa.characters.some((c) => c.category === 'pokemon'));
   const { data: room } = await post('/party', { mode: 'pokemon', pid: 'e2e-pkmn-pid-01', generations: [2] });
   const host = await player('PkmHost');
   const h = partyClient(room.code, 'e2e-pkmn-pid-01', host.name, host.token);
@@ -84,6 +87,39 @@ if (section('Dificuldade')) {
   h.send({ type: 'start' });
   await h.until((c) => c.state?.phase === 'playing');
   check('partida da sala respeita a dificuldade', h.state?.characterIds.length === 10 && tierOf(h.state.characterIds).every((t) => t === 1), JSON.stringify([h.state?.phase, tierOf(h.state?.characterIds ?? [])]));
+  h.ws.close();
+}
+
+// ---------- Filmes e Séries; categorias do Free for All ----------
+if (section('Filmes e Free for All')) {
+  const catalog = await get('/characters');
+  const categoryOf = (ids) => ids.map((id) => catalog.find((c) => c.id === id)?.category);
+  check('catálogo tem Filmes e Séries com tier, sem power', catalog.filter((c) => c.category === 'movies').length >= 50 && catalog.filter((c) => c.category === 'movies').every((c) => [1, 2, 3].includes(c.tier) && !('power' in c)));
+  const movies = (await post('/games', { name: nick('Filmes'), mode: 'movies' })).data;
+  check('partida de Filmes e Séries', movies.characterIds?.length === 10 && categoryOf(movies.characterIds).every((c) => c === 'movies'));
+  const result = await post('/scores', { gameId: movies.gameId, placements: perfectOrder(movies.characterIds) });
+  check('pontuação de Filmes e Séries', result.status === 200 || result.data?.error === 'Partida rápida demais para valer.', JSON.stringify(result.data));
+
+  const ffa = (await post('/games', { name: nick('Filmes'), mode: 'all' })).data;
+  check('Free for All padrão: sem Pokémon', !categoryOf(ffa.characterIds ?? []).includes('pokemon'));
+  const chosen = (await post('/games', { name: nick('Filmes'), mode: 'all', categories: ['movies', 'pokemon'] })).data;
+  const cats = categoryOf(chosen.characterIds ?? []);
+  check('Free for All com as categorias escolhidas', cats.length === 10 && cats.every((c) => c === 'movies' || c === 'pokemon'), JSON.stringify(cats));
+  check('mistura equilibrada (não só Pokémon)', cats.includes('movies'), JSON.stringify(cats));
+  check('categorias vazias: 400', (await post('/games', { name: nick('Filmes'), mode: 'all', categories: [] })).status === 400);
+  check('categoria desconhecida: 400', (await post('/games', { name: nick('Filmes'), mode: 'all', categories: ['all'] })).status === 400);
+  check('categorias fora do Free for All são ignoradas', (await post('/games', { name: nick('Filmes'), mode: 'anime', categories: 'x' })).status === 200);
+
+  const { data: room } = await post('/party', { mode: 'all', pid: 'e2e-ffa-pid-0001', categories: ['games', 'movies'] });
+  const host = await player('FfaHost');
+  const h = partyClient(room.code, 'e2e-ffa-pid-0001', host.name, host.token);
+  await h.until((c) => c.state);
+  check('sala guarda as categorias', JSON.stringify(h.state?.categories) === '["games","movies"]', JSON.stringify(h.state?.categories));
+  h.send({ type: 'settings', mode: 'all', categories: ['anime'] });
+  await h.until((c) => JSON.stringify(c.state?.categories) === '["anime"]');
+  h.send({ type: 'start' });
+  await h.until((c) => c.state?.phase === 'playing');
+  check('partida da sala usa as categorias novas', categoryOf(h.state?.characterIds ?? []).every((c) => c === 'anime'));
   h.ws.close();
 }
 
@@ -729,6 +765,127 @@ if (section('Excluir conta')) {
   check('conta, partidas e pontuações somem', /"n": 0\b/.test(left), /"n": \d+/.exec(left)?.[0]);
   check('o token da conta excluída deixa de valer', (await post('/profile', { token: me.token })).status === 401);
   check('o nick fica livre', (await get(`/players/status?name=${me.name}`)).exists === false);
+}
+
+// ---------- Conta: trocar senha e sair de todos os aparelhos ----------
+if (section('Senha e aparelhos')) {
+  const me = await player('Senha');
+  const other = await post('/players', { name: me.name, password: PASSWORD });
+  check('dois aparelhos conectados', (await post('/profile', me)).data.devices === 2);
+  check('trocar senha com a atual errada: 403', (await post('/players/change-password', { token: me.token, current: 'errada00', password: 'nova-senha' })).status === 403);
+  check('senha nova curta: 400', (await post('/players/change-password', { token: me.token, current: PASSWORD, password: '12' })).status === 400);
+  const changed = await post('/players/change-password', { token: me.token, current: PASSWORD, password: 'nova-senha' });
+  check('troca a senha com a atual', changed.status === 200, JSON.stringify(changed.data));
+  check('este aparelho continua conectado', (await post('/profile', me)).data.devices === 1);
+  check('o outro aparelho sai', (await post('/profile', { token: other.data.token })).status === 401);
+  check('a senha antiga não entra mais', (await post('/players', { name: me.name, password: PASSWORD })).status === 403);
+  const again = await post('/players', { name: me.name, password: 'nova-senha' });
+  check('a senha nova entra', again.status === 200);
+
+  const all = await post('/players/logout-all', { token: me.token });
+  check('sair de todos os aparelhos', all.status === 200);
+  check('nenhum token vale depois', (await post('/profile', me)).status === 401 && (await post('/profile', { token: again.data.token })).status === 401);
+  check('sair de todos sem token: 401', (await post('/players/logout-all', { token: 'x' })).status === 401);
+}
+
+// ---------- Suspensão (admin) ----------
+if (section('Suspensão')) {
+  const me = await player('Suspensa');
+  const id = Number(/"id": (\d+)/.exec(d1(`SELECT id FROM players WHERE name_key = '${me.name.toLowerCase()}'`))?.[1]);
+  await playDaily(me);
+  const onBoard = async () => (await get('/scores?mode=anime')).scores.some((s) => s.name === me.name);
+  check('antes: aparece no ranking', await onBoard());
+  check('suspender sem motivo: 400', (await post(`/admin/players/${id}/ban`, { days: 7, reason: ' ' })).status === 400);
+  check('prazo fora da lista: 400', (await post(`/admin/players/${id}/ban`, { days: 3, reason: 'e2e' })).status === 400);
+  const ban = await post(`/admin/players/${id}/ban`, { days: 7, reason: 'e2e' });
+  check('suspende por 7 dias', ban.status === 200 && ban.data.bannedUntil > Date.now() + 6 * 864e5 && ban.data.banReason === 'e2e' && ban.data.devices === 0);
+  check('o token deixa de valer', (await post('/profile', me)).status === 401);
+  const login = await post('/players', { name: me.name, password: PASSWORD });
+  check('login recusado com a data', login.status === 403 && login.data.code === 'banned' && /suspensa até \d{2}\/\d{2}\/\d{4}\./.test(login.data.error), login.data.error);
+  check('some do ranking', !(await onBoard()));
+  check('convidado não usa o nick', (await post('/games', { name: me.name, mode: 'anime' })).status === 401);
+
+  const forever = await post(`/admin/players/${id}/ban`, { days: null, reason: 'e2e' });
+  check('suspensão permanente', forever.status === 200 && (await post('/players', { name: me.name, password: PASSWORD })).data.error === 'Esta conta foi suspensa.');
+  const unban = await post(`/admin/players/${id}/unban`, {});
+  check('tira a suspensão', unban.status === 200 && unban.data.bannedUntil === 0);
+  check('tirar de novo: 409', (await post(`/admin/players/${id}/unban`, {})).status === 409);
+  check('volta a entrar', (await post('/players', { name: me.name, password: PASSWORD })).status === 200);
+  check('volta ao ranking', await onBoard());
+  const actions = unban.data.actions.map((a) => a.action);
+  check('registro: ban, ban, unban', actions.filter((a) => a === 'ban').length === 2 && actions.includes('unban'), actions.join(','));
+}
+
+// ---------- Denúncias e moderação ----------
+if (section('Denúncias')) {
+  const reporter = await player('Denuncia');
+  const target = await player('Denunciado');
+  const id = Number(/"id": (\d+)/.exec(d1(`SELECT id FROM players WHERE name_key = '${target.name.toLowerCase()}'`))?.[1]);
+  check('motivo inválido: 400', (await post('/reports', { token: reporter.token, kind: 'nick', target: target.name, reason: 'wrong' })).status === 400);
+  check('tipo inválido: 400', (await post('/reports', { token: reporter.token, kind: 'x', target: target.name, reason: 'other' })).status === 400);
+  check('denuncia o nick', (await post('/reports', { token: reporter.token, kind: 'nick', target: target.name, reason: 'offensive' })).status === 200);
+  await post('/reports', { token: reporter.token, kind: 'nick', target: target.name.toUpperCase(), reason: 'other' });
+  check('convidado também denuncia', (await post('/reports', { kind: 'nick', target: target.name, reason: 'impersonation' })).status === 200);
+
+  const [charId] = (await post('/games', { ...reporter, mode: 'games' })).data.characterIds;
+  check('personagem desconhecido: 400', (await post('/reports', { token: reporter.token, kind: 'image', target: 'nao-existe', reason: 'wrong' })).status === 400);
+  check('pede remoção de imagem', (await post('/reports', { token: reporter.token, kind: 'image', target: charId, reason: 'rights' })).status === 200);
+
+  const queue = await get('/admin/reports');
+  const nickGroup = queue.find((g) => g.kind === 'nick' && g.target === target.name.toLowerCase());
+  check('fila junta por nick: 2 denúncias (repetir não soma)', nickGroup?.count === 2 && nickGroup.playerId === id, JSON.stringify(nickGroup));
+  check('motivos contados', nickGroup?.reasons.offensive === 1 && nickGroup?.reasons.impersonation === 1);
+  const imageGroup = queue.find((g) => g.kind === 'image' && g.target === charId);
+  check('imagem na fila com o personagem', imageGroup?.count >= 1 && imageGroup.character?.id === charId);
+
+  const closed = await post('/admin/reports/close', { kind: 'nick', target: nickGroup.target, status: 'resolved' });
+  check('resolve o nick', closed.status === 200 && !closed.data.some((g) => g.kind === 'nick' && g.target === nickGroup.target));
+  check('fechar de novo: 409', (await post('/admin/reports/close', { kind: 'nick', target: nickGroup.target, status: 'resolved' })).status === 409);
+  check('depois de fechar, pode denunciar de novo', (await post('/reports', { token: reporter.token, kind: 'nick', target: target.name, reason: 'other' })).status === 200);
+  check('registro do admin', (await get(`/admin/players/${id}`)).actions.some((a) => a.action === 'report' && a.details.count === 2));
+  await post('/admin/reports/close', { kind: 'image', target: charId, status: 'dismissed' });
+  d1(`DELETE FROM admin_actions WHERE action = 'report' AND json_extract(details, '$.target') = '${charId}'`);
+}
+
+// ---------- Admin: personagens ----------
+if (section('Admin personagens')) {
+  const me = await player('Personagem');
+  const id = 'abby';
+  const before = await get(`/admin/characters/${id}`);
+  const restore = () =>
+    d1(
+      `UPDATE characters SET power = ${before.power}, name = '${before.name}', active = 1, image = '${before.image}', image_version = ${before.imageVersion ? `'${before.imageVersion}'` : 'NULL'}, admin_fields = NULL WHERE id = '${id}'; ` +
+        `DELETE FROM character_images WHERE character_id = '${id}'; DELETE FROM admin_actions WHERE action IN ('character', 'image') AND json_extract(details, '$.id') = '${id}';`,
+    );
+  try {
+    check('busca acha o personagem', (await get('/admin/characters?q=Abby&category=games')).some((c) => c.id === id));
+    check('busca filtra a categoria', !(await get('/admin/characters?q=Abby&category=anime')).some((c) => c.id === id));
+    check('poder fora de 0–100: 400', (await post(`/admin/characters/${id}`, { power: 101 })).status === 400);
+    check('fama inválida: 400', (await post(`/admin/characters/${id}`, { tier: 5 })).status === 400);
+    const edited = await post(`/admin/characters/${id}`, { power: 42.5, name: before.name });
+    check('edita o poder', edited.status === 200 && edited.data.power === 42.5 && edited.data.adminFields.join() === 'power', JSON.stringify(edited.data.adminFields));
+    check('histórico com antes e depois', edited.data.history[0]?.details.changes.power?.join() === `${before.power},42.5`);
+    check('o site continua sem o power', !('power' in ((await get('/characters')).find((c) => c.id === id) ?? { power: 1 })));
+
+    const off = await post(`/admin/characters/${id}`, { active: false });
+    check('desativa: sai do catálogo', off.data.active === false && !(await get('/characters')).some((c) => c.id === id));
+    await post(`/admin/characters/${id}`, { active: true });
+
+    check('imagem que não é WebP: 400', (await post(`/admin/characters/${id}/image`, { data: Buffer.from('oi').toString('base64') })).status === 400);
+    const webp = readFileSync(join(ROOT, 'public/chars/abby.webp'));
+    const up = await post(`/admin/characters/${id}/image`, { data: webp.toString('base64') });
+    check('envia imagem nova', up.status === 200 && up.data.image === `api/img/${id}` && up.data.adminFields.includes('image'));
+    const info = (await get('/characters')).find((c) => c.id === id);
+    check('catálogo aponta para a imagem nova (versão nova)', info?.image === `api/img/${id}` && info.imageVersion !== before.imageVersion);
+    const img = await fetch(`${BASE}/api/img/${id}?v=${info?.imageVersion}`);
+    const bytes = Buffer.from(await img.arrayBuffer());
+    check('imagem servida pelo Worker', img.status === 200 && img.headers.get('content-type') === 'image/webp' && bytes.equals(webp));
+    check('imagem inexistente: 404', (await fetch(`${BASE}/api/img/nao-existe`)).status === 404);
+    // A partida sorteada usa o poder novo (o admin pode corrigir sem deploy).
+    check('jogo continua sorteando', (await post('/games', { ...me, mode: 'games' })).status === 200);
+  } finally {
+    restore();
+  }
 }
 
 // ---------- Saúde ----------

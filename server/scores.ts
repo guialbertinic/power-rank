@@ -57,17 +57,21 @@ export async function getLeaderboard(request: Request, env: Env): Promise<Respon
   if (!isPeriod(period)) return badRequest('Período inválido');
 
   const look = 'p.name, p.avatar, p.name_color, p.frame, p.title';
+  // Conta suspensa some do ranking enquanto durar a suspensão (número inteiro: seguro no SQL).
+  const notBanned = `p.banned_until <= ${Date.now()}`;
   const query =
     period === 'daily'
       ? env.DB.prepare(
           `SELECT ${look}, b.score, b.duration_ms, NULL AS days
            FROM (${DAILY}) b JOIN players p ON p.id = b.player_id
+           WHERE ${notBanned}
            ORDER BY b.score DESC, ${SQL_DURATION.replace('duration_ms', 'b.duration_ms')} ASC, b.created_at ASC
            LIMIT ?`,
         ).bind(dayKey(), mode, LEADERBOARD_SIZE)
       : env.DB.prepare(
           `SELECT ${look}, t.score, NULL AS duration_ms, t.days
            FROM (${TOTAL}) t JOIN players p ON p.id = t.player_id
+           WHERE ${notBanned}
            ORDER BY t.score DESC, t.days ASC, t.player_id ASC
            LIMIT ?`,
         ).bind(mode, LEADERBOARD_SIZE);

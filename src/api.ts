@@ -4,6 +4,7 @@ import type { Features } from './game/features';
 import type { Rarity } from './game/gacha';
 import type { Risk } from './game/plinko';
 import type { Mode, PoolFilter } from './game/modes';
+import type { ReportKind, ReportReason } from './game/reports';
 import type { CharacterInfo } from './game/types';
 
 /**
@@ -106,6 +107,21 @@ export async function renameNick(token: string, name: string): Promise<string> {
     body: JSON.stringify({ token, name }),
   });
   return data.name;
+}
+
+/** Troca a senha (pedindo a atual); os outros aparelhos da conta são desconectados. */
+export async function changePassword(token: string, current: string, password: string): Promise<void> {
+  await request('/api/players/change-password', { method: 'POST', body: JSON.stringify({ token, current, password }) });
+}
+
+/** Desconecta todos os aparelhos da conta, inclusive este. */
+export async function logoutAll(token: string): Promise<void> {
+  await request('/api/players/logout-all', { method: 'POST', body: JSON.stringify({ token }) });
+}
+
+/** Denuncia um nick ou pede a remoção da imagem de um personagem (vai para a fila de moderação). */
+export async function sendReport(token: string | null, kind: ReportKind, target: string, reason: ReportReason): Promise<void> {
+  await request('/api/reports', { method: 'POST', body: JSON.stringify({ token, kind, target, reason }) });
 }
 
 /** Exclui a conta e os dados dela (a senha é pedida se a conta tiver uma). */

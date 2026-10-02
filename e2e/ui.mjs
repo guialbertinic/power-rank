@@ -130,8 +130,16 @@ try {
   check('dono troca a categoria e o outro vê', (await text(bruno, '.party-code-panel .score-label'))?.includes('Games'));
   await ana.click('.party-player-menu');
   await ana.waitForSelector('.party-player-actions');
-  check('dono abre as ações do jogador (dono / expulsar)', (await ana.$$('.party-player-actions button')).length === 2 && !(await bruno.$('.party-player-menu')));
+  check('dono abre as ações do jogador (denunciar / dono / expulsar)', (await ana.$$('.party-player-actions button')).length === 3);
   await ana.click('.party-player-menu');
+  // Quem não é dono só denuncia o nick.
+  await bruno.click('.party-player-menu');
+  await bruno.waitForSelector('.party-player-actions');
+  check('convidado só tem "Denunciar nick"', (await bruno.$$eval('.party-player-actions button', (els) => els.map((el) => el.textContent))).join() === 'Denunciar nick');
+  await bruno.click('.party-player-actions button');
+  await bruno.waitForSelector('.party-players + .report-form');
+  check('denunciar abre o formulário com o nick', (await text(bruno, '.report-form .report-target')) === nick('Ana'));
+  await bruno.click('.report-form .link-button');
   check('lobby sem scroll horizontal no celular', (await overflowX(bruno)) <= 0);
 
   // Expulsar: quem sai vê o aviso na hora, e ao tentar voltar também.
@@ -254,7 +262,7 @@ try {
   await sleep(200);
   check(
     'avatares por categoria, recolhidos',
-    (await ana.$$('.shop-cat-header')).length === 3 && !(await ana.$('.shop-avatars')),
+    (await ana.$$('.shop-cat-header')).length === 4 && !(await ana.$('.shop-avatars')),
   );
   await ana.click('.shop-cat-header[data-group="Animes"]');
   await (await ana.waitForSelector('.shop-subcat-header[data-group="One Piece"]')).click();
@@ -272,19 +280,34 @@ try {
   check('barra de perfil mostra o visual', tag.includes('cosmetic-name-fire') && tag.includes('cosmetic-frame-legend') && tag.includes('goku'));
   check('título aparece embaixo do nick', (await text(ana, '.profile-bar .player-title')) === 'Iniciante Próspero');
 
+  /** Abre a tela Minha conta pelo menu do perfil (convidado: "Nick e criar conta"). */
+  async function openAccount(page, label = 'Minha conta') {
+    if (!(await page.$('.profile-bar'))) {
+      await page.click('.home-button');
+      await page.waitForSelector('.profile-bar');
+    }
+    await page.waitForSelector('.profile-bar-me:not([disabled])');
+    if (!(await page.$('.profile-menu'))) await page.click('.profile-bar-me');
+    await (await page.waitForSelector(`.profile-menu ::-p-text(${label})`)).click();
+    await page.waitForSelector('.account');
+  }
+
   // ---------- Conta e sincronização ----------
   section('Conta e sincronização');
-  // Bruno (convidado, celular) cria a conta pelo menu.
-  await bruno.click('.profile-bar-me');
-  await (await bruno.waitForSelector('.profile-menu ::-p-text(Sincronizar dispositivo)')).click();
+  // Bruno (convidado, celular) cria a conta pela tela Minha conta.
+  await openAccount(bruno, 'Nick e criar conta');
   await bruno.waitForSelector('.sync-password-form');
+  check('celular: tela da conta sem scroll horizontal', (await overflowX(bruno)) <= 0);
   await bruno.type('input[aria-label="Nova senha"]', PASSWORD);
   await bruno.type('input[aria-label="Repita a senha"]', PASSWORD);
   await bruno.waitForSelector('.sync-password-form .btn-primary:not([disabled])', { timeout: 15000 }); // anti-bot
   await bruno.click('.sync-password-form .btn-primary');
-  await bruno.waitForSelector('.sync-panel ::-p-text(Conta pronta)');
-  check('convidado cria a conta pelo menu', Boolean(await bruno.$('.profile-bar .coins')) && !(await bruno.$('.profile-guest')));
-  await bruno.keyboard.press('Escape');
+  await bruno.waitForSelector('.account-devices');
+  check('convidado cria a conta: a tela vira a da conta (senha, aparelhos)', Boolean(await bruno.$('input[aria-label="Senha atual"]')));
+  check('celular: tela da conta (logada) sem scroll horizontal', (await overflowX(bruno)) <= 0);
+  await bruno.click('.home-button');
+  await bruno.waitForSelector('.profile-bar .coins');
+  check('depois de criar a conta, a home tem saldo', !(await bruno.$('.profile-guest')));
   // Celular: a faixa tem só nick e saldo (sem sobrepor); Loja e Arcade abrem na sanfona.
   const rect = (sel) => bruno.$eval(sel, (el) => el.getBoundingClientRect().toJSON());
   const me = await rect('.profile-bar-me');
@@ -298,12 +321,13 @@ try {
 
   // Ana força a sincronização depois de uma mudança feita "em outro dispositivo".
   d1(`UPDATE players SET coins = 777 WHERE name_key = '${nick('ana').toLowerCase()}'`);
-  await ana.click('.profile-bar-me');
-  await (await ana.waitForSelector('.profile-menu ::-p-text(Sincronizar dispositivo)')).click();
-  await ana.click('.sync-force .btn');
-  await ana.waitForSelector('.sync-force ::-p-text(Sincronizado)');
+  await openAccount(ana);
+  check('conta: um aparelho conectado', (await text(ana, '.account-devices')) === 'Conectada só neste aparelho.');
+  await ana.click('.account-actions ::-p-text(Forçar sincronização)');
+  await ana.waitForSelector('.account-section ::-p-text(Sincronizado)');
+  await ana.click('.home-button');
+  await ana.waitForSelector('.profile-bar .coins');
   check('forçar sincronização traz o saldo do servidor', (await text(ana, '.profile-bar .coins')) === '777');
-  await ana.keyboard.press('Escape');
 
   // Ana entra no celular com Login + senha.
   const celular = await b.page(PHONE);
@@ -401,6 +425,17 @@ try {
   await ana.click('.leaderboard-help-toggle');
   check('"?" explica o desempate e o acumulado', /mais rápido/.test((await text(ana, '.leaderboard-help')) ?? ''));
   await ana.click('.leaderboard-help-toggle');
+
+  // Reportar imagem: escolhe o personagem e o motivo; vai para a fila de moderação (conferida no Admin).
+  await ana.click('.result > .report-link .link-button');
+  await ana.waitForSelector('.report-form select');
+  const reportOptions = await ana.$$eval('.report-form select option:not([disabled])', (els) => els.map((el) => el.value));
+  check('reportar imagem lista os 10 personagens', reportOptions.length === 10, String(reportOptions.length));
+  await ana.select('.report-form select', reportOptions[0]);
+  await ana.click('.report-reasons ::-p-text(Personagem errado)');
+  await ana.click('.report-form .btn-primary');
+  await ana.waitForSelector('.report-form ::-p-text(Obrigado)');
+  check('reportar imagem confirma o envio', true);
 
   // ---------- Desafio diário ----------
   section('Desafio diário');
@@ -553,8 +588,7 @@ try {
   await ana.waitForSelector('.profile-bar .coins');
   await sleep(800);
   const coinsBefore = await text(ana, '.profile-bar .coins');
-  await ana.click('.profile-bar-me');
-  await (await ana.waitForSelector('.profile-menu ::-p-text(Trocar nick)')).click();
+  await openAccount(ana);
   await ana.$eval('input[aria-label="Novo nick"]', (el) => (el.value = ''));
   await ana.type('input[aria-label="Novo nick"]', nick('Bruno'));
   await ana.click('.change-nick .btn-primary');
@@ -563,12 +597,15 @@ try {
   await ana.$eval('input[aria-label="Novo nick"]', (el) => (el.value = ''));
   await ana.type('input[aria-label="Novo nick"]', nick('AnaNova'));
   await ana.click('.change-nick .btn-primary');
+  await ana.waitForSelector('.change-nick ::-p-text(Salvo)');
+  await ana.click('.home-button');
   await ana.waitForSelector(`.profile-bar-me ::-p-text(${nick('AnaNova')})`);
   await sleep(800);
   const coinsAfter = await text(ana, '.profile-bar .coins');
   check('troca o nick da conta e mantém as moedas', coinsAfter === coinsBefore, `${coinsBefore} → ${coinsAfter}`);
 
-  await ana.click('.profile-leave');
+  await ana.click('.profile-bar-me');
+  await (await ana.waitForSelector('.profile-leave')).click();
   await ana.waitForSelector('#nick');
   check('sair da conta volta para a tela do nick', Boolean(await ana.$('.nick-login')));
   await ana.type('#nick', nick('AnaNova'));
@@ -582,30 +619,27 @@ try {
   await dora.goto('http://localhost:5173/', { waitUntil: 'networkidle0' });
   await chooseNick(dora, nick('Dora'));
   await dora.waitForSelector('.profile-bar .coins');
-  await dora.click('.profile-bar-me');
-  await (await dora.waitForSelector('.profile-menu ::-p-text(Excluir minha conta)')).click();
-  await dora.waitForSelector('.delete-account input[type=password]');
+  const openDelete = async () => {
+    await openAccount(dora);
+    await (await dora.waitForSelector('.delete-account-toggle')).click();
+    await dora.waitForSelector('.delete-account input[type=password]');
+  };
+  await openDelete();
   check('excluir conta: aviso e senha, sem scroll horizontal no celular', Boolean(await text(dora, '.delete-account-warning')) && (await overflowX(dora)) <= 0);
-  // Campo e botões dentro do menu (celular e computador).
-  const insideMenu = () =>
+  // Campo e botões dentro do painel da conta (celular e computador).
+  const insidePanel = () =>
     dora.evaluate(() => {
-      const menu = document.querySelector('.profile-menu').getBoundingClientRect();
+      const panel = document.querySelector('.delete-account').closest('.account-section').getBoundingClientRect();
       return [...document.querySelectorAll('.delete-account input, .delete-account button, .delete-account p')].every((el) => {
         const r = el.getBoundingClientRect();
-        return r.left >= menu.left - 1 && r.right <= menu.right + 1;
+        return r.left >= panel.left - 1 && r.right <= panel.right + 1;
       });
     });
-  check('excluir conta: campo e botões dentro do menu no celular', await insideMenu());
-  // Trocar de celular para computador recarrega a página: abre o menu e o formulário de novo.
+  check('excluir conta: campo e botões dentro do painel no celular', await insidePanel());
+  // Trocar de celular para computador recarrega a página (volta para a home): abre a tela e o formulário de novo.
   await dora.setViewport(DESKTOP);
-  await dora.waitForSelector('.profile-bar .coins');
-  if (!(await dora.$('.delete-account'))) {
-    if (!(await dora.$('.profile-menu'))) await dora.click('.profile-bar-me');
-    await (await dora.waitForSelector('.profile-menu ::-p-text(Excluir minha conta)')).click();
-    await dora.waitForSelector('.delete-account input[type=password]');
-  }
-  await dora.waitForFunction(() => getComputedStyle(document.querySelector('.profile-menu')).position === 'absolute');
-  check('excluir conta: campo e botões dentro do menu no computador', await insideMenu());
+  if (!(await dora.$('.delete-account input[type=password]'))) await openDelete();
+  check('excluir conta: campo e botões dentro do painel no computador', await insidePanel());
   await dora.type('.delete-account input[type=password]', 'senha-errada');
   await dora.click('.delete-account .btn-danger');
   await dora.waitForSelector('.delete-account .error');
@@ -627,6 +661,15 @@ try {
   await bruno.click('.btn-solo');
   await bruno.waitForSelector('.solo-entry .difficulty-picker');
   check('painel do Solo sem scroll horizontal', (await overflowX(bruno)) <= 0);
+  // Free for All: escolhe as categorias da mistura (Pokémon vem desligado).
+  await bruno.click('.mode-picker ::-p-text(Free for All)');
+  await bruno.waitForSelector('.solo-entry .category-picker');
+  const ffaOn = () => bruno.$$eval('.category-picker .setting-option.selected', (els) => els.map((el) => el.textContent));
+  check('Free for All: Animes, Games e Filmes e Séries ligados', (await ffaOn()).join() === 'Animes,Games,Filmes e Séries', (await ffaOn()).join());
+  await bruno.click('.category-picker ::-p-text(Pokémon)');
+  check('liga Pokémon no Free for All', (await ffaOn()).includes('Pokémon'));
+  await bruno.click('.category-picker ::-p-text(Pokémon)');
+  check('seletor de modo e categorias sem scroll horizontal', (await overflowX(bruno)) <= 0);
   await bruno.click('.mode-picker ::-p-text(Pokémon)');
   await bruno.waitForSelector('.solo-entry .gen-picker');
   check('Pokémon troca a dificuldade pelas gerações', !(await bruno.$('.difficulty-picker')));
@@ -668,6 +711,17 @@ try {
   await admin.waitForSelector('.admin-facts');
   check('admin: detalhe do jogador', (await text(admin, '.admin-player-title'))?.toLowerCase().startsWith(nick('bruno').toLowerCase()));
   check('admin: jogador sem scroll horizontal no celular', (await overflowX(admin)) <= 0);
+  check('admin: suspensão no detalhe do jogador', Boolean(await admin.$('.admin-section ::-p-text(Suspender)')));
+  await admin.click('.admin-tabs .mode-option:nth-child(4)');
+  await admin.type('.admin-toolbar input', 'abby');
+  await (await admin.waitForSelector('.admin-character-row')).click();
+  await admin.waitForSelector('.admin-character-form');
+  check('admin: edição do personagem com o poder', (await admin.$eval('.admin-character-form input[type=number]', (el) => el.value)) !== '');
+  check('admin: personagem sem scroll horizontal no celular', (await overflowX(admin)) <= 0);
+  await admin.click('.admin-tabs .mode-option:nth-child(5)');
+  await admin.waitForSelector('.admin-report');
+  check('admin: a imagem reportada aparece na moderação', Boolean(await admin.$('.admin-report ::-p-text(imagem)')));
+  check('admin: moderação sem scroll horizontal no celular', (await overflowX(admin)) <= 0);
   await admin.close();
 
   check('sem erros no console', b.errors.length === 0, b.errors.join(' | '));

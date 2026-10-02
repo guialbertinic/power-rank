@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { filterFor, parseDifficulty, parseGenerations, poolFor } from './modes';
+import { drawFor, filterFor, parseCategories, parseDifficulty, parseFilter, parseGenerations, poolFor } from './modes';
 import type { CharacterInfo } from './types';
 
 const char = (id: string, category: CharacterInfo['category'], extra: Partial<CharacterInfo> = {}): CharacterInfo => ({
@@ -14,6 +14,7 @@ const char = (id: string, category: CharacterInfo['category'], extra: Partial<Ch
 const chars = [
   char('goku', 'anime', { tier: 1 }),
   char('mario', 'games', { tier: 1 }),
+  char('vader', 'movies', { tier: 1 }),
   char('pikachu', 'pokemon', { generation: 1 }),
   char('lucario', 'pokemon', { generation: 4 }),
 ];
@@ -21,8 +22,13 @@ const chars = [
 const ids = (list: CharacterInfo[]) => list.map((c) => c.id);
 
 describe('poolFor', () => {
-  it('keeps Pokémon out of Free for All', () => {
-    expect(ids(poolFor('all', chars))).toEqual(['goku', 'mario']);
+  it('keeps Pokémon out of Free for All by default', () => {
+    expect(ids(poolFor('all', chars))).toEqual(['goku', 'mario', 'vader']);
+  });
+
+  it('mixes only the chosen categories in Free for All, Pokémon in any difficulty', () => {
+    expect(ids(poolFor('all', chars, { categories: ['movies', 'pokemon'], difficulty: 'easy' }))).toEqual(['vader', 'pikachu', 'lucario']);
+    expect(ids(poolFor('anime', chars, { categories: ['games'] }))).toEqual(['goku']);
   });
 
   it('filters Pokémon by generation', () => {
@@ -57,6 +63,51 @@ describe('filterFor', () => {
     const filter = { generations: [1], difficulty: 'easy' as const };
     expect(filterFor('pokemon', filter)).toEqual({ generations: [1] });
     expect(filterFor('all', filter)).toEqual({ difficulty: 'easy' });
+    expect(filterFor('anime', { ...filter, categories: ['games'] })).toEqual({ difficulty: 'easy' });
+    expect(filterFor('all', { ...filter, categories: ['games'] })).toEqual({ difficulty: 'easy', categories: ['games'] });
+  });
+});
+
+describe('parseCategories', () => {
+  it('keeps the selector order and treats the default as no filter', () => {
+    expect(parseCategories(['pokemon', 'anime', 'anime'])).toEqual(['anime', 'pokemon']);
+    expect(parseCategories(['movies', 'games', 'anime'])).toBeUndefined();
+    expect(parseCategories(undefined)).toBeUndefined();
+  });
+
+  it('rejects empty or unknown lists', () => {
+    expect(parseCategories([])).toBeNull();
+    expect(parseCategories(['all'])).toBeNull();
+    expect(parseCategories('anime')).toBeNull();
+  });
+});
+
+describe('parseFilter', () => {
+  it('validates only what the mode uses', () => {
+    expect(parseFilter('anime', { generations: 'x', categories: 'x', difficulty: 'easy' })).toEqual({ difficulty: 'easy' });
+    expect(parseFilter('all', { categories: ['pokemon'] })).toEqual({ categories: ['pokemon'] });
+    expect(parseFilter('all', { categories: [] })).toBe('Categorias inválidas');
+    expect(parseFilter('pokemon', { generations: [10] })).toBe('Gerações inválidas');
+  });
+});
+
+describe('drawFor', () => {
+  it('balances Free for All between categories, even with many Pokémon', () => {
+    const pool = [
+      ...Array.from({ length: 1000 }, (_, i) => char(`p${i}`, 'pokemon', { generation: 1 })),
+      ...Array.from({ length: 10 }, (_, i) => char(`a${i}`, 'anime', { tier: 1 })),
+    ];
+    let pokemon = 0;
+    for (let round = 0; round < 50; round++) pokemon += drawFor('all', pool, 10).filter((c) => c.category === 'pokemon').length;
+    // 500 sorteados em 50 rodadas: metade de cada (~250), longe dos ~99% de um sorteio simples.
+    expect(pokemon).toBeGreaterThan(175);
+    expect(pokemon).toBeLessThan(325);
+  });
+
+  it('draws distinct characters and fills from the bigger categories when one runs out', () => {
+    const pool = [char('a1', 'anime'), ...Array.from({ length: 20 }, (_, i) => char(`g${i}`, 'games'))];
+    const drawn = drawFor('all', pool, 10);
+    expect(new Set(ids(drawn)).size).toBe(10);
   });
 });
 

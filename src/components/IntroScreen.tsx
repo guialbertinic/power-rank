@@ -2,9 +2,11 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { DailyStatus } from '../api';
 import { msUntilNextDay } from '../game/daily';
 import type { Difficulty, Mode } from '../game/modes';
+import type { Category } from '../game/types';
 import { isPartyCode, normalizePartyCode, PARTY_CODE_LENGTH } from '../game/party';
 import { serverText, useI18n } from '../i18n';
 import type { Identity } from '../nick';
+import CategoryPicker from './CategoryPicker';
 import DifficultyPicker from './DifficultyPicker';
 import GenerationPicker from './GenerationPicker';
 import Leaderboard from './Leaderboard';
@@ -23,6 +25,9 @@ interface Props {
   /** Dificuldade dos outros modos (vale para Solo e para a sala criada; o diário usa todos). */
   difficulty: Difficulty;
   onDifficultyChange: (difficulty: Difficulty) => void;
+  /** Categorias que entram no Free for All (Solo e sala criada; o diário usa as padrão). */
+  categories: Category[];
+  onCategoriesChange: (categories: Category[]) => void;
   /** Categorias sem personagens suficientes aparecem como "em breve". */
   isModeAvailable: (mode: Mode) => boolean;
   /** Com a dificuldade/gerações escolhidas há personagens para uma partida. */
@@ -44,11 +49,11 @@ interface Props {
 /**
  * Home: categoria (rótulo "Modo"), as abas SOLO / PARTY / DIÁRIO e o ranking da categoria escolhida no título (o
  * perfil fica na ProfileBar, no canto). Cada aba abre um painel: Solo e Party com a configuração da partida
- * (dificuldade, ou gerações no Pokémon) e o iniciar / criar ou entrar em sala; o Diário com a regra, o status de hoje
+ * (dificuldade, ou gerações no Pokémon; no Free for All, também as categorias) e o iniciar / criar ou entrar em sala; o Diário com a regra, o status de hoje
  * e o tempo até o próximo.
  */
 export default function IntroScreen(props: Props) {
-  const { identity, mode, onModeChange, generations, onGenerationsChange, difficulty, onDifficultyChange } = props;
+  const { identity, mode, onModeChange, generations, onGenerationsChange, difficulty, onDifficultyChange, categories, onCategoriesChange } = props;
   const { isModeAvailable, canDraw, busy, onSolo, daily, onDaily, onCreateParty, onJoinParty, partyError, soloError } = props;
   const { t, lang } = useI18n();
   const [open, setOpen] = useState<Panel | null>(null);
@@ -135,7 +140,10 @@ export default function IntroScreen(props: Props) {
             (mode === 'pokemon' ? (
               <GenerationPicker generations={generations} onChange={onGenerationsChange} disabled={busy} />
             ) : (
-              <DifficultyPicker difficulty={difficulty} onChange={onDifficultyChange} disabled={busy} />
+              <>
+                {mode === 'all' && <CategoryPicker categories={categories} onChange={onCategoriesChange} disabled={busy} />}
+                <DifficultyPicker difficulty={difficulty} onChange={onDifficultyChange} disabled={busy} />
+              </>
             ))}
           {open === 'solo' ? (
             <>

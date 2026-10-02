@@ -3,8 +3,7 @@ import { claimDailyAttempt, dailyChallenge } from './daily';
 import { badRequest, GAME_TTL_MS, json, sanitizeName, type Env } from './lib';
 import { playerAccess } from './players';
 import { nickProblem } from './security';
-import { drawCharacters } from '../src/game/draw';
-import { DEFAULT_MODE, isMode, parseDifficulty, parseGenerations, poolFor } from '../src/game/modes';
+import { DEFAULT_MODE, drawFor, isMode, parseFilter, poolFor } from '../src/game/modes';
 import { SLOTS } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
@@ -19,7 +18,7 @@ import type { Character } from '../src/game/types';
  */
 export async function createGame(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const body = (await request.json().catch(() => null)) as
-    | { name?: unknown; token?: unknown; mode?: unknown; generations?: unknown; difficulty?: unknown; daily?: unknown }
+    | { name?: unknown; token?: unknown; mode?: unknown; generations?: unknown; difficulty?: unknown; categories?: unknown; daily?: unknown }
     | null;
   const name = sanitizeName(body?.name);
   if (!name) return badRequest('Nick inválido');
@@ -30,12 +29,11 @@ export async function createGame(request: Request, env: Env, ctx: ExecutionConte
   if (problem) return badRequest(problem);
   const mode = body?.mode ?? DEFAULT_MODE;
   if (!isMode(mode)) return badRequest('Categoria inválida');
-  const generations = mode === 'pokemon' && body?.daily !== true ? parseGenerations(body?.generations) : undefined;
-  if (generations === null) return badRequest('Gerações inválidas');
-  const difficulty = mode !== 'pokemon' && body?.daily !== true ? parseDifficulty(body?.difficulty) : undefined;
-  if (difficulty === null) return badRequest('Dificuldade inválida');
+  // O desafio diário ignora os filtros (é o mesmo para todos).
+  const filter = body?.daily === true ? {} : parseFilter(mode, body ?? {});
+  if (typeof filter === 'string') return badRequest(filter);
   const { active, byId } = await loadCatalog(env);
-  const pool = poolFor(mode, active, { generations, difficulty });
+  const pool = poolFor(mode, active, filter);
   if (pool.length < SLOTS) return badRequest('Categoria ainda sem personagens suficientes');
   const gameId = crypto.randomUUID();
 
@@ -52,7 +50,7 @@ export async function createGame(request: Request, env: Env, ctx: ExecutionConte
     drawn = characters as Character[];
     daily = challenge.day;
   } else {
-    drawn = drawCharacters(pool, SLOTS);
+    drawn = drawFor(mode, pool, SLOTS);
   }
   const characterIds = drawn.map((c) => c.id);
   const now = Date.now();

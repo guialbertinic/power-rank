@@ -3,7 +3,7 @@ import { avatarItemId } from '../game/cosmetics';
 import { MODES } from '../game/modes';
 import type { CharacterInfo } from '../game/types';
 import { POOL } from '../data';
-import { useI18n } from '../i18n';
+import { modeLabel, useI18n } from '../i18n';
 
 interface Props {
   owned: Set<string>;
@@ -92,7 +92,7 @@ export default function ShopAvatars({ owned, visible, equipped, renderItem }: Pr
                     ? Number(a.key) - Number(b.key)
                     : a.label.localeCompare(b.label),
             );
-          return { id: m.id, label: m.label, count: list.length, groups };
+          return { id: m.id, label: modeLabel(t, m.id), count: list.length, groups };
         })
         .filter((c) => c.count > 0),
     [available, owned, t],

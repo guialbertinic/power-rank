@@ -1,12 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { BAN_DAYS, BAN_FOREVER } from '../../game/account';
 import { ADMIN_COINS_MAX, type AdminPlayer } from '../../game/admin';
-import { MODES } from '../../game/modes';
-import { useI18n } from '../../i18n';
-import { adjustCoins, fetchPlayer, renamePlayer, resetPassword } from './api';
+import { isMode } from '../../game/modes';
+import { modeLabel, useI18n } from '../../i18n';
+import { adjustCoins, banPlayer, fetchPlayer, renamePlayer, resetPassword, unbanPlayer } from './api';
 import { actionText, dateTimeText, errorText, numberText } from './format';
 import { PlayerBadges } from './PlayersPanel';
 
-/** Detalhes de uma conta e as ações do admin: moedas, nick e senha temporária. Toda ação fica no registro. */
+/** Detalhes de uma conta e as ações do admin: moedas, nick, senha temporária e suspensão. Toda ação fica no registro. */
 export default function PlayerDetail({ id, onBack }: { id: number; onBack: () => void }) {
   const { t, lang } = useI18n();
   const [player, setPlayer] = useState<AdminPlayer | null>(null);
@@ -16,6 +17,9 @@ export default function PlayerDetail({ id, onBack }: { id: number; onBack: () =>
   const [reason, setReason] = useState('');
   const [newName, setNewName] = useState('');
   const [password, setPassword] = useState<string | null>(null);
+  /** Suspensão: prazo em dias ('forever' = permanente) e motivo. */
+  const [banDays, setBanDays] = useState<string>(String(BAN_DAYS[0]));
+  const [banReason, setBanReason] = useState('');
 
   useEffect(() => {
     fetchPlayer(id)
@@ -65,7 +69,18 @@ export default function PlayerDetail({ id, onBack }: { id: number; onBack: () =>
     });
   };
 
+  const onBan = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!player || !window.confirm(t('admin.ban.confirm', { name: player.name }))) return;
+    if (await run(() => banPlayer(id, banDays === 'forever' ? null : Number(banDays), banReason))) setBanReason('');
+  };
+
+  const onUnban = () => {
+    if (player && window.confirm(t('admin.ban.unbanConfirm', { name: player.name }))) run(() => unbanPlayer(id));
+  };
+
   const num = (n: number) => numberText(n, lang);
+  const banned = player !== null && player.bannedUntil > Date.now();
   const deltaValue = Number(delta);
   const deltaValid = Number.isInteger(deltaValue) && deltaValue !== 0 && Math.abs(deltaValue) <= ADMIN_COINS_MAX;
 
@@ -159,6 +174,47 @@ export default function PlayerDetail({ id, onBack }: { id: number; onBack: () =>
           </section>
 
           <section className="panel admin-section">
+            <h3 className="section-title">{t('admin.ban.title')}</h3>
+            {banned ? (
+              <>
+                <p className="error">
+                  {player.bannedUntil >= BAN_FOREVER
+                    ? t('admin.ban.forever')
+                    : t('admin.ban.until', { date: dateTimeText(player.bannedUntil, lang) })}
+                  {player.banReason && ` · ${player.banReason}`}
+                </p>
+                <button className="btn btn-secondary btn-sm" onClick={onUnban} disabled={busy}>
+                  {t('admin.ban.unban')}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="muted admin-small">{t('admin.ban.hint')}</p>
+                <form className="admin-form" onSubmit={onBan}>
+                  <select value={banDays} onChange={(e) => setBanDays(e.target.value)} aria-label={t('admin.ban.duration')}>
+                    {BAN_DAYS.map((d) => (
+                      <option key={d} value={d}>
+                        {t(d === 1 ? 'admin.ban.oneDay' : 'admin.ban.days', { n: d })}
+                      </option>
+                    ))}
+                    <option value="forever">{t('admin.ban.permanent')}</option>
+                  </select>
+                  <input
+                    value={banReason}
+                    onChange={(e) => setBanReason(e.target.value)}
+                    maxLength={200}
+                    placeholder={t('admin.player.reason')}
+                    aria-label={t('admin.player.reason')}
+                  />
+                  <button className="btn btn-danger btn-sm" disabled={busy || !banReason.trim()}>
+                    {t('admin.ban.submit')}
+                  </button>
+                </form>
+              </>
+            )}
+          </section>
+
+          <section className="panel admin-section">
             <h3 className="section-title">{t('admin.player.recentGames')}</h3>
             {!player.recentScores.length && <p className="muted">{t('admin.none')}</p>}
             <ul className="admin-list admin-small">
@@ -166,7 +222,7 @@ export default function PlayerDetail({ id, onBack }: { id: number; onBack: () =>
                 <li key={i} className="admin-log-row">
                   <span className="muted">{dateTimeText(s.createdAt, lang)}</span>
                   <span>
-                    {MODES.find((m) => m.id === s.mode)?.label ?? s.mode}
+                    {isMode(s.mode) ? modeLabel(t, s.mode) : s.mode}
                     {s.daily && ` · ${t('admin.player.daily')}`}
                   </span>
                   <span>

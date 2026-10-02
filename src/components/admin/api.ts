@@ -1,5 +1,16 @@
 import { request } from '../../api';
-import type { AdminAction, AdminFeature, AdminPlayer, AdminPlayerRow, Economy } from '../../game/admin';
+import type {
+  AdminAction,
+  AdminCharacter,
+  AdminCharacterDetail,
+  AdminFeature,
+  AdminPlayer,
+  AdminPlayerRow,
+  CharacterEdit,
+  Economy,
+  ReportGroup,
+} from '../../game/admin';
+import type { Category } from '../../game/types';
 import type { FeatureId } from '../../game/features';
 
 /** Rotas /api/admin/* (o Cloudflare Access pede o login antes; no dev local, liberado). */
@@ -28,3 +39,25 @@ export const resetPassword = (id: number) =>
   post<{ password: string; player: AdminPlayer }>(`/api/admin/players/${id}/password`);
 
 export const fetchActions = () => request<AdminAction[]>('/api/admin/actions');
+
+/** Suspende a conta (`days` null = permanente) ou tira a suspensão. */
+export const banPlayer = (id: number, days: number | null, reason: string) =>
+  post<AdminPlayer>(`/api/admin/players/${id}/ban`, { days, reason });
+
+export const unbanPlayer = (id: number) => post<AdminPlayer>(`/api/admin/players/${id}/unban`);
+
+export const searchCharacters = (q: string, category: Category | null) =>
+  request<AdminCharacter[]>(`/api/admin/characters?${new URLSearchParams({ q, ...(category ? { category } : {}) })}`);
+
+export const fetchCharacter = (id: string) => request<AdminCharacterDetail>(`/api/admin/characters/${id}`);
+
+export const editCharacter = (id: string, edit: CharacterEdit) => post<AdminCharacterDetail>(`/api/admin/characters/${id}`, edit);
+
+/** Envia a imagem nova (WebP em base64, já no tamanho do jogo). */
+export const uploadCharacterImage = (id: string, data: string) =>
+  post<AdminCharacterDetail>(`/api/admin/characters/${id}/image`, { data });
+
+export const fetchReports = () => request<ReportGroup[]>('/api/admin/reports');
+
+export const closeReports = (group: Pick<ReportGroup, 'kind' | 'target'>, status: 'resolved' | 'dismissed') =>
+  post<ReportGroup[]>('/api/admin/reports/close', { kind: group.kind, target: group.target, status });

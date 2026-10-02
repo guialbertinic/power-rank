@@ -1,5 +1,7 @@
 import type { FeatureId } from './features';
 import type { Rarity } from './gacha';
+import type { ReportKind, ReportReason } from './reports';
+import type { Category } from './types';
 
 /** Respostas das rotas /api/admin/* (compartilhadas entre o Worker e a tela de admin). */
 
@@ -10,7 +12,7 @@ export interface AdminFeature {
   updatedAt: number | null;
 }
 
-export type AdminActionKind = 'feature' | 'coins' | 'rename' | 'password';
+export type AdminActionKind = 'feature' | 'coins' | 'rename' | 'password' | 'ban' | 'unban' | 'character' | 'image' | 'report';
 
 export interface AdminAction {
   id: number;
@@ -60,6 +62,9 @@ export interface AdminPlayerRow {
   adult: boolean;
   /** Bloqueado por senha errada até (0 = não). */
   lockedUntil: number;
+  /** Suspensa pelo admin até (0 = não; BAN_FOREVER = permanente). */
+  bannedUntil: number;
+  banReason: string | null;
 }
 
 export interface AdminPlayer extends AdminPlayerRow {
@@ -79,3 +84,49 @@ export interface AdminPlayer extends AdminPlayerRow {
 
 /** Limite do ajuste de moedas numa ação (evita erro de digitação com zeros a mais). */
 export const ADMIN_COINS_MAX = 100_000;
+
+/** Personagem como o admin vê e edita (com o `power`). */
+export interface AdminCharacter {
+  id: string;
+  name: string;
+  category: Category;
+  series: string;
+  version: string | null;
+  tier: 1 | 2 | 3 | null;
+  power: number;
+  /** Caminho da imagem (chars/... do deploy, ou api/img/... enviada pelo admin) e a versão para o ?v=. */
+  image: string | null;
+  imageVersion: string | null;
+  anilistId: number | null;
+  active: boolean;
+  /** Campos editados pelo admin (o `characters:sync` não sobrescreve). */
+  adminFields: string[];
+}
+
+export interface AdminCharacterDetail extends AdminCharacter {
+  /** Ações do admin neste personagem (mudanças de `power` etc.), mais recentes primeiro. */
+  history: AdminAction[];
+  /** Denúncias abertas de imagem. */
+  openReports: number;
+}
+
+/** Campos que o admin pode editar (fora a imagem). */
+export type CharacterEdit = Partial<Pick<AdminCharacter, 'name' | 'series' | 'version' | 'tier' | 'power' | 'active'>>;
+
+/** Imagem enviada pelo admin: WebP de até este tamanho (o site converte para 240px antes de enviar). */
+export const ADMIN_IMAGE_MAX_BYTES = 200_000;
+
+/** Denúncias abertas de um mesmo alvo (nick ou personagem), juntas. */
+export interface ReportGroup {
+  kind: ReportKind;
+  target: string;
+  targetName: string;
+  /** Nick de conta: o id (para abrir o jogador). Null = convidado ou imagem. */
+  playerId: number | null;
+  count: number;
+  reasons: Partial<Record<ReportReason, number>>;
+  firstAt: number;
+  lastAt: number;
+  /** Imagem: o personagem como está agora (para conferir e trocar). */
+  character: AdminCharacter | null;
+}

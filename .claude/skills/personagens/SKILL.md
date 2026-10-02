@@ -33,6 +33,9 @@ description: Adiciona ou corrige personagens do Power Rank (anime, games ou Pok�
   - **Pokémon → PokeAPI** (arte oficial pelo `pokeapiId`). As entradas vêm de `npm run pokemon:import`
     (espécie nova da PokeAPI entra sozinha; ajuste de poder direto no JSON ou na tabela `LORE` do script, que só
     vale para entradas novas).
+  - **Filmes e Séries (`movies`, ids `mv-...`) → Wikipédia**, só pelo `"wikipedia"`. Prefira o artigo da versão de
+    cinema/série ("Logan (film character)", "Zod (DC Extended Universe)"): o artigo do personagem de quadrinho traz
+    arte de HQ. Título que redireciona para uma lista ("Characters of ...") dá imagem errada.
   - **Games → Wikipédia** com `"wikipedia": "Título exato do artigo"` (teste o título antes). Sem isso, tenta o
     IGDB, que quase não tem retratos.
   - Sem fonte automática (personagem sem artigo): peça ao usuário para baixar a imagem no navegador e rode
@@ -61,6 +64,11 @@ O jogo não lê o JSON: o servidor usa a tabela `characters` do D1 (o site receb
 - Avise o usuário para rodar `npm.cmd run characters:sync -- --remote` (produção) **junto com o push** das imagens
   novas (a imagem precisa estar publicada quando o personagem entrar no sorteio).
 - Personagem removido do JSON fica `active = 0` (sai do sorteio e da loja, mas partidas e avatares antigos continuam).
+- **Edições do admin** (`/admin` → Personagens: poder, nome, obra, versão, fama, ativo, imagem) ficam marcadas em
+  `characters.admin_fields` e o sync **não as sobrescreve**: mudar no JSON um campo que o admin editou não tem efeito.
+  Antes de mexer num personagem, confira com `npm run db -- "SELECT id, admin_fields FROM characters WHERE admin_fields IS NOT NULL"`
+  (produção: peça ao usuário). Para trazer as edições ao JSON: o usuário roda `npm.cmd run characters:pull -- --remote`
+  (grava JSON e `public/chars/`), publica, e depois `npm.cmd run characters:pull -- --remote --unlock`.
 
 ## 5. Depois
 

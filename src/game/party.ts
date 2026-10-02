@@ -1,5 +1,6 @@
 import type { Look } from './cosmetics';
 import type { Difficulty, Mode } from './modes';
+import type { Category } from './types';
 
 /**
  * Protocolo da Party (multiplayer). Compartilhado entre o front e o Durable Object `PartyRoom`,
@@ -44,6 +45,8 @@ export interface PartyState {
   generations?: number[];
   /** Dificuldade dos outros modos, escolhida por quem criou a sala (ausente = todos os personagens). */
   difficulty?: Difficulty;
+  /** Categorias do Free for All (ausente = as padrão). */
+  categories?: Category[];
   phase: PartyPhase;
   /** Incrementa a cada partida iniciada na sala. */
   round: number;
@@ -61,7 +64,7 @@ export type ClientMessage =
   | { type: 'finish'; placements: string[] }
   | { type: 'end' }
   /** Dono, fora da partida: categoria e filtro da próxima rodada. */
-  | { type: 'settings'; mode: Mode; generations?: number[]; difficulty?: Difficulty }
+  | { type: 'settings'; mode: Mode; generations?: number[]; difficulty?: Difficulty; categories?: Category[] }
   /** Dono: tira um jogador da sala (ele não volta). */
   | { type: 'kick'; id: string }
   /** Dono: passa a dona da sala para outro jogador conectado. */

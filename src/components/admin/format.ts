@@ -44,5 +44,25 @@ export function actionText(action: AdminAction, t: I18n['t'], lang: Lang): strin
       return t('admin.log.rename', { from: String(d.from), to: String(d.to) });
     case 'password':
       return t('admin.log.password');
+    case 'ban':
+      return d.days === null
+        ? t('admin.log.banForever', { reason: String(d.reason ?? '') })
+        : t('admin.log.ban', { days: Number(d.days), reason: String(d.reason ?? '') });
+    case 'unban':
+      return t('admin.log.unban');
+    case 'character':
+      return t('admin.log.character', {
+        name: String(d.name ?? d.id),
+        changes: Object.entries((d.changes ?? {}) as Record<string, [unknown, unknown]>)
+          .map(([field, [from, to]]) => `${field} ${String(from)} → ${String(to)}`)
+          .join(', '),
+      });
+    case 'image':
+      return t('admin.log.image', { name: String(d.name ?? d.id) });
+    case 'report':
+      return t(d.status === 'resolved' ? 'admin.log.reportResolved' : 'admin.log.reportDismissed', {
+        target: String(d.target),
+        n: Number(d.count),
+      });
   }
 }

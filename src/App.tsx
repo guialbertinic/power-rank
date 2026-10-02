@@ -2,19 +2,21 @@ import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
 import { ApiError, createGame, createParty, fetchConfig, fetchDaily, fetchProfile, type DailyStatus } from './api';
 import type { Profile } from './game/cosmetics';
 import { FEATURES, NO_FEATURES } from './game/features';
-import { filterFor, GENERATIONS, MODES, poolFor, type Difficulty, type Mode, type PoolFilter } from './game/modes';
+import { filterFor, GENERATIONS, poolFor, type Difficulty, type Mode, type PoolFilter } from './game/modes';
 import { isPartyCode } from './game/party';
 import { SLOTS } from './game/scoring';
-import type { CharacterInfo } from './game/types';
+import type { Category, CharacterInfo } from './game/types';
 import { loadCatalog, POOL, POOL_BY_ID, rememberCharacters } from './data';
 import {
   clearIdentity,
   forgetToken,
+  loadCategories,
   loadDifficulty,
   loadGenerations,
   loadIdentity,
   loadMode,
   loadRecording,
+  saveCategories,
   saveDifficulty,
   saveGenerations,
   saveIdentity,
@@ -32,10 +34,11 @@ import PlayingScreen from './components/PlayingScreen';
 import ResultScreen from './components/ResultScreen';
 import ShopScreen from './components/ShopScreen';
 import ArcadeScreen from './components/ArcadeScreen';
+import AccountScreen from './components/AccountScreen';
 import SettingsMenu from './components/SettingsMenu';
 import { LegalLink, LegalProvider } from './components/Legal';
 import { SUPPORT_URL } from './links';
-import { dailyLabel, I18nProvider, useI18n } from './i18n';
+import { dailyLabel, I18nProvider, modeLabel, useI18n } from './i18n';
 
 // Tela de revisão da base (http://localhost:5173/?review). Só existe em dev: sai do build de produção.
 const ReviewScreen = import.meta.env.DEV ? lazy(() => import('./components/ReviewScreen')) : null;
@@ -51,6 +54,8 @@ type State =
   | { phase: 'shop' }
   /** Arcade (minigames com moedas), só para contas. */
   | { phase: 'arcade' }
+  /** Minha conta: nick, senha, aparelhos, excluir (convidado: criar conta). */
+  | { phase: 'account' }
   /** Na party, o estado do jogo vem da sala (PartyScreen); aqui só fica como entrar nela. */
   | { phase: 'party'; code: string; pid: string }
   | {
@@ -72,6 +77,7 @@ type Action =
   | { type: 'nick'; reason?: string }
   | { type: 'shop' }
   | { type: 'arcade' }
+  | { type: 'account' }
   | { type: 'home' };
 
 function reducer(state: State, action: Action): State {
@@ -104,6 +110,8 @@ function reducer(state: State, action: Action): State {
       return { phase: 'shop' };
     case 'arcade':
       return { phase: 'arcade' };
+    case 'account':
+      return { phase: 'account' };
     case 'home':
       return { phase: 'intro' };
   }
@@ -140,9 +148,12 @@ async function newGame(
 
 const isModeAvailable = (mode: Mode) => poolFor(mode, POOL).length >= SLOTS;
 
-/** Filtro a enviar: gerações no modo pokemon (só quando nem todas estão ligadas), dificuldade nos outros. */
-const poolFilter = (mode: Mode, generations: number[], difficulty: Difficulty): PoolFilter =>
-  filterFor(mode, { generations: generations.length < GENERATIONS.length ? generations : undefined, difficulty });
+/**
+ * Filtro a enviar: gerações no modo pokemon (só quando nem todas estão ligadas), dificuldade nos outros e as
+ * categorias no Free for All.
+ */
+const poolFilter = (mode: Mode, generations: number[], difficulty: Difficulty, categories: Category[]): PoolFilter =>
+  filterFor(mode, { generations: generations.length < GENERATIONS.length ? generations : undefined, difficulty, categories });
 
 /** Com o filtro escolhido sobram personagens para uma partida? */
 const canDraw = (mode: Mode, filter: PoolFilter) => poolFor(mode, POOL, filter).length >= SLOTS;
@@ -158,7 +169,8 @@ function Game() {
   });
   const [generations, setGenerations] = useState(loadGenerations);
   const [difficulty, setDifficulty] = useState(loadDifficulty);
-  const filter = poolFilter(mode, generations, difficulty);
+  const [categories, setCategories] = useState(loadCategories);
+  const filter = poolFilter(mode, generations, difficulty, categories);
   const [starting, setStarting] = useState(false);
   const [partyError, setPartyError] = useState<string | null>(null);
   const [soloError, setSoloError] = useState<string | null>(null);
@@ -200,14 +212,17 @@ function Game() {
   const token = identity?.token;
   const name = identity?.name;
   useEffect(() => {
-    if (!name || !token || (state.phase !== 'intro' && state.phase !== 'shop' && state.phase !== 'arcade')) return;
+    const phases: State['phase'][] = ['intro', 'shop', 'arcade', 'account'];
+    if (!name || !token || !phases.includes(state.phase)) return;
     let cancelled = false;
     fetchProfile({ name, token })
       .then((p) => {
         if (!cancelled) applyProfile(p);
       })
-      .catch(() => {
-        // Sem conexão: a home funciona sem saldo e sem loja.
+      .catch((err) => {
+        // Token que deixou de valer (saiu de todos os aparelhos em outro, senha trocada, conta suspensa): pede o
+        // nick de novo. Sem conexão: a home funciona sem saldo e sem loja.
+        if (!cancelled && err instanceof ApiError && err.status === 401) dispatch({ type: 'nick', reason: t('app.confirmNick') });
       });
     return () => {
       cancelled = true;
@@ -268,6 +283,11 @@ function Game() {
   const changeGenerations = (next: number[]) => {
     setGenerations(next);
     saveGenerations(next);
+  };
+
+  const changeCategories = (next: Category[]) => {
+    setCategories(next);
+    saveCategories(next);
   };
 
   const changeDifficulty = (next: Difficulty) => {
@@ -340,7 +360,9 @@ function Game() {
         ? t('profile.shop')
       : state.phase === 'arcade'
         ? t('profile.arcade')
-      : MODES.find((m) => m.id === (state.phase === 'playing' || state.phase === 'result' ? state.mode : mode))?.label;
+      : state.phase === 'account'
+        ? t('account.title')
+      : modeLabel(t, state.phase === 'playing' || state.phase === 'result' ? state.mode : mode);
 
   return (
     <main className={`app${recording ? ' recording' : ''}`}>
@@ -350,10 +372,8 @@ function Game() {
           profile={profile}
           onOpenShop={() => dispatch({ type: 'shop' })}
           onOpenArcade={FEATURES.some((f) => features[f]) ? () => dispatch({ type: 'arcade' }) : undefined}
-          onIdentityChange={changeIdentity}
+          onOpenAccount={() => dispatch({ type: 'account' })}
           onLeave={leave}
-          onRefresh={refreshProfile}
-          onAccountDeleted={leave}
           disabled={starting}
         />
       )}
@@ -390,6 +410,8 @@ function Game() {
           onGenerationsChange={changeGenerations}
           difficulty={difficulty}
           onDifficultyChange={changeDifficulty}
+          categories={categories}
+          onCategoriesChange={changeCategories}
           isModeAvailable={isModeAvailable}
           canDraw={canDraw(mode, filter)}
           busy={starting}
@@ -408,6 +430,15 @@ function Game() {
           profile={profile}
           features={features}
           onProfileChange={setProfile}
+        />
+      )}
+      {state.phase === 'account' && identity && (
+        <AccountScreen
+          identity={identity}
+          profile={profile}
+          onIdentityChange={changeIdentity}
+          onRefresh={refreshProfile}
+          onLeave={leave}
         />
       )}
       {state.phase === 'shop' && identity?.token && profile && (

@@ -300,14 +300,6 @@ input:focus {
   margin-top: 20px;
 }
 
-.sync-panel {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  width: 100%;
-  text-align: center;
-}
-
 .nick-screen-hint {
   font-size: 0.9rem;
   color: var(--text-2);
@@ -1956,19 +1948,6 @@ input:focus {
 
 .sync-password-form input {
   width: 100%;
-}
-
-.sync-force {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  width: 100%;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-
-.sync-note {
-  font-size: 0.8rem;
 }
 
 /* ---------- Cosméticos: cores do nick ---------- */
@@ -3896,17 +3875,6 @@ input:focus {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
 }
 
-/* O painel de sincronizar já está dentro do menu: sem moldura dupla. */
-.profile-menu .sync-panel {
-  padding: 0;
-  border: 0;
-  background: none;
-}
-
-.profile-menu .sync-panel::before {
-  display: none;
-}
-
 @media (max-width: 760px) {
   /* No celular vira uma faixa no topo, acima do título. */
   .profile-bar {
@@ -4150,6 +4118,8 @@ input:focus {
 
 .admin-section {
   display: grid;
+  /* Coluna que encolhe até a tela (o conteúdo quebra linha em vez de alargar a página no celular). */
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -4365,7 +4335,119 @@ input:focus {
   flex: 1 1 200px;
 }
 
+/* Personagens */
+.admin-thumb {
+  flex-shrink: 0;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.admin-character-row {
+  align-items: center;
+}
+
+.admin-character-name {
+  display: grid;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.admin-character-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.admin-character-head > div {
+  display: grid;
+  flex: 1 1 200px;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-character-form label {
+  display: grid;
+  flex: 1 1 160px;
+  gap: 4px;
+}
+
+.admin-character-form label input,
+.admin-character-form label select {
+  width: 100%;
+}
+
+.admin-character-form .admin-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-basis: 100%;
+}
+
+/* O checkbox não segue a largura dos outros campos do formulário. */
+.admin-character-form .admin-check input {
+  flex: none;
+  width: auto;
+}
+
+.admin-form input[type='file'] {
+  flex-basis: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Seções da pilha encolhem até a tela do celular (item de grade não passa da largura mínima do conteúdo). */
+.admin-stack > * {
+  min-width: 0;
+}
+
+.admin-image-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.admin-image-preview img {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* Moderação */
+.admin-report {
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.admin-report-body {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-report-body p {
+  margin: 0;
+}
+
+.admin-report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 @media (max-width: 480px) {
+  /* Seis abas: três por linha (vem depois do .shop-tabs do celular, que divide a largura entre todas). */
+  .admin-tabs .mode-option {
+    flex: 1 1 30%;
+  }
+
   .admin-table {
     font-size: 0.85rem;
   }
@@ -4480,6 +4562,102 @@ input:focus {
   letter-spacing: var(--tracking-display);
   text-transform: uppercase;
   color: var(--tier-ss);
+}
+
+/* ---------- Minha conta ---------- */
+
+.account {
+  display: grid;
+  gap: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.account-section {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.account-section .section-title {
+  margin: 0;
+}
+
+.account-note {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.account-devices {
+  margin: 0;
+  font-weight: 600;
+}
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.account-confirm {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.account-confirm .change-nick-actions {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+}
+
+.profile-account {
+  width: 100%;
+}
+
+/* ---------- Denúncias (nick e imagem) ---------- */
+
+.report-link {
+  display: grid;
+  justify-items: center;
+  margin-top: 12px;
+}
+
+.report-link > .link-button {
+  color: var(--text-2);
+  font-size: 0.8rem;
+}
+
+.report-form {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  margin: 12px auto 0;
+  text-align: center;
+}
+
+.report-form select {
+  width: 100%;
+}
+
+.report-target {
+  overflow-wrap: anywhere;
+}
+
+.report-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Quem grava a tela não precisa do link de denúncia aparecendo. */
+.app.recording .report-link {
+  display: none;
 }
 
 /* ---------- Conta: excluir ---------- */

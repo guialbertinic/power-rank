@@ -33,6 +33,11 @@ interface Row {
 
 let cache: { at: number; catalog: Catalog } | null = null;
 
+/** O admin editou um personagem: este isolate relê na próxima vez (os outros, em até CACHE_MS). */
+export function clearCatalogCache() {
+  cache = null;
+}
+
 export async function loadCatalog(env: Env): Promise<Catalog> {
   if (cache && Date.now() - cache.at < CACHE_MS) return cache.catalog;
   const { results } = await env.DB.prepare(

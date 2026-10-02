@@ -1,16 +1,23 @@
 import { verifyAccessJwt, type AccessJwk } from './accessJwt';
+import { clearCatalogCache } from './catalog';
 import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
 import { hashPassword } from './players';
 import { isLocalRequest } from './security';
+import { BAN_DAYS, BAN_FOREVER } from '../src/game/account';
 import {
   ADMIN_COINS_MAX,
+  ADMIN_IMAGE_MAX_BYTES,
   type AdminAction,
+  type AdminCharacter,
+  type AdminCharacterDetail,
   type AdminActionKind,
   type AdminFeature,
   type AdminPlayer,
   type AdminPlayerRow,
   type Economy,
+  type ReportGroup,
 } from '../src/game/admin';
+import type { Category } from '../src/game/types';
 import { POT_CENTS } from '../src/game/casino';
 import { FEATURES, isFeatureId } from '../src/game/features';
 import { RARITIES } from '../src/game/gacha';
@@ -219,10 +226,12 @@ interface PlayerRow {
   has_password: number;
   adult: number;
   locked_until: number;
+  banned_until: number;
+  ban_reason: string | null;
 }
 
 const PLAYER_COLUMNS = `id, name, coins, created_at, password_hash IS NOT NULL AS has_password,
-  adult_confirmed_at IS NOT NULL AS adult, locked_until`;
+  adult_confirmed_at IS NOT NULL AS adult, locked_until, banned_until, ban_reason`;
 
 const toPlayerRow = (r: PlayerRow): AdminPlayerRow => ({
   id: r.id,
@@ -232,6 +241,8 @@ const toPlayerRow = (r: PlayerRow): AdminPlayerRow => ({
   hasPassword: Boolean(r.has_password),
   adult: Boolean(r.adult),
   lockedUntil: r.locked_until,
+  bannedUntil: r.banned_until,
+  banReason: r.ban_reason,
 });
 
 const PLAYER_LIST_SIZE = 50;
@@ -377,9 +388,306 @@ async function resetPassword(env: Env, admin: string, id: number): Promise<Respo
   return json({ password, player: await loadAdminPlayer(env, id) });
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * POST /api/admin/players/:id/ban { days: 1|7|30|null (permanente), reason } → AdminPlayer. Suspende a conta:
+ * desconecta todos os aparelhos, recusa o login (com a data) e tira a conta do ranking enquanto durar.
+ */
+async function banPlayer(env: Env, admin: string, id: number, body: { days?: unknown; reason?: unknown }): Promise<Response> {
+  const days = body.days ?? null;
+  if (days !== null && !(BAN_DAYS as readonly unknown[]).includes(days)) return badRequest('Prazo inválido');
+  const reason = typeof body.reason === 'string' ? body.reason.trim().slice(0, 200) : '';
+  if (!reason) return badRequest('Informe o motivo');
+  const until = days === null ? BAN_FOREVER : Date.now() + (days as number) * DAY_MS;
+  const [updated] = await env.DB.batch([
+    env.DB.prepare('UPDATE players SET banned_until = ?, ban_reason = ? WHERE id = ?').bind(until, reason, id),
+    env.DB.prepare('DELETE FROM player_tokens WHERE player_id = ?').bind(id),
+    logAction(env, admin, 'ban', id, { days, reason, until }),
+  ]);
+  if (!updated.meta.changes) return json({ error: 'Jogador não encontrado' }, { status: 404 });
+  return playerResponse(env, id);
+}
+
+/** POST /api/admin/players/:id/unban → AdminPlayer. Tira a suspensão (o jogador entra de novo com a senha). */
+async function unbanPlayer(env: Env, admin: string, id: number): Promise<Response> {
+  const [updated] = await env.DB.batch([
+    env.DB.prepare('UPDATE players SET banned_until = 0, ban_reason = NULL WHERE id = ? AND banned_until > 0').bind(id),
+    env.DB.prepare(
+      `INSERT INTO admin_actions (admin, action, player_id, details, created_at)
+       SELECT ?1, 'unban', ?2, '{}', ?3 WHERE changes() = 1`,
+    ).bind(admin, id, Date.now()),
+  ]);
+  if (!updated.meta.changes) return json({ error: 'Essa conta não está suspensa' }, { status: 409 });
+  return playerResponse(env, id);
+}
+
+// ---------- Personagens ----------
+
+interface CharacterRow {
+  id: string;
+  name: string;
+  category: Category;
+  series: string;
+  version: string | null;
+  tier: 1 | 2 | 3 | null;
+  power: number;
+  image: string | null;
+  image_version: string | null;
+  anilist_id: number | null;
+  active: number;
+  admin_fields: string | null;
+}
+
+const CHARACTER_COLUMNS = 'id, name, category, series, version, tier, power, image, image_version, anilist_id, active, admin_fields';
+
+const toCharacter = (r: CharacterRow): AdminCharacter => ({
+  id: r.id,
+  name: r.name,
+  category: r.category,
+  series: r.series,
+  version: r.version,
+  tier: r.tier,
+  power: r.power,
+  image: r.image,
+  imageVersion: r.image_version,
+  anilistId: r.anilist_id,
+  active: r.active === 1,
+  adminFields: r.admin_fields ? (JSON.parse(r.admin_fields) as string[]) : [],
+});
+
+const CHARACTER_LIST_SIZE = 60;
+const CATEGORIES: Category[] = ['anime', 'games', 'movies', 'pokemon'];
+
+/** GET /api/admin/characters?q=&category= → AdminCharacter[] (busca por parte do nome, da obra ou do id). */
+async function searchCharacters(env: Env, url: URL): Promise<Response> {
+  const q = (url.searchParams.get('q')?.trim() ?? '').replace(/[\\%_]/g, (c) => `\\${c}`);
+  const category = url.searchParams.get('category');
+  const rows = await env.DB.prepare(
+    `SELECT ${CHARACTER_COLUMNS} FROM characters
+     WHERE (name LIKE ?1 ESCAPE '\\' OR series LIKE ?1 ESCAPE '\\' OR id LIKE ?1 ESCAPE '\\') AND (?2 IS NULL OR category = ?2)
+     ORDER BY active DESC, power DESC, name LIMIT ?3`,
+  )
+    .bind(`%${q}%`, CATEGORIES.includes(category as Category) ? category : null, CHARACTER_LIST_SIZE)
+    .all<CharacterRow>();
+  return json(rows.results.map(toCharacter));
+}
+
+async function loadAdminCharacter(env: Env, id: string): Promise<AdminCharacterDetail | null> {
+  const [character, history, reports] = await env.DB.batch<Record<string, unknown>>([
+    env.DB.prepare(`SELECT ${CHARACTER_COLUMNS} FROM characters WHERE id = ?`).bind(id),
+    env.DB.prepare(
+      `SELECT a.*, NULL AS player_name FROM admin_actions a
+       WHERE a.action IN ('character', 'image') AND json_extract(a.details, '$.id') = ? ORDER BY a.id DESC LIMIT 20`,
+    ).bind(id),
+    env.DB.prepare("SELECT COUNT(*) AS n FROM reports WHERE kind = 'image' AND target = ? AND status = 'open'").bind(id),
+  ]);
+  const row = character.results[0] as unknown as CharacterRow | undefined;
+  if (!row) return null;
+  return {
+    ...toCharacter(row),
+    history: (history.results as unknown as ActionRow[]).map(toAction),
+    openReports: Number((reports.results[0] as { n?: number } | undefined)?.n ?? 0),
+  };
+}
+
+async function characterResponse(env: Env, id: string): Promise<Response> {
+  const character = await loadAdminCharacter(env, id);
+  return character ? json(character) : json({ error: 'Personagem não encontrado' }, { status: 404 });
+}
+
+/** Junta campos editados aos que já estavam marcados (o sync deixa de sobrescrever esses). */
+const mergeFields = (current: string[], changed: string[]) => JSON.stringify([...new Set([...current, ...changed])].sort());
+
+/** Valida a edição: devolve as colunas novas ou a mensagem de erro. */
+function parseEdit(body: Record<string, unknown>, current: AdminCharacter): Record<string, unknown> | string {
+  const next: Record<string, unknown> = {};
+  if ('name' in body) {
+    const name = typeof body.name === 'string' ? body.name.trim().slice(0, 60) : '';
+    if (!name) return 'Nome inválido';
+    next.name = name;
+  }
+  if ('series' in body) {
+    const series = typeof body.series === 'string' ? body.series.trim().slice(0, 80) : '';
+    if (!series) return 'Obra inválida';
+    next.series = series;
+  }
+  if ('version' in body) {
+    if (body.version !== null && typeof body.version !== 'string') return 'Versão inválida';
+    next.version = (body.version as string | null)?.trim().slice(0, 80) || null;
+  }
+  if ('power' in body) {
+    const power = body.power;
+    if (typeof power !== 'number' || !Number.isFinite(power) || power < 0 || power > 100) return 'Poder inválido (0 a 100)';
+    next.power = Math.round(power * 10) / 10;
+  }
+  if ('tier' in body) {
+    // Pokémon não tem fama (usa o filtro de gerações); anime e games precisam de uma.
+    const valid = current.category === 'pokemon' ? body.tier === null : [1, 2, 3].includes(body.tier as number);
+    if (!valid) return 'Fama inválida';
+    next.tier = body.tier;
+  }
+  if ('active' in body) {
+    if (typeof body.active !== 'boolean') return 'Ativo inválido';
+    next.active = body.active ? 1 : 0;
+  }
+  return next;
+}
+
+/**
+ * POST /api/admin/characters/:id { name?, series?, version?, tier?, power?, active? } → AdminCharacterDetail.
+ * Grava só o que mudou, marca esses campos como do admin (o `characters:sync` não sobrescreve) e registra o antes e
+ * o depois. Mudar o `power` não recalcula partidas antigas (isso é o `rescore`).
+ */
+async function editCharacter(env: Env, admin: string, id: string, body: Record<string, unknown>): Promise<Response> {
+  const row = await env.DB.prepare(`SELECT ${CHARACTER_COLUMNS} FROM characters WHERE id = ?`).bind(id).first<CharacterRow>();
+  if (!row) return json({ error: 'Personagem não encontrado' }, { status: 404 });
+  const current = toCharacter(row);
+  const next = parseEdit(body, current);
+  if (typeof next === 'string') return badRequest(next);
+
+  const before = row as unknown as Record<string, unknown>;
+  const changes = Object.fromEntries(
+    Object.entries(next)
+      .filter(([column, value]) => before[column] !== value)
+      .map(([column, value]) => [column, [before[column], value]]),
+  );
+  const columns = Object.keys(changes);
+  if (!columns.length) return characterResponse(env, id);
+
+  await env.DB.batch([
+    env.DB.prepare(
+      `UPDATE characters SET ${columns.map((c) => `${c} = ?`).join(', ')}, admin_fields = ?, updated_at = ? WHERE id = ?`,
+    ).bind(...columns.map((c) => next[c]), mergeFields(current.adminFields, columns), Date.now(), id),
+    logAction(env, admin, 'character', null, { id, name: current.name, changes }),
+  ]);
+  clearCatalogCache();
+  return characterResponse(env, id);
+}
+
+const fromBase64 = (value: string) => Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
+
+/** Começa com "RIFF....WEBP"? (o site sempre envia WebP; qualquer outra coisa é recusada). */
+const isWebp = (b: Uint8Array) =>
+  b.length > 12 && String.fromCharCode(...b.slice(0, 4)) === 'RIFF' && String.fromCharCode(...b.slice(8, 12)) === 'WEBP';
+
+/**
+ * POST /api/admin/characters/:id/image { data: base64 do WebP } → AdminCharacterDetail. Troca a imagem sem deploy:
+ * guarda no D1 e aponta o personagem para /api/img/:id com uma versão nova (o cache dos navegadores é ignorado).
+ */
+async function uploadImage(env: Env, admin: string, id: string, body: { data?: unknown }): Promise<Response> {
+  let bytes: Uint8Array;
+  try {
+    bytes = fromBase64(typeof body.data === 'string' ? body.data : '');
+  } catch {
+    return badRequest('Imagem inválida');
+  }
+  if (!isWebp(bytes) || bytes.length > ADMIN_IMAGE_MAX_BYTES) return badRequest('Imagem inválida');
+  const row = await env.DB.prepare('SELECT name, image, admin_fields FROM characters WHERE id = ?')
+    .bind(id)
+    .first<{ name: string; image: string | null; admin_fields: string | null }>();
+  if (!row) return json({ error: 'Personagem não encontrado' }, { status: 404 });
+
+  const now = Date.now();
+  const fields = row.admin_fields ? (JSON.parse(row.admin_fields) as string[]) : [];
+  await env.DB.batch([
+    env.DB.prepare(
+      `INSERT INTO character_images (character_id, data, content_type, created_at) VALUES (?1, ?2, 'image/webp', ?3)
+       ON CONFLICT (character_id) DO UPDATE SET data = excluded.data, content_type = excluded.content_type, created_at = excluded.created_at`,
+    ).bind(id, bytes, now),
+    env.DB.prepare('UPDATE characters SET image = ?, image_version = ?, admin_fields = ?, updated_at = ? WHERE id = ?').bind(
+      `api/img/${id}`,
+      `a${now.toString(36)}`,
+      mergeFields(fields, ['image']),
+      now,
+      id,
+    ),
+    logAction(env, admin, 'image', null, { id, name: row.name, from: row.image, bytes: bytes.length }),
+  ]);
+  clearCatalogCache();
+  return characterResponse(env, id);
+}
+
+// ---------- Moderação ----------
+
+interface ReportRow {
+  kind: ReportGroup['kind'];
+  target: string;
+  target_name: string;
+  player_id: number | null;
+  count: number;
+  reasons: string;
+  first_at: number;
+  last_at: number;
+}
+
+/** GET /api/admin/reports → ReportGroup[]: denúncias abertas, juntas por alvo (mais denunciados primeiro). */
+async function loadReports(env: Env): Promise<ReportGroup[]> {
+  const { results } = await env.DB.prepare(
+    `SELECT kind, target, MAX(target_name) AS target_name, MAX(target_player_id) AS player_id, COUNT(*) AS count,
+            json_group_array(reason) AS reasons, MIN(created_at) AS first_at, MAX(created_at) AS last_at
+     FROM reports WHERE status = 'open' GROUP BY kind, target ORDER BY count DESC, last_at DESC LIMIT 100`,
+  ).all<ReportRow>();
+  const imageIds = results.filter((r) => r.kind === 'image').map((r) => r.target);
+  const characters = new Map<string, AdminCharacter>();
+  if (imageIds.length) {
+    const rows = await env.DB.prepare(
+      `SELECT ${CHARACTER_COLUMNS} FROM characters WHERE id IN (${imageIds.map(() => '?').join(', ')})`,
+    )
+      .bind(...imageIds)
+      .all<CharacterRow>();
+    for (const r of rows.results) characters.set(r.id, toCharacter(r));
+  }
+  return results.map((r) => {
+    const reasons: ReportGroup['reasons'] = {};
+    for (const reason of JSON.parse(r.reasons) as (keyof ReportGroup['reasons'])[]) reasons[reason] = (reasons[reason] ?? 0) + 1;
+    return {
+      kind: r.kind,
+      target: r.target,
+      targetName: r.target_name,
+      playerId: r.player_id,
+      count: r.count,
+      reasons,
+      firstAt: r.first_at,
+      lastAt: r.last_at,
+      character: characters.get(r.target) ?? null,
+    };
+  });
+}
+
+/**
+ * POST /api/admin/reports/close { kind, target, status: 'resolved' | 'dismissed' } → ReportGroup[]. Fecha todas as
+ * denúncias abertas do alvo (resolvida = o admin agiu; descartada = não era nada).
+ */
+async function closeReports(env: Env, admin: string, body: { kind?: unknown; target?: unknown; status?: unknown }): Promise<Response> {
+  const { kind, target, status } = body;
+  if ((kind !== 'nick' && kind !== 'image') || typeof target !== 'string' || (status !== 'resolved' && status !== 'dismissed')) {
+    return badRequest('Denúncia inválida');
+  }
+  const now = Date.now();
+  const owner = await env.DB.prepare(
+    "SELECT MAX(target_player_id) AS id FROM reports WHERE kind = ? AND target = ? AND status = 'open'",
+  )
+    .bind(kind, target)
+    .first<{ id: number | null }>();
+  // O registro conta quantas fecharam (changes() do UPDATE logo antes, na mesma transação).
+  const [updated] = await env.DB.batch([
+    env.DB.prepare(
+      "UPDATE reports SET status = ?, closed_at = ?, closed_by = ? WHERE kind = ? AND target = ? AND status = 'open'",
+    ).bind(status, now, admin, kind, target),
+    env.DB.prepare(
+      `INSERT INTO admin_actions (admin, action, player_id, details, created_at)
+       SELECT ?1, 'report', ?2, json_object('kind', ?3, 'target', ?4, 'status', ?5, 'count', changes()), ?6 WHERE changes() > 0`,
+    ).bind(admin, owner?.id ?? null, kind, target, status, now),
+  ]);
+  if (!updated.meta.changes) return json({ error: 'Nada para fechar' }, { status: 409 });
+  return json(await loadReports(env));
+}
+
 // ---------- Rotas ----------
 
-const PLAYER_ROUTE = /^\/api\/admin\/players\/(\d+)(?:\/(coins|rename|password))?$/;
+const PLAYER_ROUTE = /^\/api\/admin\/players\/(\d+)(?:\/(coins|rename|password|ban|unban))?$/;
+const CHARACTER_ROUTE = /^\/api\/admin\/characters\/([a-z0-9-]+)(?:\/(image))?$/;
 
 /** Tudo em /api/admin/*: confere o admin antes de qualquer rota. */
 export async function handleAdmin(request: Request, env: Env): Promise<Response> {
@@ -393,7 +701,7 @@ export async function handleAdmin(request: Request, env: Env): Promise<Response>
   if (request.method === 'POST' && !request.headers.get('Content-Type')?.startsWith('application/json')) {
     return badRequest('Envie JSON');
   }
-  const body = request.method === 'POST' ? ((await request.json().catch(() => null)) ?? {}) : {};
+  const body: Record<string, unknown> = request.method === 'POST' ? (((await request.json().catch(() => null)) ?? {}) as Record<string, unknown>) : {};
 
   switch (route) {
     case 'GET /api/admin/me':
@@ -408,6 +716,20 @@ export async function handleAdmin(request: Request, env: Env): Promise<Response>
       return searchPlayers(env, url);
     case 'GET /api/admin/actions':
       return json(await loadActions(env, null, 50));
+    case 'GET /api/admin/characters':
+      return searchCharacters(env, url);
+    case 'GET /api/admin/reports':
+      return json(await loadReports(env));
+    case 'POST /api/admin/reports/close':
+      return closeReports(env, admin, body);
+  }
+
+  const character = CHARACTER_ROUTE.exec(url.pathname);
+  if (character) {
+    const [, id, action] = character;
+    if (request.method === 'GET' && !action) return characterResponse(env, id);
+    if (request.method === 'POST' && !action) return editCharacter(env, admin, id, body);
+    if (request.method === 'POST' && action === 'image') return uploadImage(env, admin, id, body);
   }
 
   const match = PLAYER_ROUTE.exec(url.pathname);
@@ -418,6 +740,8 @@ export async function handleAdmin(request: Request, env: Env): Promise<Response>
     if (request.method === 'POST' && action === 'coins') return adjustCoins(env, admin, id, body);
     if (request.method === 'POST' && action === 'rename') return renameByAdmin(env, admin, id, body);
     if (request.method === 'POST' && action === 'password') return resetPassword(env, admin, id);
+    if (request.method === 'POST' && action === 'ban') return banPlayer(env, admin, id, body);
+    if (request.method === 'POST' && action === 'unban') return unbanPlayer(env, admin, id);
   }
   return json({ error: 'Not found' }, { status: 404 });
 }

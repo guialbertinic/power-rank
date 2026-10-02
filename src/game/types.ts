@@ -1,4 +1,4 @@
-export type Category = 'anime' | 'games' | 'pokemon';
+export type Category = 'anime' | 'games' | 'pokemon' | 'movies';
 
 /** O que o site sabe de um personagem (catálogo público, GET /api/characters): nunca o `power`. */
 export interface CharacterInfo {

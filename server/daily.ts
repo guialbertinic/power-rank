@@ -1,8 +1,7 @@
 import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
 import { playerAccess, type Access } from './players';
 import { dayKey } from '../src/game/daily';
-import { drawCharacters } from '../src/game/draw';
-import { isMode, poolFor, type Mode } from '../src/game/modes';
+import { drawFor, isMode, poolFor, type Mode } from '../src/game/modes';
 import { SLOTS } from '../src/game/scoring';
 import type { Character } from '../src/game/types';
 
@@ -29,7 +28,7 @@ export async function dailyChallenge(
   if (!row) {
     const pool = poolFor(mode, active);
     if (pool.length < SLOTS) return null;
-    const ids = drawCharacters(pool, SLOTS).map((c) => c.id);
+    const ids = drawFor(mode, pool, SLOTS).map((c) => c.id);
     await env.DB.prepare('INSERT OR IGNORE INTO daily_challenges (day, mode, character_ids, created_at) VALUES (?, ?, ?, ?)')
       .bind(day, mode, JSON.stringify(ids), Date.now())
       .run();

@@ -170,4 +170,6 @@ export interface Profile {
   hasPassword: boolean;
   /** A conta declarou ter 18 anos ou mais (libera caça-níquel e Mystery Box). */
   adult: boolean;
+  /** Aparelhos conectados na conta (tokens ativos). */
+  devices: number;
 }

@@ -52,12 +52,13 @@ export async function loadProfile(env: Env, playerId: number): Promise<Profile> 
   const [player, items] = await env.DB.batch([
     env.DB.prepare(
       `SELECT name, coins, avatar, name_color, frame, title, password_hash IS NOT NULL AS has_password,
-         adult_confirmed_at IS NOT NULL AS adult
+         adult_confirmed_at IS NOT NULL AS adult,
+         (SELECT COUNT(*) FROM player_tokens WHERE player_id = players.id) AS devices
        FROM players WHERE id = ?`,
     ).bind(playerId),
     env.DB.prepare('SELECT item_id FROM player_items WHERE player_id = ? ORDER BY acquired_at').bind(playerId),
   ]);
-  const row = (player.results[0] ?? null) as (LookRow & { name: string; coins: number; has_password: number; adult: number }) | null;
+  const row = (player.results[0] ?? null) as (LookRow & { name: string; coins: number; has_password: number; adult: number; devices: number }) | null;
   return {
     name: row?.name ?? '',
     coins: row?.coins ?? 0,
@@ -65,6 +66,7 @@ export async function loadProfile(env: Env, playerId: number): Promise<Profile> 
     look: toLook(row),
     hasPassword: Boolean(row?.has_password),
     adult: Boolean(row?.adult),
+    devices: row?.devices ?? 0,
   };
 }
 

@@ -6,10 +6,11 @@ import { createGame } from './games';
 import { openBox } from './gacha';
 import { json, type Env } from './lib';
 import { connectParty, createParty } from './party';
-import { claimPlayer, deletePlayer, playerStatus, renamePlayer, setPassword } from './players';
+import { changePassword, claimPlayer, deletePlayer, logoutAll, playerStatus, renamePlayer, setPassword } from './players';
 import { drop } from './plinko';
 import { buyItem, confirmAdult, equipItem, getProfile } from './profile';
 import { getLeaderboard, submitScore } from './scores';
+import { characterImage, createReport } from './reports';
 import { buyCard } from './scratch';
 import { getConfig, rateLimit } from './security';
 
@@ -50,6 +51,10 @@ export default {
       const partySocket = request.method === 'GET' ? PARTY_SOCKET.exec(pathname) : null;
       if (partySocket) return await connectParty(request, env, partySocket[1].toUpperCase());
       if (pathname.startsWith('/api/admin/')) return await handleAdmin(request, env);
+      if (request.method === 'GET' && pathname.startsWith('/api/img/')) {
+        const image = await characterImage(pathname, env);
+        if (image) return image;
+      }
 
       switch (route) {
         case 'GET /api/health':
@@ -90,6 +95,12 @@ export default {
           return await setPassword(request, env);
         case 'POST /api/players/delete':
           return await deletePlayer(request, env);
+        case 'POST /api/players/change-password':
+          return await changePassword(request, env);
+        case 'POST /api/players/logout-all':
+          return await logoutAll(request, env);
+        case 'POST /api/reports':
+          return await createReport(request, env);
         case 'POST /api/profile':
           return await getProfile(request, env);
         case 'POST /api/profile/adult':

@@ -1,8 +1,9 @@
-import { DEFAULT_DIFFICULTY, GENERATIONS, poolFor, type Difficulty, type Mode } from '../../game/modes';
+import { DEFAULT_DIFFICULTY, DEFAULT_FFA_CATEGORIES, filterFor, GENERATIONS, poolFor, type Difficulty, type Mode } from '../../game/modes';
 import type { ClientMessage, PartyState } from '../../game/party';
 import { SLOTS } from '../../game/scoring';
 import { POOL } from '../../data';
 import { useI18n } from '../../i18n';
+import CategoryPicker from '../CategoryPicker';
 import DifficultyPicker from '../DifficultyPicker';
 import GenerationPicker from '../GenerationPicker';
 import ModePicker from '../ModePicker';
@@ -17,7 +18,7 @@ interface Props {
 const isModeAvailable = (mode: Mode) => poolFor(mode, POOL).length >= SLOTS;
 
 /**
- * Configuração da próxima rodada, só para o dono (no lobby e no pódio): categoria e dificuldade ou gerações.
+ * Configuração da próxima rodada, só para o dono (no lobby e no pódio): categoria e dificuldade ou gerações (e as categorias, no Free for All).
  * Cada toque já vale para a sala; o servidor confere e devolve o estado para todos.
  */
 export default function PartySettings({ state, onChange }: Props) {
@@ -25,15 +26,20 @@ export default function PartySettings({ state, onChange }: Props) {
   // Sala sem filtro = todos os personagens (difícil) ou todas as gerações.
   const difficulty = state.difficulty ?? 'hard';
   const generations = state.generations ?? [...GENERATIONS];
+  const categories = state.categories ?? [...DEFAULT_FFA_CATEGORIES];
 
   const send = (next: Partial<Omit<Settings, 'type'>>) => {
     const mode = next.mode ?? state.mode;
     const gens = next.generations ?? generations;
     const diff: Difficulty = next.difficulty ?? state.difficulty ?? DEFAULT_DIFFICULTY;
-    const filter = mode === 'pokemon' ? { generations: gens.length < GENERATIONS.length ? gens : undefined } : { difficulty: diff };
+    const filter = filterFor(mode, {
+      generations: gens.length < GENERATIONS.length ? gens : undefined,
+      difficulty: diff,
+      categories: next.categories ?? categories,
+    });
     // Filtro que deixa a categoria sem personagens: nem envia (o servidor recusaria).
     if (poolFor(mode, POOL, filter).length < SLOTS) return;
-    onChange({ type: 'settings', mode, ...filter });
+    onChange({ type: 'settings', mode, ...filter, generations: filter.generations && [...filter.generations], categories: filter.categories && [...filter.categories] });
   };
 
   return (
@@ -43,7 +49,10 @@ export default function PartySettings({ state, onChange }: Props) {
       {state.mode === 'pokemon' ? (
         <GenerationPicker generations={generations} onChange={(g) => send({ generations: g })} />
       ) : (
-        <DifficultyPicker difficulty={difficulty} onChange={(d) => send({ difficulty: d })} />
+        <>
+          {state.mode === 'all' && <CategoryPicker categories={categories} onChange={(c) => send({ categories: c })} />}
+          <DifficultyPicker difficulty={difficulty} onChange={(d) => send({ difficulty: d })} />
+        </>
       )}
     </div>
   );

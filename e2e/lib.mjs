@@ -111,6 +111,7 @@ export function cleanTestData() {
       `UPDATE casino_pot SET last_winner_id = NULL WHERE last_winner_id IN ${accounts}; ` +
       `DELETE FROM daily_attempts WHERE player_key LIKE 'g:e2e%' OR player_key IN (SELECT 'p:' || id FROM players WHERE name_key LIKE 'e2e%'); ` +
       `DELETE FROM access_log WHERE lower(name) LIKE 'e2e%' OR player_id IN ${accounts}; ` +
+      `DELETE FROM reports WHERE target LIKE 'e2e%' OR target_player_id IN ${accounts} OR reporter IN (SELECT 'p:' || id FROM players WHERE name_key LIKE 'e2e%'); ` +
       `DELETE FROM scores WHERE name_key LIKE 'e2e%' OR player_id IN ${accounts}; ` +
       `DELETE FROM games WHERE lower(name) LIKE 'e2e%' OR player_id IN ${accounts}; ` +
       "DELETE FROM players WHERE name_key LIKE 'e2e%';",

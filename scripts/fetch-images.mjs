@@ -152,6 +152,16 @@ const sources = {
       };
     },
   },
+  // Filmes e séries: só a imagem do artigo da Wikipédia indicado em "wikipedia" (de preferência o artigo da versão
+  // de cinema/série, ex: "Logan (film character)", senão vem arte de quadrinho).
+  movies: {
+    idField: 'wikipedia',
+    label: 'Wikipédia',
+    delayMs: 300,
+    async find(c) {
+      return c.wikipedia ? findOnWikipedia(c) : null;
+    },
+  },
 };
 
 // A Wikimedia exige um User-Agent que identifique o projeto.

@@ -1,7 +1,7 @@
 import { logAccess } from './access';
 import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
 import { lookalikeOf, nickProblem, verifyTurnstile } from './security';
-import { passwordProblem } from '../src/game/account';
+import { banMessage, passwordProblem } from '../src/game/account';
 
 /** PBKDF2: o número de iterações fica gravado junto do hash, para poder subir depois sem invalidar senhas. */
 const PBKDF2_ITERATIONS = 50_000;
@@ -59,13 +59,17 @@ export interface Account {
   name: string;
 }
 
-/** Conta dona do token. O token identifica o jogador; o nick é só um atributo dele. */
+/**
+ * Conta dona do token. O token identifica o jogador; o nick é só um atributo dele. Conta suspensa não vale (o
+ * banimento já apaga os tokens; isto cobre o que sobrar).
+ */
 export async function accountByToken(env: Env, token: unknown): Promise<Account | null> {
   if (typeof token !== 'string' || !token) return null;
   return env.DB.prepare(
-    'SELECT p.id, p.name FROM player_tokens t JOIN players p ON p.id = t.player_id WHERE t.token_hash = ?',
+    `SELECT p.id, p.name FROM player_tokens t JOIN players p ON p.id = t.player_id
+     WHERE t.token_hash = ? AND p.banned_until <= ?`,
   )
-    .bind(await sha256(token))
+    .bind(await sha256(token), Date.now())
     .first<Account>();
 }
 
@@ -94,7 +98,14 @@ interface OwnerRow {
   password_hash: string | null;
   failed_logins: number;
   locked_until: number;
+  banned_until: number;
 }
+
+const OWNER_COLUMNS = 'id, name, password_hash, failed_logins, locked_until, banned_until';
+
+/** 403 para quem tenta entrar numa conta suspensa (o site mostra a data). */
+const bannedResponse = (owner: OwnerRow) =>
+  json({ error: banMessage(owner.banned_until), code: 'banned' }, { status: 403 });
 
 /**
  * GET /api/players/status?name= → { exists, hasPassword, problem }: consulta um nick sem ficar com ele
@@ -132,13 +143,12 @@ export async function claimPlayer(request: Request, env: Env): Promise<Response>
   if (!name) return badRequest('Nick inválido');
   const password = typeof body?.password === 'string' && body.password !== '' ? body.password : null;
 
-  const owner = await env.DB.prepare(
-    'SELECT id, name, password_hash, failed_logins, locked_until FROM players WHERE name_key = ?',
-  )
+  const owner = await env.DB.prepare(`SELECT ${OWNER_COLUMNS} FROM players WHERE name_key = ?`)
     .bind(nameKey(name))
     .first<OwnerRow>();
 
   if (owner) {
+    if (owner.banned_until > Date.now()) return bannedResponse(owner);
     if ((await accountByToken(env, body?.token))?.id === owner.id) return json({ name: owner.name, token: body?.token });
     const hasPassword = owner.password_hash !== null;
     if (!password || !owner.password_hash) {
@@ -168,10 +178,11 @@ export async function claimPlayer(request: Request, env: Env): Promise<Response>
   return json({ name, token: await issueToken(env, created.id) });
 }
 
+const tooManyAttempts = () =>
+  json({ error: 'Muitas tentativas. Espere alguns minutos e tente de novo.' }, { status: 429 });
+
 async function login(request: Request, env: Env, owner: OwnerRow, password: string): Promise<Response> {
-  if (owner.locked_until > Date.now()) {
-    return json({ error: 'Muitas tentativas. Espere alguns minutos e tente de novo.' }, { status: 429 });
-  }
+  if (owner.locked_until > Date.now()) return tooManyAttempts();
   if (await checkPassword(password, owner.password_hash!)) {
     await env.DB.prepare('UPDATE players SET failed_logins = 0 WHERE id = ?').bind(owner.id).run();
     await logAccess(env, request, 'login', { playerId: owner.id, name: owner.name });
@@ -243,6 +254,56 @@ export async function renamePlayer(request: Request, env: Env): Promise<Response
   return json({ name });
 }
 
+const ownerOf = (env: Env, id: number) =>
+  env.DB.prepare(`SELECT ${OWNER_COLUMNS} FROM players WHERE id = ?`).bind(id).first<OwnerRow>();
+
+/**
+ * Confere a senha atual de quem já está logado (excluir conta, trocar senha), com o mesmo bloqueio do login.
+ * Devolve a resposta de recusa, ou null se a senha está certa.
+ */
+async function confirmPassword(env: Env, owner: OwnerRow, password: unknown): Promise<Response | null> {
+  if (owner.locked_until > Date.now()) return tooManyAttempts();
+  if (await checkPassword(typeof password === 'string' ? password : '', owner.password_hash!)) return null;
+  await recordFailedLogin(env, owner.id);
+  return json({ error: 'Senha incorreta' }, { status: 403 });
+}
+
+/**
+ * POST /api/players/change-password: { token, current, password } — troca a senha (pedindo a atual) e desconecta
+ * os outros aparelhos da conta; este continua conectado. Conta sem senha usa /api/players/password.
+ */
+export async function changePassword(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => null)) as { token?: unknown; current?: unknown; password?: unknown } | null;
+  const account = await accountByToken(env, body?.token);
+  if (!account) return unauthorized();
+  const owner = await ownerOf(env, account.id);
+  if (!owner) return unauthorized();
+  if (!owner.password_hash) return json({ error: 'Essa conta ainda não tem senha' }, { status: 409 });
+  const problem = passwordProblem(body?.password);
+  if (problem) return badRequest(problem);
+  const refused = await confirmPassword(env, owner, body?.current);
+  if (refused) return refused;
+
+  const hash = await hashPassword(body!.password as string);
+  await env.DB.batch([
+    env.DB.prepare('UPDATE players SET password_hash = ?, failed_logins = 0 WHERE id = ?').bind(hash, owner.id),
+    env.DB.prepare('DELETE FROM player_tokens WHERE player_id = ? AND token_hash <> ?').bind(owner.id, await sha256(body!.token as string)),
+  ]);
+  return json({ ok: true });
+}
+
+/**
+ * POST /api/players/logout-all: { token } — desconecta todos os aparelhos da conta, inclusive este (ex: entrou num
+ * computador emprestado). Para voltar, entra de novo com nick + senha.
+ */
+export async function logoutAll(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => null)) as { token?: unknown } | null;
+  const account = await accountByToken(env, body?.token);
+  if (!account) return unauthorized();
+  await env.DB.prepare('DELETE FROM player_tokens WHERE player_id = ?').bind(account.id).run();
+  return json({ ok: true });
+}
+
 /**
  * POST /api/players/delete: { token, password } — exclui a conta e os dados ligados a ela (LGPD): tokens, itens,
  * partidas, pontuações, tentativas do desafio e o histórico do Arcade. O nick fica livre. Conta com senha precisa
@@ -253,19 +314,11 @@ export async function deletePlayer(request: Request, env: Env): Promise<Response
   const body = (await request.json().catch(() => null)) as { token?: unknown; password?: unknown } | null;
   const account = await accountByToken(env, body?.token);
   if (!account) return unauthorized();
-  const owner = await env.DB.prepare('SELECT id, name, password_hash, failed_logins, locked_until FROM players WHERE id = ?')
-    .bind(account.id)
-    .first<OwnerRow>();
+  const owner = await ownerOf(env, account.id);
   if (!owner) return unauthorized();
   if (owner.password_hash) {
-    if (owner.locked_until > Date.now()) {
-      return json({ error: 'Muitas tentativas. Espere alguns minutos e tente de novo.' }, { status: 429 });
-    }
-    const password = typeof body?.password === 'string' ? body.password : '';
-    if (!(await checkPassword(password, owner.password_hash))) {
-      await recordFailedLogin(env, owner.id);
-      return json({ error: 'Senha incorreta' }, { status: 403 });
-    }
+    const refused = await confirmPassword(env, owner, body?.password);
+    if (refused) return refused;
   }
 
   const id = owner.id;

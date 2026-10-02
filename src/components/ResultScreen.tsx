@@ -7,6 +7,7 @@ import type { CharacterInfo } from '../game/types';
 import Leaderboard from './Leaderboard';
 import RankingComparison from './RankingComparison';
 import RankingStatus from './RankingStatus';
+import ReportLink from './ReportForm';
 import ShareResult from './ShareResult';
 
 interface Props {
@@ -83,6 +84,7 @@ export default function ResultScreen({ mode, gameId, nick, slots, daily = false,
       </div>
 
       {result && <RankingComparison slots={slots} ranks={result.ranks} />}
+      {result && <ReportLink kind="image" targets={slots.map((c) => ({ id: c.id, label: c.name }))} />}
 
       {result && (
         <div className="result-leaderboard">

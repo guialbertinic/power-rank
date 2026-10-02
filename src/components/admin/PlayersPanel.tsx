@@ -5,13 +5,16 @@ import { searchPlayers } from './api';
 import { dateTimeText, errorText, numberText } from './format';
 import PlayerDetail from './PlayerDetail';
 
-/** Busca de contas (por parte do nick) e, ao escolher uma, os detalhes e as ações. */
-export default function PlayersPanel() {
+/**
+ * Busca de contas (por parte do nick) e, ao escolher uma, os detalhes e as ações. `initialId`: abre direto uma conta
+ * (vindo da fila de moderação).
+ */
+export default function PlayersPanel({ initialId = null }: { initialId?: number | null }) {
   const { t, lang } = useI18n();
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'recent' | 'coins'>('recent');
   const [players, setPlayers] = useState<AdminPlayerRow[] | null>(null);
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<number | null>(initialId);
   const [error, setError] = useState<string | null>(null);
 
   // Busca enquanto digita, com uma pequena espera; volta a buscar ao sair dos detalhes (nick/saldo podem ter mudado).
@@ -87,6 +90,7 @@ export function PlayerBadges({ player }: { player: AdminPlayerRow }) {
       {!player.hasPassword && <span className="admin-badge">{t('admin.players.noPassword')}</span>}
       {player.adult && <span className="admin-badge">18+</span>}
       {player.lockedUntil > Date.now() && <span className="admin-badge warn">{t('admin.players.locked')}</span>}
+      {player.bannedUntil > Date.now() && <span className="admin-badge warn">{t('admin.players.banned')}</span>}
     </span>
   );
 }

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { fetchLeaderboard, type LeaderboardEntry, type Period } from '../api';
 import { cosmeticById } from '../game/cosmetics';
-import { cosmeticLabel, useI18n, type Key } from '../i18n';
-import { MODES, type Mode } from '../game/modes';
+import { cosmeticLabel, modeLabel, useI18n, type Key } from '../i18n';
+import type { Mode } from '../game/modes';
 import { sameNick } from '../nick';
 import { formatDuration } from '../ui/format';
 import PlayerTag from './PlayerTag';
 import RankBadge from './RankBadge';
+import ReportLink from './ReportForm';
 
 interface Props {
   mode: Mode;
@@ -106,7 +107,7 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
     <div className="panel leaderboard">
       <div className="leaderboard-header">
         <h3 className="section-title">
-          {t('leaderboard.title', { mode: MODES.find((m) => m.id === mode)?.label ?? '' })}
+          {t('leaderboard.title', { mode: modeLabel(t, mode) })}
         </h3>
         <div className="leaderboard-periods" role="tablist">
           {PERIODS.map((p) => (
@@ -173,6 +174,8 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
           })}
         </ol>
       </div>
+      {/* Denunciar um nick do ranking (sem o próprio jogador). */}
+      <ReportLink kind="nick" targets={(scores ?? []).filter((s) => !isYou(s)).map((s) => ({ id: s.name, label: s.name }))} />
     </div>
   );
 }

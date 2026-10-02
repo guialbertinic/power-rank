@@ -59,6 +59,7 @@ export default function ReviewScreen() {
             <option value="">Todas as categorias</option>
             <option value="anime">Animes</option>
             <option value="games">Games</option>
+            <option value="movies">Filmes e Séries</option>
             <option value="pokemon">Pokémon</option>
           </select>
           <select value={series} onChange={(e) => setSeries(e.target.value)}>
