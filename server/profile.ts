@@ -15,6 +15,7 @@ interface LookRow {
   name_color: string | null;
   frame: string | null;
   title: string | null;
+  badge: string | null;
 }
 
 export const toLook = (row: LookRow | null | undefined): Look => ({
@@ -22,11 +23,12 @@ export const toLook = (row: LookRow | null | undefined): Look => ({
   nameColor: row?.name_color ?? null,
   frame: row?.frame ?? null,
   title: row?.title ?? null,
+  badge: row?.badge ?? null,
 });
 
 /** Visual equipado de uma conta (usado pela party, que precisa dele ao entrar na sala). */
 export async function lookOf(env: Env, playerId: number): Promise<Look> {
-  const row = await env.DB.prepare('SELECT avatar, name_color, frame, title FROM players WHERE id = ?')
+  const row = await env.DB.prepare('SELECT avatar, name_color, frame, title, badge FROM players WHERE id = ?')
     .bind(playerId)
     .first<LookRow>();
   return toLook(row);
@@ -41,7 +43,7 @@ export async function creditCoins(env: Env, playerId: number, amount: number): P
 }
 
 /** Lê { token, ... } das rotas de perfil e acha a conta do token. */
-async function authenticate<T extends object>(request: Request, env: Env): Promise<{ id: number; body: T } | Response> {
+export async function authenticate<T extends object>(request: Request, env: Env): Promise<{ id: number; body: T } | Response> {
   const body = (await request.json().catch(() => null)) as ({ token?: unknown } & T) | null;
   const account = body && (await accountByToken(env, body.token));
   if (!account) return json({ error: 'Nick não verificado' }, { status: 401 });
@@ -49,14 +51,17 @@ async function authenticate<T extends object>(request: Request, env: Env): Promi
 }
 
 export async function loadProfile(env: Env, playerId: number): Promise<Profile> {
-  const [player, items] = await env.DB.batch([
+  const [player, items, unseen] = await env.DB.batch([
     env.DB.prepare(
-      `SELECT name, coins, avatar, name_color, frame, title, password_hash IS NOT NULL AS has_password,
+      `SELECT name, coins, avatar, name_color, frame, title, badge, password_hash IS NOT NULL AS has_password,
          adult_confirmed_at IS NOT NULL AS adult,
          (SELECT COUNT(*) FROM player_tokens WHERE player_id = players.id) AS devices
        FROM players WHERE id = ?`,
     ).bind(playerId),
     env.DB.prepare('SELECT item_id FROM player_items WHERE player_id = ? ORDER BY acquired_at').bind(playerId),
+    env.DB.prepare(
+      'SELECT achievement_id FROM player_achievements WHERE player_id = ? AND seen = 0 ORDER BY unlocked_at',
+    ).bind(playerId),
   ]);
   const row = (player.results[0] ?? null) as (LookRow & { name: string; coins: number; has_password: number; adult: number; devices: number }) | null;
   return {
@@ -67,6 +72,7 @@ export async function loadProfile(env: Env, playerId: number): Promise<Profile> 
     hasPassword: Boolean(row?.has_password),
     adult: Boolean(row?.adult),
     devices: row?.devices ?? 0,
+    newAchievements: (unseen.results as { achievement_id: string }[]).map((r) => r.achievement_id),
   };
 }
 
@@ -107,8 +113,8 @@ function priceOf(itemId: string, catalog: Catalog): number | null {
     return c?.image && catalog.active.includes(c) ? AVATAR_PRICE : null;
   }
   const item = cosmeticById(itemId);
-  // Exclusivos só saem na Mystery Box.
-  return item && !item.exclusive ? item.price : null;
+  // Exclusivos só saem na Mystery Box; recompensas de conquista, só da conquista.
+  return item && !item.exclusive && !item.achievement ? item.price : null;
 }
 
 /**
@@ -143,6 +149,7 @@ const SLOT_COLUMN: Record<CosmeticSlot, string> = {
   nameColor: 'name_color',
   frame: 'frame',
   title: 'title',
+  badge: 'badge',
 };
 
 /** POST /api/profile/equip: { token, slot, itemId | null } → Profile. Só equipa o que o jogador tem. */

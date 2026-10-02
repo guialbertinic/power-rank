@@ -34,12 +34,15 @@ export function rarityOf(c: Cosmetic): Rarity {
   return 'epic';
 }
 
+/** Recompensas de conquista nunca saem na caixa. */
+const BOX_ITEMS = COSMETICS.filter((c) => !c.achievement);
+
 /** Itens (cosméticos) de cada raridade. */
 export const GACHA_POOLS: Record<Rarity, Cosmetic[]> = {
-  common: COSMETICS.filter((c) => rarityOf(c) === 'common'),
-  rare: COSMETICS.filter((c) => rarityOf(c) === 'rare'),
-  epic: COSMETICS.filter((c) => rarityOf(c) === 'epic'),
-  legendary: COSMETICS.filter((c) => rarityOf(c) === 'legendary'),
+  common: BOX_ITEMS.filter((c) => rarityOf(c) === 'common'),
+  rare: BOX_ITEMS.filter((c) => rarityOf(c) === 'rare'),
+  epic: BOX_ITEMS.filter((c) => rarityOf(c) === 'epic'),
+  legendary: BOX_ITEMS.filter((c) => rarityOf(c) === 'legendary'),
 };
 
 /** Na raridade comum, metade das vezes sai um avatar (personagem aleatório) em vez de um cosmético. */

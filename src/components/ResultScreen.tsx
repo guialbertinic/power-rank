@@ -4,6 +4,7 @@ import type { Mode } from '../game/modes';
 import { MAX_SCORE, rankLevel } from '../game/scoring';
 import { dailyLabel, serverText, useI18n } from '../i18n';
 import type { CharacterInfo } from '../game/types';
+import AchievementUnlocked from './AchievementUnlocked';
 import Leaderboard from './Leaderboard';
 import RankingComparison from './RankingComparison';
 import RankingStatus from './RankingStatus';
@@ -65,6 +66,7 @@ export default function ResultScreen({ mode, gameId, nick, slots, daily = false,
             </p>
             <p className="title-badge">{t(`rank.${rankLevel(result.score)}`)}</p>
             <RankingStatus result={result} />
+            <AchievementUnlocked ids={result.achievements ?? []} />
           </>
         ) : status.kind === 'error' ? (
           <p className="ranking-status error">{t('result.error', { message: serverText(status.message, lang) })}</p>

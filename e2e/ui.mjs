@@ -199,6 +199,14 @@ try {
   section('Loja');
   await ana.click('.home-button');
   await ana.waitForSelector('.profile-bar');
+  // A party rendeu conquistas: o aviso aparece na home até a Ana fechar.
+  const toast = await ana.waitForSelector('.achievement-unlocked [data-achievement="first-game"]', { timeout: 8000 }).catch(() => null);
+  check('conquista da party: aviso na home', Boolean(toast));
+  if (toast) {
+    await ana.click('.achievement-unlocked .btn');
+    await sleep(200);
+    check('fechar o aviso some com ele', !(await ana.$('.achievement-unlocked')));
+  }
   d1(`UPDATE players SET coins = 2000 WHERE name_key = '${nick('ana').toLowerCase()}'`);
   await ana.reload({ waitUntil: 'networkidle0' });
   await ana.waitForSelector('.profile-bar .coins');
@@ -254,11 +262,16 @@ try {
   check('compra e equipa moldura (Lendária)', (await buyAndEquip(await shopItem('Lendária'))) === 'Equipado');
   await tabs(2);
   await sleep(200);
-  check('títulos separados por categoria', (await ana.$$('.shop-group')).length === 5);
+  check('títulos separados por categoria', (await ana.$$('.shop-group')).length === 6);
+  check('prêmio de conquista mostra qual conquista dá', (await text(ana, '[data-label="Constante"] .shop-lock')) === 'Conquista: Constante');
   const [row1, row2] = await ana.$$eval('.shop-rows .shop-row', (els) => els.slice(0, 2).map((e) => e.getBoundingClientRect().top));
   check('2 títulos por linha no computador', Math.abs(row1 - row2) < 2, `${row1} / ${row2}`);
   check('compra e equipa título', (await buyAndEquip(await shopItem('Iniciante Próspero'))) === 'Equipado');
   await tabs(3);
+  await sleep(200);
+  check('emblemas: ícone SVG', Boolean(await ana.$('[data-label="Estrela"] .shop-badge-sample svg')));
+  check('compra e equipa emblema', (await buyAndEquip(await shopItem('Estrela'))) === 'Equipado');
+  await tabs(4);
   await sleep(200);
   check(
     'avatares por categoria, recolhidos',
@@ -272,13 +285,14 @@ try {
   await sleep(300);
   check('compra e equipa avatar', (await buyAndEquip((await ana.$$('.shop-avatars .shop-avatar'))[0])) === 'Equipado');
   const balance = await text(ana, '.shop-balance .coins');
-  check('saldo descontado (2000 − 250 − 600 − 50 − 50)', balance === '1050', balance ?? '');
+  check('saldo descontado (2000 − 250 − 600 − 50 − 60 − 50)', balance === '990', balance ?? '');
 
   await ana.click('.home-button');
   await ana.waitForSelector('.profile-bar .player-tag img');
   const tag = await ana.$eval('.profile-bar .player-tag', (el) => el.innerHTML);
   check('barra de perfil mostra o visual', tag.includes('cosmetic-name-fire') && tag.includes('cosmetic-frame-legend') && tag.includes('goku'));
   check('título aparece embaixo do nick', (await text(ana, '.profile-bar .player-title')) === 'Iniciante Próspero');
+  check('emblema aparece ao lado do nick', Boolean(await ana.$('.profile-bar .player-name-line .cosmetic-badge-star')));
 
   /** Abre a tela Minha conta pelo menu do perfil (convidado: "Nick e criar conta"). */
   async function openAccount(page, label = 'Minha conta') {
@@ -329,6 +343,26 @@ try {
   await ana.waitForSelector('.profile-bar .coins');
   check('forçar sincronização traz o saldo do servidor', (await text(ana, '.profile-bar .coins')) === '777');
 
+  // Conquistas: botão ao lado da Loja, cartões por grupo.
+  await ana.click('.profile-bar-actions ::-p-text(Conquistas)');
+  await ana.waitForSelector('.achievements-grid');
+  check(
+    'conquistas: 11 cartões em 5 grupos, a da primeira partida desbloqueada',
+    (await ana.$$('.achievement-card')).length === 11 &&
+      (await ana.$$('.achievements-group')).length === 5 &&
+      Boolean(await ana.$('.achievement-card.done[data-achievement="first-game"]')),
+  );
+  const [card1, card2] = await ana.$$eval('.achievements-group:first-of-type .achievement-card', (els) => els.map((e) => e.getBoundingClientRect().top));
+  check('conquistas: 2 cartões por linha no computador', Math.abs(card1 - card2) < 2, `${card1} / ${card2}`);
+  await ana.click('.home-button');
+  await ana.waitForSelector('.profile-bar .coins');
+  const barLayout = await ana.$eval('.profile-bar', (el) => {
+    const r = el.getBoundingClientRect();
+    const title = document.querySelector('.app-header h1').getBoundingClientRect();
+    return { fits: r.right <= window.innerWidth, clear: r.bottom <= title.top || r.left >= title.right || r.right <= title.left };
+  });
+  check('barra com Loja, Conquistas e Arcade cabe sem cobrir o título', barLayout.fits && barLayout.clear, JSON.stringify(barLayout));
+
   // Ana entra no celular com Login + senha.
   const celular = await b.page(PHONE);
   await celular.goto('http://localhost:5173/', { waitUntil: 'networkidle0' });
@@ -345,6 +379,22 @@ try {
   await celular.click('.nick-screen .btn-primary');
   await celular.waitForSelector('.profile-bar .coins');
   check('entra com nick + senha em outro dispositivo', (await text(celular, '.profile-bar .coins')) === '777');
+  await celular.waitForSelector('.profile-bar-me:not([disabled])');
+  await celular.click('.profile-bar-me');
+  await (await celular.waitForSelector('.profile-menu ::-p-text(Conquistas)', { visible: true })).click();
+  await celular.waitForSelector('.achievements-grid');
+  check('celular: conquistas sem scroll horizontal', (await overflowX(celular)) <= 0);
+  await celular.click('.home-button');
+  await celular.waitForSelector('.profile-bar-me:not([disabled])');
+  await celular.click('.profile-bar-me');
+  await (await celular.waitForSelector('.profile-menu ::-p-text(Loja)', { visible: true })).click();
+  await celular.waitForSelector('.shop-tabs');
+  const shopTabs = await celular.$$eval('.shop-tabs .mode-option', (els) => els.map((e) => [e.textContent, e.scrollWidth, e.clientWidth]));
+  check(
+    'celular: as 5 abas da loja cabem',
+    shopTabs.length === 5 && shopTabs.every(([, scroll, client]) => scroll <= client) && (await overflowX(celular)) <= 0,
+    JSON.stringify(shopTabs),
+  );
   await celular.close();
 
   // ---------- Desafio diário e resultado ----------

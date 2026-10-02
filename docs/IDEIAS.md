@@ -140,9 +140,11 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
 ## Economia e cosméticos
 
 - ✅ Loja: 25 cores, 21 molduras, 45 títulos (embaixo do nick), avatares por categoria/obra que expandem; filtro obtidos/não obtidos.
-- 💡 Fase 2: ícones/emblemas em SVG ao lado do nick, itens raros · `Feature` 🟡
-- 💡 Fase 3: **conquistas** ("10/10", "venceu 5 parties", "7 dias de desafio diário") que desbloqueiam itens ·
-  `Feature` 🟡
+- ✅ Fase 2: **emblemas** em SVG ao lado do nick (11 na loja + 7 de conquista).
+- ✅ Fase 3: **conquistas** (11: primeira partida, 100 partidas, 700/850/1000 pontos, 3/7/30 dias de desafio, 1 e 5
+  vitórias de party, 700+ em todas as categorias), cada uma dá um título ou emblema exclusivo; sem moedas, sem
+  retroativo. 💡 Depois: mais conquistas (ex: por categoria, Arcade), emblema exclusivo na Mystery Box, selo de
+  Apoiador.
 - 🧭 Balancear preços e ganhos com dados reais (`SELECT SUM(coins) FROM scores`, itens mais comprados) ·
   `Manutenção` 🟢
 

@@ -1853,6 +1853,14 @@ input:focus {
   white-space: nowrap;
 }
 
+/* Nick e o emblema logo depois dele (o nick corta com reticências; o emblema nunca some). */
+.player-name-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
 .player-title {
   min-width: 0;
   overflow: hidden;
@@ -2546,6 +2554,89 @@ input:focus {
   }
 }
 
+/* ---------- Cosméticos: emblemas (SVG ao lado do nick, desenhos em BadgeIcon.tsx) ---------- */
+
+.badge-icon {
+  flex: none;
+  width: 1.1em;
+  height: 1.1em;
+  fill: currentColor;
+  color: var(--text-2);
+  overflow: visible;
+}
+
+/* Recortes na cor do fundo: olhos, números, facetas (`--badge-cut` = fundo onde o emblema aparece). */
+.badge-cut { fill: var(--badge-cut, var(--bg)); }
+.badge-cut-line { fill: none; stroke: var(--badge-cut, var(--bg)); stroke-width: 1.2; stroke-linejoin: round; }
+.badge-line { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.badge-text { font-family: var(--font-display); font-weight: 700; }
+
+.cosmetic-badge-star { color: var(--hit-mid); }
+.cosmetic-badge-bolt { color: var(--tier-a); filter: drop-shadow(0 0 3px rgba(5, 217, 232, 0.5)); }
+.cosmetic-badge-heart { color: var(--tier-s); }
+.cosmetic-badge-flame { color: #ff7a1a; filter: drop-shadow(0 0 4px rgba(255, 69, 0, 0.55)); }
+.cosmetic-badge-skull { color: #e8e4d8; }
+.cosmetic-badge-sword { color: #c9d4e6; filter: drop-shadow(0 0 3px rgba(201, 212, 230, 0.45)); }
+.cosmetic-badge-shield { color: var(--tier-b-text); }
+.cosmetic-badge-moon { color: #d9e4ff; filter: drop-shadow(0 0 5px rgba(160, 196, 255, 0.6)); }
+.cosmetic-badge-eye { color: var(--accent-2); filter: drop-shadow(0 0 4px rgba(154, 0, 230, 0.6)); }
+
+.cosmetic-badge-diamond {
+  color: #9ff3ff;
+  animation: badge-shine 2.6s ease-in-out infinite;
+}
+
+.cosmetic-badge-crown {
+  color: var(--tier-ss);
+  animation: cosmetic-legend-glow 2.4s ease-in-out infinite;
+}
+
+/* Conquistas */
+.cosmetic-badge-veteran { color: var(--tier-c); }
+.cosmetic-badge-scouter { color: var(--tier-a); filter: drop-shadow(0 0 4px rgba(5, 217, 232, 0.6)); }
+.cosmetic-badge-trophy { color: var(--tier-ss); filter: drop-shadow(0 0 4px rgba(255, 176, 0, 0.55)); }
+.cosmetic-badge-streak7 { color: #ff7a1a; filter: drop-shadow(0 0 4px rgba(255, 69, 0, 0.6)); }
+
+.cosmetic-badge-streak30 {
+  color: #ff4500;
+  animation: badge-flicker 1.4s ease-in-out infinite;
+}
+
+.cosmetic-badge-perfect {
+  color: #ffd700;
+  animation: cosmetic-legend-glow 2s ease-in-out infinite;
+}
+
+.cosmetic-badge-eclectic { color: var(--text); }
+.cosmetic-badge-eclectic .badge-dot-1 { fill: var(--tier-s); }
+.cosmetic-badge-eclectic .badge-dot-2 { fill: var(--tier-ss); }
+.cosmetic-badge-eclectic .badge-dot-3 { fill: var(--tier-c); }
+.cosmetic-badge-eclectic .badge-dot-4 { fill: var(--tier-a); }
+.cosmetic-badge-eclectic .badge-dot-5 { fill: var(--accent-2); }
+
+@keyframes badge-shine {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(159, 243, 255, 0.4)) brightness(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(159, 243, 255, 0.95)) brightness(1.25);
+  }
+}
+
+@keyframes badge-flicker {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px rgba(255, 69, 0, 0.6));
+  }
+  40% {
+    filter: drop-shadow(0 0 9px rgba(255, 176, 0, 0.95));
+  }
+  60% {
+    filter: drop-shadow(0 0 5px rgba(255, 69, 0, 0.8));
+  }
+}
+
 /* ---------- Loja ---------- */
 
 .shop {
@@ -2707,6 +2798,27 @@ input:focus {
   font-size: 1.05rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+/* Emblema na loja: o ícone grande. */
+.shop-badge-sample {
+  --badge-cut: var(--surface-2);
+  display: grid;
+  place-items: center;
+  height: 44px;
+  font-size: 2.4rem;
+}
+
+/* No lugar do preço: qual conquista dá o item. */
+.shop-lock {
+  max-width: 100%;
+  padding: 6px 10px;
+  border: 1px dashed var(--border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  text-align: center;
 }
 
 .shop-item-label {
@@ -2896,11 +3008,20 @@ input:focus {
     grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   }
 
+  /* Cinco abas na largura da tela: nome de duas palavras ("Cor do nick") quebra linha. */
+  .shop-tabs {
+    gap: 4px;
+  }
+
   .shop-tabs .mode-option {
     flex: 1 1 0;
     min-width: 0;
-    padding: 9px 8px;
-    font-size: 0.8rem;
+    align-content: center;
+    padding: 8px 4px;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+    white-space: normal;
   }
 }
 
@@ -4615,6 +4736,251 @@ input:focus {
 
 .profile-account {
   width: 100%;
+}
+
+/* ---------- Conquistas (aviso na home/resultado e tela de conquistas) ---------- */
+
+.achievement-unlocked {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 16px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--tier-ss);
+  box-shadow: 0 0 18px rgba(255, 176, 0, 0.25);
+  text-align: left;
+}
+
+/* No resultado, dentro do painel da pontuação. */
+.score-panel .achievement-unlocked {
+  margin: 14px auto 0;
+}
+
+.achievement-unlocked-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
+  color: var(--tier-ss);
+}
+
+.achievement-unlocked-list {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  list-style: none;
+}
+
+.achievement-unlocked-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--surface-2);
+}
+
+.achievement-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
+
+.achievement-text strong {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.achievement-reward-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tier-ss);
+}
+
+/* Ícone do prêmio (emblema ou faixa de título) num quadro chanfrado. */
+.achievement-icon {
+  --badge-cut: var(--surface);
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  font-size: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  clip-path: var(--clip-chamfer-sm);
+}
+
+/* Ainda bloqueada: o prêmio aparece apagado e parado. */
+.achievement-icon.locked .badge-icon {
+  opacity: 0.3;
+  filter: grayscale(1);
+  animation: none;
+}
+
+.achievement-title-mark {
+  color: var(--text-2);
+}
+
+/* Tela de conquistas */
+.achievements {
+  display: grid;
+  gap: 16px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.achievements-summary {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.achievements-summary-value {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--tier-ss);
+}
+
+.achievements-summary-value span {
+  font-size: 1.1rem;
+  color: var(--text-2);
+}
+
+.achievements-summary-label {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.achievements-summary .achievement-bar {
+  width: min(320px, 100%);
+  margin-top: 6px;
+}
+
+.achievements-hint {
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+.achievements-error {
+  text-align: center;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 10px;
+  list-style: none;
+}
+
+.achievement-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.achievement-card.done {
+  border-color: var(--tier-ss);
+  box-shadow: inset 3px 0 0 var(--tier-ss);
+}
+
+.achievement-card.done .achievement-icon {
+  border-color: var(--tier-ss);
+}
+
+.achievement-card-body {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+
+.achievement-card-name {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.achievement-card:not(.done) .achievement-card-name {
+  color: var(--text-2);
+}
+
+.achievement-card-desc {
+  font-size: 0.85rem;
+  line-height: 1.25;
+  color: var(--text-2);
+}
+
+/* "Emblema · Veterano": tipo do prêmio e o nome. */
+.achievement-card-reward {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.achievement-card-reward span {
+  color: var(--tier-ss);
+}
+
+.achievement-date {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tier-c);
+}
+
+.achievement-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.achievement-bar {
+  display: block;
+  flex: 1;
+  height: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.achievement-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent-fill);
+}
+
+.achievement-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Denúncias (nick e imagem) ---------- */

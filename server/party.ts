@@ -1,12 +1,13 @@
 import { DurableObject } from 'cloudflare:workers';
 import { logAccess } from './access';
+import { recordGame, recordPartyWin } from './achievements';
 import { loadCatalog } from './catalog';
 import { badRequest, json, nameKey, sanitizeName, type Env } from './lib';
 import { playerAccess } from './players';
 import { MIN_GAME_MS, nickProblem } from './security';
 import { creditCoins, lookOf } from './profile';
 import { EMPTY_LOOK, type Look } from '../src/game/cosmetics';
-import { coinsForScore, podiumBonus } from '../src/game/economy';
+import { coinsForScore, PODIUM_BONUS_MIN_PLAYERS, podiumBonus } from '../src/game/economy';
 import { drawFor, isMode, parseFilter, poolFor, type Difficulty, type Mode, type PoolFilter } from '../src/game/modes';
 import type { Category } from '../src/game/types';
 import {
@@ -392,6 +393,13 @@ export class PartyRoom extends DurableObject<Env> {
       player.coinsEarned = (player.coinsEarned ?? 0) + bonus;
       this.ctx.waitUntil(creditCoins(this.env, player.playerId, bonus));
     });
+    // Conquista de vitória: 1º lugar com 2+ jogadores que terminaram (o aviso aparece na home).
+    const winner = ranking.length >= PODIUM_BONUS_MIN_PLAYERS && room.players.find((p) => p.id === ranking[0].id);
+    if (winner && winner.playerId !== null && !winner.tooFast) {
+      this.ctx.waitUntil(
+        recordPartyWin(this.env, winner.playerId).catch((err) => console.error('party: falha na conquista de vitória', err)),
+      );
+    }
   }
 
   /** Se o dono saiu, o jogador conectado mais antigo assume. */
@@ -451,6 +459,8 @@ export class PartyRoom extends DurableObject<Env> {
         // Convidado: nenhuma linha em players tem id NULL, então não credita nada.
         this.env.DB.prepare('UPDATE players SET coins = coins + ? WHERE id = ?').bind(coins, playerId),
       ]);
+      // Conquistas (o aviso aparece na home, ao sair da sala).
+      if (playerId !== null) await recordGame(this.env, playerId, { mode, score: player.score ?? 0, daily: null }, false);
     } catch (err) {
       console.error('party: falha ao gravar pontuação', err);
     }

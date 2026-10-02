@@ -327,6 +327,8 @@ export async function deletePlayer(request: Request, env: Env): Promise<Response
   await env.DB.batch([
     run('DELETE FROM player_tokens WHERE player_id = ?', id),
     run('DELETE FROM player_items WHERE player_id = ?', id),
+    run('DELETE FROM player_stats WHERE player_id = ?', id),
+    run('DELETE FROM player_achievements WHERE player_id = ?', id),
     run('DELETE FROM scores WHERE player_id = ?', id),
     run('DELETE FROM games WHERE player_id = ?', id),
     run('DELETE FROM daily_attempts WHERE player_key = ?', `p:${id}`),

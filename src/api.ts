@@ -1,3 +1,4 @@
+import type { AchievementsState } from './game/achievements';
 import type { Outcome, SymbolId } from './game/casino';
 import type { CosmeticSlot, Look, Profile } from './game/cosmetics';
 import type { Features } from './game/features';
@@ -36,6 +37,8 @@ export interface SubmitResult {
   /** Moedas que esta partida rendeu e o saldo depois dela (null para convidado). */
   coinsEarned: number;
   coins: number | null;
+  /** Conquistas desbloqueadas por esta partida (ids). */
+  achievements: string[];
 }
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -214,6 +217,16 @@ export function buyItem(auth: Auth, itemId: string): Promise<Profile> {
 
 export function equipItem(auth: Auth, slot: CosmeticSlot, itemId: string | null): Promise<Profile> {
   return request('/api/profile/equip', { method: 'POST', body: JSON.stringify({ ...auth, slot, itemId }) });
+}
+
+/** Contadores e conquistas desbloqueadas da conta. */
+export function fetchAchievements(token: string): Promise<AchievementsState> {
+  return request('/api/achievements', { method: 'POST', body: JSON.stringify({ token }) });
+}
+
+/** O jogador viu o aviso das conquistas novas. */
+export async function markAchievementsSeen(token: string): Promise<void> {
+  await request('/api/achievements/seen', { method: 'POST', body: JSON.stringify({ token }) });
 }
 
 /** A conta declara ter 18 anos ou mais (libera caça-níquel e Mystery Box). */

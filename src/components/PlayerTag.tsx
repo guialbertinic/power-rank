@@ -3,6 +3,7 @@ import { cosmeticLabel, useI18n } from '../i18n';
 import { POOL_BY_ID } from '../data';
 import { fallbackBackground, initials } from '../ui/fallback';
 import Avatar from './Avatar';
+import BadgeIcon from './BadgeIcon';
 
 interface Props {
   name: string;
@@ -14,7 +15,7 @@ interface Props {
 }
 
 /**
- * Jogador com o visual equipado: avatar (personagem escolhido) com moldura, nick com cor e o título embaixo.
+ * Jogador com o visual equipado: avatar (personagem escolhido) com moldura, nick com cor e emblema, e o título embaixo.
  * Cada cosmético é uma classe `cosmetic-<id>` definida em styles.css.
  */
 export default function PlayerTag({ name, look, size = 28, avatarOnly }: Props) {
@@ -22,6 +23,7 @@ export default function PlayerTag({ name, look, size = 28, avatarOnly }: Props) 
   const { lang } = useI18n();
   const titleItem = look.title ? cosmeticById(look.title) : undefined;
   const title = titleItem ? cosmeticLabel(titleItem, lang) : undefined;
+  const badgeItem = look.badge ? cosmeticById(look.badge) : undefined;
 
   const avatar = (
     <span className={`player-frame${look.frame ? ` cosmetic-${look.frame}` : ''}`}>
@@ -45,7 +47,10 @@ export default function PlayerTag({ name, look, size = 28, avatarOnly }: Props) 
     <span className="player-tag">
       {avatar}
       <span className="player-text">
-        <span className={`player-name${look.nameColor ? ` cosmetic-${look.nameColor}` : ''}`}>{name}</span>
+        <span className="player-name-line">
+          <span className={`player-name${look.nameColor ? ` cosmetic-${look.nameColor}` : ''}`}>{name}</span>
+          {badgeItem && <BadgeIcon id={badgeItem.id} label={cosmeticLabel(badgeItem, lang)} />}
+        </span>
         {title && <span className="player-title">{title}</span>}
       </span>
     </span>

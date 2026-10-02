@@ -270,6 +270,58 @@ if (section('Economia e loja')) {
 }
 
 // ---------- Ranking: Hoje e Acumulado ----------
+if (section('Conquistas e emblemas')) {
+  const me = await player('Conquista');
+  const where = `player_id = (SELECT id FROM players WHERE name = '${me.name}')`;
+  // Dia do desafio (meia-noite de Brasília) de `daysAgo` dias atrás.
+  const day = (daysAgo) => new Date(Date.now() - 3 * 3600_000 - daysAgo * 86400_000).toISOString().slice(0, 10);
+
+  const empty = await post('/achievements', me);
+  check('conta nova: nada desbloqueado', empty.status === 200 && !Object.keys(empty.data.unlocked).length && empty.data.stats.games === 0);
+  check('conquistas pedem conta', (await post('/achievements', { token: 'token-falso' })).status === 401);
+  const weak = await playSolo(me, 'reversed');
+  check('primeira partida desbloqueia "Primeira Partida"', weak.achievements?.join() === 'first-game', weak.achievements?.join());
+  const { data: afterFirst } = await post('/profile', me);
+  check(
+    'prêmio vai para os itens; sem aviso pendente (já apareceu no resultado)',
+    afterFirst.owned.includes('title-recruta') && afterFirst.newAchievements.length === 0,
+  );
+  const perfect = await playDaily(me, 'perfect');
+  check(
+    '1000 pontos: 700+, 850+ e Perfeito de uma vez',
+    ['score-700', 'score-850', 'perfect'].every((id) => perfect.achievements.includes(id)) && !perfect.achievements.includes('first-game'),
+    perfect.achievements.join(),
+  );
+  check('conquista não dá moedas', perfect.coinsEarned === 60);
+  check('não desbloqueia duas vezes', (await playSolo(me, 'perfect')).achievements.length === 0);
+  const { data: state } = await post('/achievements', me);
+  check(
+    'contadores: partidas, melhor, sequência e categorias',
+    state.stats.games === 3 && state.stats.bestScore === 1000 && state.stats.dailyStreak === 1 && state.stats.modes700 === 1,
+    JSON.stringify(state.stats),
+  );
+  check('lista as desbloqueadas com a data', Object.keys(state.unlocked).length === 4 && state.unlocked.perfect > 0);
+
+  // Sequência: finge que jogou ontem e anteontem; o desafio de hoje (outra categoria) fecha 3 dias.
+  d1(`UPDATE player_stats SET daily_streak = 2, daily_last = '${day(1)}' WHERE ${where}`);
+  const streak = await playDaily(me, 'perfect', 'games');
+  check('3 dias seguidos de desafio: "Constante"', streak.achievements.includes('daily-3'), streak.achievements.join());
+  check('mesmo dia em outra categoria não soma de novo', (await post('/achievements', me)).data.stats.dailyStreak === 3);
+  d1(`UPDATE player_stats SET daily_last = '${day(2)}' WHERE ${where}`);
+  check('dia sem desafio quebra a sequência', (await post('/achievements', me)).data.stats.dailyStreak === 0);
+  d1(`UPDATE player_stats SET daily_last = '${day(1)}' WHERE ${where}`);
+
+  // Emblemas: espaço novo na loja; prêmios de conquista não estão à venda.
+  const star = await post('/shop/buy', { ...me, itemId: 'badge-star' });
+  check('compra emblema', star.status === 200 && star.data.owned.includes('badge-star'));
+  check('prêmio de conquista não está à venda', (await post('/shop/buy', { ...me, itemId: 'badge-veteran' })).status === 400);
+  check('emblema não vai no espaço do título', (await post('/profile/equip', { ...me, slot: 'title', itemId: 'badge-star' })).status === 400);
+  const equipped = await post('/profile/equip', { ...me, slot: 'badge', itemId: 'badge-perfect' });
+  check('equipa emblema ganho na conquista', equipped.data.look?.badge === 'badge-perfect');
+  const { scores } = await get('/scores?mode=anime');
+  check('ranking traz o emblema', scores.find((r) => r.name === me.name)?.look.badge === 'badge-perfect');
+}
+
 if (section('Ranking')) {
   const slow = await player('Lento');
   const fast = await player('Rapido');
@@ -699,6 +751,20 @@ if (section('Party')) {
   check('1º com 1000 ganha 60 + 20 de pódio', ph.score === 1000 && ph.coinsEarned === 80);
   check('chute não ganha bônus de pódio', pg.score < 400 && pg.coinsEarned === 0, `${pg.score} pts`);
   check('primeira partida na categoria não é recorde', !ph.newRecord && !pg.newRecord);
+  // Conquistas da party: o aviso fica pendente no perfil até o jogador ver (na home).
+  const pending = async (auth, id) => {
+    for (let i = 0; i < 20; i++) {
+      const { data } = await post('/profile', auth);
+      if (data.newAchievements.includes(id)) return data.newAchievements;
+      await sleep(150);
+    }
+    return null;
+  };
+  check('vencedor da party ganha a conquista (aviso pendente)', Boolean(await pending(host, 'party-win')));
+  const guestPending = await pending(guest, 'first-game');
+  check('quem perdeu não ganha a de vitória', guestPending !== null && !guestPending.includes('party-win'), guestPending?.join());
+  await post('/achievements/seen', host);
+  check('visto: o aviso some', (await post('/profile', host)).data.newAchievements.length === 0);
 
   // Revanche: quem chutou e agora acerta bate o próprio recorde; quem já tinha 1000 não.
   h.send({ type: 'start' });

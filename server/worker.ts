@@ -1,3 +1,4 @@
+import { getAchievements, markAchievementsSeen } from './achievements';
 import { handleAdmin } from './admin';
 import { getCasino, spin } from './casino';
 import { getCharacters, getCharactersWithPower } from './catalog';
@@ -105,6 +106,10 @@ export default {
           return await getProfile(request, env);
         case 'POST /api/profile/adult':
           return await confirmAdult(request, env);
+        case 'POST /api/achievements':
+          return await getAchievements(request, env);
+        case 'POST /api/achievements/seen':
+          return await markAchievementsSeen(request, env);
         case 'POST /api/profile/equip':
           return await equipItem(request, env);
         case 'POST /api/shop/buy':

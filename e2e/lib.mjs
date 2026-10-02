@@ -106,7 +106,7 @@ export function d1(sql) {
 export function cleanTestData() {
   const accounts = "(SELECT id FROM players WHERE name_key LIKE 'e2e%')";
   d1(
-    `DELETE FROM player_items WHERE player_id IN ${accounts}; DELETE FROM player_tokens WHERE player_id IN ${accounts}; ` +
+    `DELETE FROM player_items WHERE player_id IN ${accounts}; DELETE FROM player_stats WHERE player_id IN ${accounts}; DELETE FROM player_achievements WHERE player_id IN ${accounts}; DELETE FROM player_tokens WHERE player_id IN ${accounts}; ` +
       `DELETE FROM admin_actions WHERE player_id IN ${accounts}; DELETE FROM casino_spins WHERE player_id IN ${accounts}; DELETE FROM plinko_drops WHERE player_id IN ${accounts}; DELETE FROM scratch_cards WHERE player_id IN ${accounts}; DELETE FROM gacha_openings WHERE player_id IN ${accounts}; ` +
       `UPDATE casino_pot SET last_winner_id = NULL WHERE last_winner_id IN ${accounts}; ` +
       `DELETE FROM daily_attempts WHERE player_key LIKE 'g:e2e%' OR player_key IN (SELECT 'p:' || id FROM players WHERE name_key LIKE 'e2e%'); ` +

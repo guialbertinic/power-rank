@@ -163,7 +163,7 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/players/rename` `{ token, name }` | Troca o nick da conta, se não for de outra conta (409). Tudo segue a conta (id). |
 | `POST /api/games` `{ name, token?, mode, daily?, generations?, difficulty? }` | Com token: a conta dele (token inválido, 401). Sem token: convidado, se o nick não for de uma conta (401). Sorteia no servidor e grava a partida (com `player_id` da conta). `daily: true`: Desafio Diário da categoria; 409 `daily_done` se já começou o de hoje. |
 | `POST /api/daily` `{ name, token?, mode }` | `{ day, done, score }`: se o jogador (conta ou convidado) já jogou o desafio de hoje da categoria. |
-| `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Recalcula a pontuação, mede o tempo (sorteio → envio), credita moedas. Devolve `durationMs`, `daily` e `rank` (posição no ranking do desafio; null em partida solo e de convidado). Uma vez por partida, TTL 1h. |
+| `POST /api/scores` `{ gameId, placements }` | Nick e modo vêm da partida. Recalcula a pontuação, mede o tempo (sorteio → envio), credita moedas. Devolve `durationMs`, `daily`, `rank` (posição no ranking do desafio; null em partida solo e de convidado) e `achievements` (conquistas desbloqueadas agora, já marcadas como vistas). Uma vez por partida, TTL 1h. |
 | `GET /api/characters` | Catálogo público (sem `power`), ordem alfabética, cache 5 min. |
 | `GET /api/dev/characters` | Com `power`, só em localhost (tela `/?review`). |
 | `GET /api/scores?mode=&period=daily\|total` | Top 20 da categoria, só contas (nick atual + visual), só Desafio Diário. `daily` (padrão): o de hoje, com `durationMs`; `total`: soma de todos os desafios, com `days`. |
@@ -174,7 +174,9 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/slots/spin` `{ token, bet }` | Só contas. Aposta de 1 a 10 moedas. Sorteia no servidor, debita/credita e devolve `{ reels, outcome, prize, coins, pot, jackpot }`. 402 sem saldo, 403 `feature_disabled` com a chave `slots` desligada. |
 | `POST /api/plinko/drop` `{ token, bet, risk }` | Só contas 18+. Aposta de 1 a 10, risco `low`/`medium`/`high`. Sorteia o caminho no servidor, debita/credita no mesmo UPDATE e devolve `{ path, slot, multiplier (décimos), prize, coins }`. 402 sem saldo, 403 `feature_disabled` com a chave `plinko` desligada. Limite próprio `RL_PLINKO` (200/min). |
 | `POST /api/scratch/buy` `{ token, bet }` | Só contas 18+. Aposta de 1 a 10. Sorteia o trio e monta a cartela no servidor, debita/credita no mesmo UPDATE e devolve `{ cells (9 símbolos), symbol (trio ou null), multiplier, prize, coins }`. 402 sem saldo, 403 `feature_disabled` com a chave `scratch` desligada. Limite `RL_CASINO`. |
-| `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado e `hasPassword`. |
+| `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado, `hasPassword` e `newAchievements` (desbloqueadas e ainda não vistas: as da party). |
+| `POST /api/achievements` `{ token }` | Contadores (`stats`) e conquistas desbloqueadas (`unlocked`: id → data). |
+| `POST /api/achievements/seen` `{ token }` | Marca as conquistas novas como vistas (o jogador fechou o aviso na home). |
 | `POST /api/shop/buy` `{ token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
 | `/api/admin/*` | Só admin (ver "Admin"; 403 `admin_denied`). `GET me` · `GET/POST features` `{ id, enabled }` · `GET economy` · `GET players?q=&sort=recent|coins` · `GET players/:id` · `POST players/:id/coins` `{ delta, reason }` · `POST players/:id/rename` `{ name }` · `POST players/:id/password` → `{ password, player }` · `POST players/:id/ban` `{ days: 1\|7\|30\|null, reason }` · `POST players/:id/unban` · `GET characters?q=&category=` · `GET/POST characters/:id` (edição) · `POST characters/:id/image` `{ data }` · `GET reports` · `POST reports/close` `{ kind, target, status }` · `GET actions`. |
 | `POST /api/profile/equip` `{ token, slot, itemId \| null }` | Equipa (ou tira) um item que o jogador tem. |
@@ -234,7 +236,19 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   Avatares (`ShopAvatars`): sem busca, categorias recolhidas (Animes/Games/Pokémon) → obra (games por franquia;
   obra com 1 personagem vai para "Outros"; Pokémon por geração); só grupos abertos renderizam. Com busca, lista plana.
   Item novo: entrada no catálogo + classe CSS (cor/moldura); título só precisa da entrada.
-- **Visual** (`PlayerTag`): avatar + moldura + nick colorido + título embaixo do nick, no ranking, party, pódio e
+- **Emblema** (espaço `badge`, coluna `players.badge`): ícone SVG logo depois do nick. Desenho em
+  `BadgeIcon.tsx` (24×24, `currentColor`; `.badge-cut` = recorte na cor do fundo, `--badge-cut`), cor e animação
+  em `.cosmetic-badge-<id>`. Item novo: entrada `badge('slug', 'Nome', preço)` + desenho + classe CSS.
+- **Conquistas** (`src/game/achievements.ts`, servidor em `server/achievements.ts`): 11 metas (partidas, melhor
+  pontuação, dias seguidos de desafio, vitórias de party, 700+ em todas as categorias), cada uma dá um item
+  `achievement` (título ou emblema; não está à venda nem sai na Mystery Box; a loja mostra com "Conquista: X").
+  Só contas, sem moedas, sem retroativo. Contadores em `player_stats` (um UPSERT atômico por partida que valeu:
+  solo, desafio e party; vitória = 1º da party com 2+ que terminaram); desbloqueio em `player_achievements` +
+  `player_items` (INSERT OR IGNORE). Aviso: no resultado do solo (`seen = 1`); as da party ficam `seen = 0` e
+  aparecem na home. Tela própria (`AchievementsScreen`, botão Conquistas ao lado da Loja na barra de perfil):
+  resumo + cartões por grupo (`group`: partidas, pontuação, desafio, party, categorias) com prêmio e progresso
+  (sequência quebrada = 0).
+- **Visual** (`PlayerTag`): avatar + moldura + nick colorido + emblema + título embaixo do nick, no ranking, party, pódio e
   `ProfileBar`. Cada cor/moldura é a classe `cosmetic-<id>` em `styles.css` (anéis que giram usam o `@property
   --cosmetic-angle`).
 

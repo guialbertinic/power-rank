@@ -1,21 +1,24 @@
 import { useCallback, useMemo, useState } from 'react';
 import { buyItem, equipItem } from '../api';
+import { achievementOfReward } from '../game/achievements';
 import { AVATAR_PRICE, avatarItemId, COSMETICS, type Cosmetic, type Profile } from '../game/cosmetics';
 import { MIN_SCORE_FOR_COINS } from '../game/economy';
 import type { CharacterInfo } from '../game/types';
 import type { Identity } from '../nick';
 import { cosmeticLabel, serverText, useI18n, type Key } from '../i18n';
 import Avatar from './Avatar';
+import BadgeIcon from './BadgeIcon';
 import Coins from './Coins';
 import PlayerTag from './PlayerTag';
 import ShopAvatars from './ShopAvatars';
 
-type Tab = 'nameColor' | 'frame' | 'title' | 'avatar';
+type Tab = 'nameColor' | 'frame' | 'title' | 'badge' | 'avatar';
 
 const TABS: { id: Tab; label: Key }[] = [
   { id: 'nameColor', label: 'shop.tab.nameColor' },
   { id: 'frame', label: 'shop.tab.frame' },
   { id: 'title', label: 'shop.tab.title' },
+  { id: 'badge', label: 'shop.tab.badge' },
   { id: 'avatar', label: 'shop.tab.avatar' },
 ];
 
@@ -112,13 +115,29 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
     [filter, owned],
   );
 
-  const button = (c: Cosmetic) => itemButton(c.slot, c.id, c.price, profile.look[c.slot] === c.id);
+  /** Recompensa de conquista que o jogador ainda não tem: em vez do preço, diz qual conquista dá o item. */
+  const button = (c: Cosmetic) => {
+    const achievement = c.achievement && !owned.has(c.id) ? achievementOfReward(c.id) : undefined;
+    if (achievement) {
+      return (
+        <span className="shop-lock">{t('shop.achievementLock', { name: t(`ach.${achievement.id}.name`) })}</span>
+      );
+    }
+    return itemButton(c.slot, c.id, c.price, profile.look[c.slot] === c.id);
+  };
 
-  /** Cor: o próprio nome da cor escrito com o efeito. Moldura: um quadro vazio com a moldura. */
+  /** Cor: o próprio nome da cor escrito com o efeito. Moldura: um quadro vazio com a moldura. Emblema: o ícone. */
   const cosmeticItem = (c: Cosmetic) => (
     <li key={c.id} className="shop-item" data-label={c.label}>
       {c.slot === 'nameColor' ? (
         <span className={`shop-color-sample cosmetic-${c.id}`}>{cosmeticLabel(c, lang)}</span>
+      ) : c.slot === 'badge' ? (
+        <>
+          <span className="shop-badge-sample">
+            <BadgeIcon id={c.id} />
+          </span>
+          <span className="shop-item-label">{cosmeticLabel(c, lang)}</span>
+        </>
       ) : (
         <>
           <span className={`player-frame cosmetic-${c.id}`}>
@@ -147,9 +166,11 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
 
   /** Itens do espaço, do mais barato ao mais caro; títulos separados por categoria (2 por linha). */
   const cosmetics = (slot: Cosmetic['slot']) => {
-    // Exclusivos (Mystery Box) só aparecem para quem já tem, depois dos itens à venda.
+    // Exclusivos (Mystery Box) só aparecem para quem já tem; recompensas de conquista, para todos (com o
+    // cadeado). Ordem: à venda, conquistas, exclusivos.
+    const order = (c: Cosmetic) => (c.exclusive ? 2 : c.achievement ? 1 : 0);
     const items = COSMETICS.filter((c) => c.slot === slot && visible(c.id) && (!c.exclusive || owned.has(c.id))).sort(
-      (a, b) => Number(Boolean(a.exclusive)) - Number(Boolean(b.exclusive)) || a.price - b.price,
+      (a, b) => order(a) - order(b) || a.price - b.price,
     );
     if (!items.length) return <p className="muted shop-empty">{t('shop.emptyItems')}</p>;
     if (slot !== 'title') return <ol className="shop-list">{items.map(cosmeticItem)}</ol>;

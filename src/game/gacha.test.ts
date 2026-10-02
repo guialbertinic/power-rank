@@ -13,9 +13,10 @@ describe('mystery box', () => {
     expect(RARITIES.reduce((sum, r) => sum + r.chance, 0)).toBeCloseTo(1);
   });
 
-  it('todo cosmético cai em exatamente uma raridade; exclusivos só no lendário', () => {
+  it('todo cosmético cai em exatamente uma raridade; exclusivos só no lendário; conquistas fora', () => {
     const pooled = Object.values(GACHA_POOLS).flat();
-    expect(pooled.length).toBe(COSMETICS.length);
+    expect(pooled.length).toBe(COSMETICS.filter((c) => !c.achievement).length);
+    expect(pooled.some((c) => c.achievement)).toBe(false);
     expect(GACHA_POOLS.legendary.length).toBeGreaterThan(0);
     expect(GACHA_POOLS.legendary.every((c) => c.exclusive)).toBe(true);
     expect([...GACHA_POOLS.common, ...GACHA_POOLS.rare, ...GACHA_POOLS.epic].some((c) => c.exclusive)).toBe(false);

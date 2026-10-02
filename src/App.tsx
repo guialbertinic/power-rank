@@ -1,5 +1,14 @@
 import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
-import { ApiError, createGame, createParty, fetchConfig, fetchDaily, fetchProfile, type DailyStatus } from './api';
+import {
+  ApiError,
+  createGame,
+  createParty,
+  fetchConfig,
+  fetchDaily,
+  fetchProfile,
+  markAchievementsSeen,
+  type DailyStatus,
+} from './api';
 import type { Profile } from './game/cosmetics';
 import { FEATURES, NO_FEATURES } from './game/features';
 import { filterFor, GENERATIONS, poolFor, type Difficulty, type Mode, type PoolFilter } from './game/modes';
@@ -35,6 +44,8 @@ import ResultScreen from './components/ResultScreen';
 import ShopScreen from './components/ShopScreen';
 import ArcadeScreen from './components/ArcadeScreen';
 import AccountScreen from './components/AccountScreen';
+import AchievementUnlocked from './components/AchievementUnlocked';
+import AchievementsScreen from './components/AchievementsScreen';
 import SettingsMenu from './components/SettingsMenu';
 import { LegalLink, LegalProvider } from './components/Legal';
 import { SUPPORT_URL } from './links';
@@ -54,6 +65,8 @@ type State =
   | { phase: 'shop' }
   /** Arcade (minigames com moedas), só para contas. */
   | { phase: 'arcade' }
+  /** Conquistas (progresso e prêmios), só para contas. */
+  | { phase: 'achievements' }
   /** Minha conta: nick, senha, aparelhos, excluir (convidado: criar conta). */
   | { phase: 'account' }
   /** Na party, o estado do jogo vem da sala (PartyScreen); aqui só fica como entrar nela. */
@@ -77,6 +90,7 @@ type Action =
   | { type: 'nick'; reason?: string }
   | { type: 'shop' }
   | { type: 'arcade' }
+  | { type: 'achievements' }
   | { type: 'account' }
   | { type: 'home' };
 
@@ -110,6 +124,8 @@ function reducer(state: State, action: Action): State {
       return { phase: 'shop' };
     case 'arcade':
       return { phase: 'arcade' };
+    case 'achievements':
+      return { phase: 'achievements' };
     case 'account':
       return { phase: 'account' };
     case 'home':
@@ -275,6 +291,13 @@ function Game() {
     }
   };
 
+  /** Fechou o aviso das conquistas novas (ex: as da party): some daqui e o servidor marca como vistas. */
+  const dismissAchievements = () => {
+    if (!profile || !token) return;
+    setProfile({ ...profile, newAchievements: [] });
+    markAchievementsSeen(token).catch(() => {});
+  };
+
   const changeMode = (next: Mode) => {
     setMode(next);
     saveMode(next);
@@ -360,6 +383,8 @@ function Game() {
         ? t('profile.shop')
       : state.phase === 'arcade'
         ? t('profile.arcade')
+      : state.phase === 'achievements'
+        ? t('ach.title')
       : state.phase === 'account'
         ? t('account.title')
       : modeLabel(t, state.phase === 'playing' || state.phase === 'result' ? state.mode : mode);
@@ -371,6 +396,7 @@ function Game() {
           identity={identity}
           profile={profile}
           onOpenShop={() => dispatch({ type: 'shop' })}
+          onOpenAchievements={() => dispatch({ type: 'achievements' })}
           onOpenArcade={FEATURES.some((f) => features[f]) ? () => dispatch({ type: 'arcade' }) : undefined}
           onOpenAccount={() => dispatch({ type: 'account' })}
           onLeave={leave}
@@ -400,6 +426,9 @@ function Game() {
       )}
       {!showReview && state.phase === 'nick' && (
         <NickScreen inviteCode={pendingInvite} reason={state.reason} onDone={onNickChosen} />
+      )}
+      {!showReview && state.phase === 'intro' && !recording && profile && profile.newAchievements.length > 0 && (
+        <AchievementUnlocked ids={profile.newAchievements} onClose={dismissAchievements} />
       )}
       {!showReview && state.phase === 'intro' && identity && (
         <IntroScreen
@@ -441,6 +470,7 @@ function Game() {
           onLeave={leave}
         />
       )}
+      {state.phase === 'achievements' && identity?.token && <AchievementsScreen token={identity.token} />}
       {state.phase === 'shop' && identity?.token && profile && (
         <ShopScreen identity={{ ...identity, token: identity.token }} profile={profile} onProfileChange={setProfile} />
       )}

@@ -15,7 +15,7 @@ Avatar é sempre `AVATAR_PRICE` (50): preço por força revelaria o `power`.
 
 ## Item novo (cor, moldura ou título)
 
-1. Entrada em `COSMETICS` (`src/game/cosmetics.ts`): `id` com prefixo do espaço (`name-`, `frame-`, `title-`),
+1. Entrada em `COSMETICS` (`src/game/cosmetics.ts`): `id` com prefixo do espaço (`name-`, `frame-`, `title-`, `badge-`),
    `label` em português, `price`. Títulos: helper `title('slug', 'Texto', preço, 'Categoria')` — o `label` é o
    texto exibido; a categoria (Iniciante, Otaku, Animes, Games, Lendário) agrupa na loja.
 2. Nome em inglês em `src/i18n/catalog.ts` (`COSMETICS_EN`, pelo id).
@@ -25,6 +25,10 @@ Avatar é sempre `AVATAR_PRICE` (50): preço por força revelaria o `power`.
      no wrapper `.cosmetic-<id>` (clip-path corta box-shadow). Anel girando: `conic-gradient(from
      var(--cosmetic-angle) …)` + `animation: cosmetic-spin`.
    - Animações já param com "reduzir movimento" (regra global); só cores/efeitos, nada de imagem.
+   - Emblema: `badge('slug', 'Nome', preço)` + desenho SVG em `SHAPES` (`components/BadgeIcon.tsx`, 24×24,
+     `currentColor`) + cor/animação em `.cosmetic-badge-<slug>`.
+   - Prêmio de conquista: `reward(...)` no catálogo + entrada em `ACHIEVEMENTS` (`src/game/achievements.ts`, com
+     `ach.<id>.name`/`.desc` no i18n). Não é vendido nem sai na Mystery Box.
 4. O servidor valida sozinho (preço e espaço vêm do catálogo). A loja ordena por preço.
 5. Teste: o e2e de UI acha itens por `[data-label="<label>"]`; não precisa de teste por item.
 

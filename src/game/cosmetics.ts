@@ -3,7 +3,7 @@
  * O visual de cada item é uma classe CSS (`cosmetic-<id>` em styles.css).
  */
 
-export type CosmeticSlot = 'avatar' | 'nameColor' | 'frame' | 'title';
+export type CosmeticSlot = 'avatar' | 'nameColor' | 'frame' | 'title' | 'badge';
 
 export interface Cosmetic {
   id: string;
@@ -15,6 +15,8 @@ export interface Cosmetic {
   group?: string;
   /** Só sai na Mystery Box (lendário): não está à venda; na loja só aparece para quem já tem. */
   exclusive?: boolean;
+  /** Recompensa de conquista (`achievements.ts`): não está à venda nem sai na Mystery Box. */
+  achievement?: boolean;
 }
 
 const title = (id: string, label: string, price: number, group: string): Cosmetic => ({
@@ -24,6 +26,12 @@ const title = (id: string, label: string, price: number, group: string): Cosmeti
   price,
   group,
 });
+
+/** Emblema: ícone SVG ao lado do nick (desenho em `components/BadgeIcon.tsx`, cor/animação em `cosmetic-<id>`). */
+const badge = (id: string, label: string, price: number): Cosmetic => ({ id: `badge-${id}`, slot: 'badge', label, price });
+
+/** Item que só sai de uma conquista. */
+const reward = (item: Cosmetic): Cosmetic => ({ ...item, price: 0, achievement: true });
 
 /** Qualquer personagem da base pode virar avatar. Preço único: preço por força revelaria o poder. */
 export const AVATAR_PRICE = 50;
@@ -128,6 +136,31 @@ export const COSMETICS: Cosmetic[] = [
   title('hokage', 'Hokage', 700, 'Lendário'),
   title('rei-demonio', 'Rei Demônio', 750, 'Lendário'),
 
+  badge('star', 'Estrela', 60),
+  badge('bolt', 'Raio', 80),
+  badge('heart', 'Coração', 80),
+  badge('flame', 'Chama', 150),
+  badge('skull', 'Caveira', 150),
+  badge('sword', 'Espada', 200),
+  badge('shield', 'Escudo', 200),
+  badge('moon', 'Lua', 250),
+  badge('eye', 'Terceiro Olho', 350),
+  badge('diamond', 'Diamante', 450),
+  badge('crown', 'Coroa', 600),
+
+  // Recompensas de conquistas: não estão à venda nem saem na Mystery Box.
+  reward(title('recruta', 'Recruta', 0, 'Conquista')),
+  reward(title('acima-da-media', 'Acima da Média', 0, 'Conquista')),
+  reward(title('constante', 'Constante', 0, 'Conquista')),
+  reward(title('vencedor-de-party', 'Vencedor de Party', 0, 'Conquista')),
+  reward(badge('veteran', 'Veterano', 0)),
+  reward(badge('scouter', 'Visão de Poder', 0)),
+  reward(badge('perfect', 'Perfeito', 0)),
+  reward(badge('streak7', 'Semana em Chamas', 0)),
+  reward(badge('streak30', 'Mês em Chamas', 0)),
+  reward(badge('trophy', 'Campeão', 0)),
+  reward(badge('eclectic', 'Eclético', 0)),
+
   // Exclusivos da Mystery Box (raridade lendária): não estão à venda.
   { id: 'name-aurora', slot: 'nameColor', label: 'Aurora', price: 0, exclusive: true },
   { id: 'name-blackgold', slot: 'nameColor', label: 'Ouro Negro', price: 0, exclusive: true },
@@ -155,9 +188,11 @@ export interface Look {
   frame: string | null;
   /** Id do título (o texto é o `label` do item). */
   title: string | null;
+  /** Id do emblema (ícone ao lado do nick). */
+  badge: string | null;
 }
 
-export const EMPTY_LOOK: Look = { avatar: null, nameColor: null, frame: null, title: null };
+export const EMPTY_LOOK: Look = { avatar: null, nameColor: null, frame: null, title: null, badge: null };
 
 /** Perfil do próprio jogador: saldo, itens comprados e o que está equipado. */
 export interface Profile {
@@ -172,4 +207,6 @@ export interface Profile {
   adult: boolean;
   /** Aparelhos conectados na conta (tokens ativos). */
   devices: number;
+  /** Conquistas desbloqueadas que o jogador ainda não viu (ex: as da party), para o aviso na home. */
+  newAchievements: string[];
 }

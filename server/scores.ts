@@ -2,6 +2,7 @@ import { logAccess } from './access';
 import { loadCatalog } from './catalog';
 import { MIN_GAME_MS } from './security';
 import { badRequest, GAME_TTL_MS, json, LEADERBOARD_SIZE, nameKey, type Env } from './lib';
+import { recordGame } from './achievements';
 import { creditCoins, toLook } from './profile';
 import { dayKey } from '../src/game/daily';
 import { coinsForScore } from '../src/game/economy';
@@ -42,6 +43,7 @@ interface LeaderboardRow {
   name_color: string | null;
   frame: string | null;
   title: string | null;
+  badge: string | null;
 }
 
 /**
@@ -56,7 +58,7 @@ export async function getLeaderboard(request: Request, env: Env): Promise<Respon
   const period = params.get('period') ?? 'daily';
   if (!isPeriod(period)) return badRequest('Período inválido');
 
-  const look = 'p.name, p.avatar, p.name_color, p.frame, p.title';
+  const look = 'p.name, p.avatar, p.name_color, p.frame, p.title, p.badge';
   // Conta suspensa some do ranking enquanto durar a suspensão (número inteiro: seguro no SQL).
   const notBanned = `p.banned_until <= ${Date.now()}`;
   const query =
@@ -89,10 +91,10 @@ export async function getLeaderboard(request: Request, env: Env): Promise<Respon
 }
 
 /**
- * POST /api/scores: { gameId, placements } → { score, ranks, durationMs, rank, daily, coinsEarned, coins }.
+ * POST /api/scores: { gameId, placements } → { score, ranks, durationMs, rank, daily, coinsEarned, coins, achievements }.
  * `placements` são os ids na ordem escolhida (posição 1 primeiro). Nick e modo vêm da partida
  * e a pontuação é recalculada aqui. `rank` = posição no ranking do Desafio Diário (null em partida solo ou
- * de convidado, que não entram no ranking).
+ * de convidado, que não entram no ranking). `achievements` = conquistas desbloqueadas por esta partida.
  */
 export async function submitScore(request: Request, env: Env): Promise<Response> {
   const body = (await request.json().catch(() => null)) as { gameId?: unknown; placements?: unknown } | null;
@@ -154,12 +156,19 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
   // Convidado (partida sem conta): a partida fica gravada, mas não entra no ranking nem rende moedas.
   if (playerId === null) {
     await insert(0);
-    return json({ score: total, ranks, durationMs, rank: null, daily: game.daily !== null, coinsEarned: 0, coins: null });
+    return json({ score: total, ranks, durationMs, rank: null, daily: game.daily !== null, coinsEarned: 0, coins: null, achievements: [] });
   }
 
   const coinsEarned = coinsForScore(total);
   await insert(coinsEarned);
   const coins = await creditCoins(env, playerId, coinsEarned);
+  // Conquistas: o aviso aparece no resultado (já conta como visto). Falha aqui não derruba o envio da pontuação.
+  const achievements = await recordGame(env, playerId, { mode: game.mode, score: total, daily: game.daily }, true).catch(
+    (err: unknown) => {
+      console.error('conquistas: falha ao gravar', err);
+      return [] as string[];
+    },
+  );
 
   // Desafio Diário: posição no ranking do desafio (quem tem mais pontos, ou os mesmos em menos tempo, fica na frente).
   let rank: number | null = null;
@@ -172,5 +181,5 @@ export async function submitScore(request: Request, env: Env): Promise<Response>
     rank = (ahead?.n ?? 0) + 1;
   }
 
-  return json({ score: total, ranks, durationMs, rank, daily: game.daily !== null, coinsEarned, coins });
+  return json({ score: total, ranks, durationMs, rank, daily: game.daily !== null, coinsEarned, coins, achievements });
 }
