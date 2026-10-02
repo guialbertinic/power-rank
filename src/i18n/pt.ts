@@ -212,6 +212,7 @@ export const pt = {
   'shop.emptyAvatars': 'Nenhum personagem aqui.',
   'shop.search': 'Buscar entre {n} personagens',
   'shop.searchAria': 'Buscar personagem',
+  'shop.avatars.others': 'Outros',
 
   // Arcade: nenhum minigame ligado
   'arcade.closed': 'O Arcade está fechado no momento. Volte mais tarde!',

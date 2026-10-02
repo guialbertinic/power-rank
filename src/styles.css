@@ -2061,6 +2061,116 @@ input:focus {
   animation: cosmetic-flow 3.5s linear infinite;
 }
 
+.cosmetic-name-silver,
+.cosmetic-name-ocean,
+.cosmetic-name-vaporwave,
+.cosmetic-name-lava,
+.cosmetic-name-cursed {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.cosmetic-name-silver {
+  background-image: linear-gradient(180deg, #ffffff, #c9d1de 50%, #7d8799);
+}
+
+.cosmetic-name-kamehameha {
+  color: #7fd8ff;
+  text-shadow: 0 0 4px #fff, 0 0 10px rgba(40, 150, 255, 0.85);
+}
+
+.cosmetic-name-ocean {
+  background-image: linear-gradient(90deg, #0a5bd6, #05d9e8, #7ff5ff, #05d9e8, #0a5bd6);
+  background-size: 300% 100%;
+  animation: cosmetic-flow 6s linear infinite;
+}
+
+.cosmetic-name-vaporwave {
+  background-image: linear-gradient(90deg, #ff6fd8, #b48cff 50%, #3ee0ff);
+  filter: drop-shadow(0 0 5px rgba(255, 111, 216, 0.45));
+}
+
+.cosmetic-name-lava {
+  background-image: linear-gradient(90deg, #5c0000, #ff3c00, #ffb300, #ff3c00, #5c0000);
+  background-size: 300% 100%;
+  filter: drop-shadow(0 0 5px rgba(255, 80, 0, 0.5));
+  animation: cosmetic-flow 5s linear infinite;
+}
+
+.cosmetic-name-ghost {
+  color: #e8f0ff;
+  text-shadow: 0 0 10px rgba(200, 220, 255, 0.8);
+  animation: cosmetic-ghost 3s ease-in-out infinite;
+}
+
+.cosmetic-name-matrix {
+  color: #39ff6a;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  animation: cosmetic-matrix 1.6s steps(1) infinite;
+}
+
+/* Preto com raios vermelhos em volta (o contorno garante leitura no fundo escuro). */
+.cosmetic-name-haki {
+  color: #120008;
+  -webkit-text-stroke: 0.6px #ff2a3d;
+  animation: cosmetic-haki 2s steps(1) infinite;
+}
+
+.cosmetic-name-cursed {
+  background-image: linear-gradient(90deg, #1a0033, #9a00e6, #3ee0ff, #9a00e6, #1a0033);
+  background-size: 300% 100%;
+  animation:
+    cosmetic-flow 4s linear infinite,
+    cosmetic-cursed 2.4s ease-in-out infinite;
+}
+
+@keyframes cosmetic-ghost {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes cosmetic-matrix {
+  0%,
+  100% {
+    text-shadow: 0 0 6px rgba(57, 255, 106, 0.7);
+  }
+  40% {
+    text-shadow: 0 0 12px rgba(57, 255, 106, 1), 0 -2px 0 rgba(57, 255, 106, 0.35);
+  }
+  44% {
+    text-shadow: 0 0 6px rgba(57, 255, 106, 0.7), 0 2px 0 rgba(57, 255, 106, 0.35);
+  }
+}
+
+@keyframes cosmetic-haki {
+  0%,
+  100% {
+    text-shadow: 0 0 6px rgba(255, 30, 60, 0.7);
+  }
+  60% {
+    text-shadow: 0 0 14px rgba(255, 30, 60, 1), 2px -1px 0 #b04dff;
+  }
+  64% {
+    text-shadow: 0 0 8px rgba(255, 30, 60, 0.8), -2px 1px 0 #b04dff;
+  }
+}
+
+@keyframes cosmetic-cursed {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px rgba(154, 0, 230, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(62, 224, 255, 0.9));
+  }
+}
+
 @keyframes cosmetic-flicker {
   0%,
   100% {
@@ -2222,6 +2332,108 @@ input:focus {
   background:
     radial-gradient(circle at 50% 0, transparent 2px, rgba(110, 60, 0, 0.75) 2.5px, transparent 3.5px) 0 0 / 6px 5px,
     linear-gradient(135deg, #fff3a0, #ffd700 45%, #c8870a);
+}
+
+.cosmetic-frame-ruby {
+  filter: drop-shadow(0 0 5px rgba(255, 30, 70, 0.55));
+}
+
+.cosmetic-frame-ruby .player-frame-border {
+  background: linear-gradient(135deg, #ffb3c1, #e0103a 45%, #6b0018);
+}
+
+.cosmetic-frame-emerald {
+  filter: drop-shadow(0 0 5px rgba(0, 220, 120, 0.55));
+}
+
+.cosmetic-frame-emerald .player-frame-border {
+  background: linear-gradient(135deg, #b9ffd9, #00b862 45%, #004d29);
+}
+
+.cosmetic-frame-ocean {
+  filter: drop-shadow(0 0 6px rgba(5, 180, 232, 0.65));
+}
+
+/* Ondas: faixas azuis subindo devagar. */
+.cosmetic-frame-ocean .player-frame-border {
+  padding: 3px;
+  background: linear-gradient(0deg, #0a3d91, #05d9e8, #7ff5ff, #05d9e8, #0a3d91);
+  background-size: 100% 300%;
+  animation: cosmetic-rise 4s linear infinite;
+}
+
+.cosmetic-frame-vaporwave {
+  filter: drop-shadow(0 0 6px rgba(255, 111, 216, 0.6));
+}
+
+.cosmetic-frame-vaporwave .player-frame-border {
+  padding: 3px;
+  background: conic-gradient(from var(--cosmetic-angle), #ff6fd8, #b48cff, #3ee0ff, #b48cff, #ff6fd8);
+  animation: cosmetic-spin 7s linear infinite;
+}
+
+.cosmetic-frame-pokeball {
+  filter: drop-shadow(0 0 5px rgba(255, 40, 40, 0.5));
+}
+
+/* Vermelho em cima, branco embaixo, faixa preta no meio. */
+.cosmetic-frame-pokeball .player-frame-border {
+  padding: 3px;
+  background: linear-gradient(180deg, #ff2a2a 0 46%, #111 46% 54%, #f4f4f4 54% 100%);
+}
+
+.cosmetic-frame-cursed {
+  animation: cosmetic-cursed 2.4s ease-in-out infinite;
+}
+
+.cosmetic-frame-cursed .player-frame-border {
+  padding: 3px;
+  background: conic-gradient(from var(--cosmetic-angle), #1a0033, #9a00e6, #3ee0ff, #1a0033, #9a00e6, #1a0033);
+  animation: cosmetic-spin 3s linear infinite;
+}
+
+.cosmetic-frame-haki {
+  animation: cosmetic-haki-frame 2s steps(1) infinite;
+}
+
+/* Preto com estrias vermelhas girando, como o Haki do Rei. */
+.cosmetic-frame-haki .player-frame-border {
+  padding: 3px;
+  background: repeating-conic-gradient(from var(--cosmetic-angle), #0a0005 0 20deg, #ff1f3d 24deg, #0a0005 30deg 40deg);
+  animation: cosmetic-spin 5s linear infinite;
+}
+
+.cosmetic-frame-sun {
+  animation: cosmetic-sun-glow 3s ease-in-out infinite;
+}
+
+/* Raios dourados girando sobre o laranja. */
+.cosmetic-frame-sun .player-frame-border {
+  padding: 4px;
+  background:
+    repeating-conic-gradient(from var(--cosmetic-angle), #fff6b0 0 6deg, transparent 6deg 22.5deg),
+    radial-gradient(circle, #ffd700, #ff7a00);
+  animation: cosmetic-spin 12s linear infinite;
+}
+
+@keyframes cosmetic-haki-frame {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px rgba(255, 30, 60, 0.6));
+  }
+  60% {
+    filter: drop-shadow(0 0 12px rgba(255, 30, 60, 1)) drop-shadow(0 0 4px rgba(176, 77, 255, 0.8));
+  }
+}
+
+@keyframes cosmetic-sun-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(255, 200, 0, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(255, 150, 0, 1));
+  }
 }
 
 /* ---------- Exclusivos da Mystery Box ---------- */
@@ -2611,6 +2823,93 @@ input:focus {
   width: 100%;
   padding: 5px 8px;
   font-size: 0.75rem;
+}
+
+/* Avatares: categorias e obras que abrem e fecham (só os grupos abertos carregam as imagens). */
+.shop-cats {
+  display: grid;
+  gap: 10px;
+}
+
+.shop-cat-header,
+.shop-subcat-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  color: var(--text);
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.shop-cat-header {
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+}
+
+.shop-subcat-header {
+  padding: 8px 10px;
+  background: none;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-2);
+}
+
+.shop-cat-header:hover,
+.shop-subcat-header:hover {
+  color: var(--text);
+  filter: brightness(1.15);
+}
+
+/* Seta: aponta para a direita fechado, para baixo aberto. */
+.shop-cat-header::before,
+.shop-subcat-header::before {
+  content: '';
+  flex: none;
+  width: 0;
+  height: 0;
+  border-block: 5px solid transparent;
+  border-left: 7px solid currentColor;
+  transition: transform 0.15s;
+}
+
+.shop-cat-header[aria-expanded='true']::before,
+.shop-subcat-header[aria-expanded='true']::before {
+  transform: rotate(90deg);
+}
+
+.shop-cat-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-cat-count {
+  flex: none;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+
+.shop-subcats {
+  display: grid;
+  gap: 4px;
+  padding: 4px 0 4px 10px;
+}
+
+.shop-subcat .shop-avatars {
+  padding: 10px 0 8px;
 }
 
 @media (max-width: 480px) {

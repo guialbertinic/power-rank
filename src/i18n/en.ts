@@ -211,6 +211,7 @@ export const en: Record<Key, string> = {
   'shop.emptyAvatars': 'No characters here.',
   'shop.search': 'Search among {n} characters',
   'shop.searchAria': 'Search character',
+  'shop.avatars.others': 'Others',
 
   // Arcade: no minigame enabled
   'arcade.closed': 'The Arcade is closed right now. Come back later!',

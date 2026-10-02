@@ -1,14 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { buyItem, equipItem } from '../api';
 import { AVATAR_PRICE, avatarItemId, COSMETICS, type Cosmetic, type Profile } from '../game/cosmetics';
 import { MIN_SCORE_FOR_COINS } from '../game/economy';
 import type { CharacterInfo } from '../game/types';
 import type { Identity } from '../nick';
-import { POOL } from '../data';
 import { cosmeticLabel, serverText, useI18n, type Key } from '../i18n';
 import Avatar from './Avatar';
 import Coins from './Coins';
 import PlayerTag from './PlayerTag';
+import ShopAvatars from './ShopAvatars';
 
 type Tab = 'nameColor' | 'frame' | 'title' | 'avatar';
 
@@ -42,7 +42,6 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
   const [pending, setPending] = useState<string | null>(null);
   const busy = pending !== null;
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const owned = useMemo(() => new Set(profile.owned), [profile.owned]);
 
@@ -108,8 +107,10 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
   };
 
   /** Filtro "Todos / Obtidos / Não obtidos". */
-  const visible = (itemId: string) =>
-    filter === 'all' || (filter === 'owned' ? owned.has(itemId) : !owned.has(itemId));
+  const visible = useCallback(
+    (itemId: string) => filter === 'all' || (filter === 'owned' ? owned.has(itemId) : !owned.has(itemId)),
+    [filter, owned],
+  );
 
   const button = (c: Cosmetic) => itemButton(c.slot, c.id, c.price, profile.look[c.slot] === c.id);
 
@@ -160,18 +161,6 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
       </section>
     ));
   };
-
-  const avatars = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const list = POOL.filter(
-      (c) => c.image && visible(avatarItemId(c.id)) && (!q || `${c.name} ${c.series}`.toLowerCase().includes(q)),
-    );
-    // Os que você já tem primeiro, depois em ordem alfabética (nunca por poder).
-    return list.sort(
-      (a, b) =>
-        Number(owned.has(avatarItemId(b.id))) - Number(owned.has(avatarItemId(a.id))) || a.name.localeCompare(b.name),
-    );
-  }, [query, owned, filter]);
 
   const avatarItem = (c: CharacterInfo) => (
     <li key={c.id} className="shop-avatar">
@@ -225,20 +214,7 @@ export default function ShopScreen({ identity, profile, onProfileChange }: Props
           ))}
         </div>
         {tab === 'avatar' ? (
-          <>
-            <input
-              className="shop-search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('shop.search', { n: POOL.length })}
-              aria-label={t('shop.searchAria')}
-            />
-            {avatars.length ? (
-              <ol className="shop-avatars">{avatars.map(avatarItem)}</ol>
-            ) : (
-              <p className="muted shop-empty">{t('shop.emptyAvatars')}</p>
-            )}
-          </>
+          <ShopAvatars owned={owned} visible={visible} equipped={profile.look.avatar} renderItem={avatarItem} />
         ) : (
           cosmetics(tab)
         )}

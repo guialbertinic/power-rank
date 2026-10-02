@@ -193,6 +193,8 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - **Loja** (`cosmetics.ts`): cor do nick, moldura, título (o `label` é o texto do título) e avatar (qualquer
   personagem, preço único de 50: preço por força revelaria o poder). A loja lista por preço, com filtro
   Todos/Obtidos/Não obtidos; cor = o nome da cor com o efeito, moldura = quadro vazio, título = por categoria (`group`), 2 por linha.
+  Avatares (`ShopAvatars`): sem busca, categorias recolhidas (Animes/Games/Pokémon) → obra (games por franquia;
+  obra com 1 personagem vai para "Outros"; Pokémon por geração); só grupos abertos renderizam. Com busca, lista plana.
   Item novo: entrada no catálogo + classe CSS (cor/moldura); título só precisa da entrada.
 - **Visual** (`PlayerTag`): avatar + moldura + nick colorido + título embaixo do nick, no ranking, party, pódio e
   `ProfileBar`. Cada cor/moldura é a classe `cosmetic-<id>` em `styles.css` (anéis que giram usam o `@property

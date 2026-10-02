@@ -139,7 +139,7 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
 
 ## Economia e cosméticos
 
-- ✅ Loja: 16 cores, 13 molduras, 27 títulos (embaixo do nick), avatares; filtro obtidos/não obtidos.
+- ✅ Loja: 25 cores, 21 molduras, 45 títulos (embaixo do nick), avatares por categoria/obra que expandem; filtro obtidos/não obtidos.
 - 💡 Fase 2: ícones/emblemas em SVG ao lado do nick, itens raros · `Feature` 🟡
 - 💡 Fase 3: **conquistas** ("10/10", "venceu 5 parties", "7 dias de desafio diário") que desbloqueiam itens ·
   `Feature` 🟡

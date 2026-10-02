@@ -204,6 +204,15 @@ try {
   check('2 títulos por linha no computador', Math.abs(row1 - row2) < 2, `${row1} / ${row2}`);
   check('compra e equipa título', (await buyAndEquip(await shopItem('Iniciante Próspero'))) === 'Equipado');
   await tabs(3);
+  await sleep(200);
+  check(
+    'avatares por categoria, recolhidos',
+    (await ana.$$('.shop-cat-header')).length === 3 && !(await ana.$('.shop-avatars')),
+  );
+  await ana.click('.shop-cat-header[data-group="Animes"]');
+  await (await ana.waitForSelector('.shop-subcat-header[data-group="One Piece"]')).click();
+  await sleep(200);
+  check('abrir uma obra mostra os avatares dela', (await ana.$$('.shop-avatars .shop-avatar')).length > 5);
   await ana.type('.shop-search', 'son goku');
   await sleep(300);
   check('compra e equipa avatar', (await buyAndEquip((await ana.$$('.shop-avatars .shop-avatar'))[0])) === 'Equipado');
