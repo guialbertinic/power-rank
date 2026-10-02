@@ -534,6 +534,16 @@
     "image": "chars/pkm-eternatus.webp"
   },
   {
+    "id": "giygas",
+    "name": "Giygas",
+    "category": "games",
+    "series": "EarthBound",
+    "tier": 2,
+    "power": 88,
+    "wikipedia": "Giygas",
+    "image": "chars/giygas.webp"
+  },
+  {
     "id": "luffy",
     "name": "Monkey D. Luffy",
     "category": "anime",
@@ -1076,6 +1086,27 @@
     "image": "chars/pkm-yveltal.webp"
   },
   {
+    "id": "rosalina",
+    "name": "Rosalina",
+    "category": "games",
+    "series": "Super Mario",
+    "tier": 2,
+    "power": 82,
+    "wikipedia": "Rosalina (Mario)",
+    "image": "chars/rosalina.webp"
+  },
+  {
+    "id": "kefka-palazzo",
+    "name": "Kefka Palazzo",
+    "category": "games",
+    "series": "Final Fantasy VI",
+    "tier": 2,
+    "version": "God of Magic",
+    "power": 82,
+    "wikipedia": "Kefka Palazzo",
+    "image": "chars/kefka-palazzo.webp"
+  },
+  {
     "id": "eren",
     "name": "Eren Yeager",
     "category": "anime",
@@ -1291,6 +1322,27 @@
     "image": "chars/pkm-zamazenta.webp"
   },
   {
+    "id": "master-hand",
+    "name": "Master Hand",
+    "category": "games",
+    "series": "Super Smash Bros.",
+    "tier": 2,
+    "power": 80,
+    "wikipedia": "Master Hand",
+    "image": "chars/master-hand.webp"
+  },
+  {
+    "id": "sarah-kerrigan",
+    "name": "Sarah Kerrigan",
+    "category": "games",
+    "series": "StarCraft",
+    "tier": 2,
+    "version": "Primal Queen of Blades",
+    "power": 80,
+    "wikipedia": "Sarah Kerrigan",
+    "image": "chars/sarah-kerrigan.webp"
+  },
+  {
     "id": "zoro",
     "name": "Roronoa Zoro",
     "category": "anime",
@@ -1380,6 +1432,16 @@
     "power": 78,
     "pokeapiId": 249,
     "image": "chars/pkm-lugia.webp"
+  },
+  {
+    "id": "nero-dmc",
+    "name": "Nero",
+    "category": "games",
+    "series": "Devil May Cry",
+    "tier": 1,
+    "power": 78,
+    "wikipedia": "Nero (Devil May Cry)",
+    "image": "chars/nero-dmc.webp"
   },
   {
     "id": "tatsumaki",
@@ -1571,6 +1633,26 @@
     "power": 75,
     "wikipedia": "Xehanort",
     "image": "chars/xehanort.webp"
+  },
+  {
+    "id": "knuckles",
+    "name": "Knuckles the Echidna",
+    "category": "games",
+    "series": "Sonic the Hedgehog",
+    "tier": 1,
+    "power": 75,
+    "wikipedia": "Knuckles the Echidna",
+    "image": "chars/knuckles.webp"
+  },
+  {
+    "id": "dracula-castlevania",
+    "name": "Dracula",
+    "category": "games",
+    "series": "Castlevania",
+    "tier": 2,
+    "power": 75,
+    "wikipedia": "Dracula (Castlevania)",
+    "image": "chars/dracula-castlevania.webp"
   },
   {
     "id": "makima",
@@ -1837,6 +1919,26 @@
     "image": "chars/pkm-jirachi.webp"
   },
   {
+    "id": "noctis-lucis-caelum",
+    "name": "Noctis Lucis Caelum",
+    "category": "games",
+    "series": "Final Fantasy XV",
+    "tier": 2,
+    "power": 72,
+    "wikipedia": "Noctis Lucis Caelum",
+    "image": "chars/noctis-lucis-caelum.webp"
+  },
+  {
+    "id": "raiden-shogun",
+    "name": "Raiden Shogun",
+    "category": "games",
+    "series": "Genshin Impact",
+    "tier": 2,
+    "power": 72,
+    "wikipedia": "Raiden Shogun",
+    "image": "chars/raiden-shogun.webp"
+  },
+  {
     "id": "meruem",
     "name": "Meruem",
     "category": "anime",
@@ -2073,6 +2175,16 @@
     "image": "chars/pkm-miraidon.webp"
   },
   {
+    "id": "shulk",
+    "name": "Shulk",
+    "category": "games",
+    "series": "Xenoblade Chronicles",
+    "tier": 2,
+    "power": 70,
+    "wikipedia": "Shulk",
+    "image": "chars/shulk.webp"
+  },
+  {
     "id": "frieren",
     "name": "Frieren",
     "category": "anime",
@@ -2185,6 +2297,36 @@
     "anilistId": 15840
   },
   {
+    "id": "riku",
+    "name": "Riku",
+    "category": "games",
+    "series": "Kingdom Hearts",
+    "tier": 2,
+    "power": 68,
+    "wikipedia": "Riku (Kingdom Hearts)",
+    "image": "chars/riku.webp"
+  },
+  {
+    "id": "sylvanas-windrunner",
+    "name": "Sylvanas Windrunner",
+    "category": "games",
+    "series": "World of Warcraft",
+    "tier": 2,
+    "power": 68,
+    "wikipedia": "Sylvanas Windrunner",
+    "image": "chars/sylvanas-windrunner.webp"
+  },
+  {
+    "id": "luigi",
+    "name": "Luigi",
+    "category": "games",
+    "series": "Super Mario",
+    "tier": 1,
+    "power": 68,
+    "image": "chars/luigi.webp",
+    "imageVersion": "muqgsiez"
+  },
+  {
     "id": "netero",
     "name": "Isaac Netero",
     "category": "anime",
@@ -2295,6 +2437,16 @@
     "image": "chars/pkm-darkrai.webp"
   },
   {
+    "id": "lightning-ff",
+    "name": "Lightning",
+    "category": "games",
+    "series": "Final Fantasy XIII",
+    "tier": 2,
+    "power": 66,
+    "wikipedia": "Lightning (Final Fantasy)",
+    "image": "chars/lightning-ff.webp"
+  },
+  {
     "id": "deku",
     "name": "Izuku Midoriya",
     "category": "anime",
@@ -2314,6 +2466,26 @@
     "power": 65,
     "wikipedia": "Starscourge Radahn",
     "image": "chars/radahn.webp"
+  },
+  {
+    "id": "shang-tsung",
+    "name": "Shang Tsung",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "tier": 1,
+    "power": 65,
+    "wikipedia": "Shang Tsung",
+    "image": "chars/shang-tsung.webp"
+  },
+  {
+    "id": "alucard-castlevania",
+    "name": "Alucard",
+    "category": "games",
+    "series": "Castlevania",
+    "tier": 2,
+    "power": 65,
+    "wikipedia": "Alucard (Castlevania)",
+    "image": "chars/alucard-castlevania.webp"
   },
   {
     "id": "nappa",
@@ -3046,6 +3218,16 @@
     "image": "chars/pkm-enamorus.webp"
   },
   {
+    "id": "tails",
+    "name": "Tails",
+    "category": "games",
+    "series": "Sonic the Hedgehog",
+    "tier": 1,
+    "power": 60,
+    "wikipedia": "Tails (Sonic the Hedgehog)",
+    "image": "chars/tails.webp"
+  },
+  {
     "id": "kenshiro",
     "name": "Kenshiro",
     "category": "anime",
@@ -3295,6 +3477,16 @@
     "power": 58,
     "pokeapiId": 1004,
     "image": "chars/pkm-chi-yu.webp"
+  },
+  {
+    "id": "zero-mega-man",
+    "name": "Zero",
+    "category": "games",
+    "series": "Mega Man X",
+    "tier": 2,
+    "power": 58,
+    "wikipedia": "Zero (Mega Man)",
+    "image": "chars/zero-mega-man.webp"
   },
   {
     "id": "raoh",
@@ -3687,6 +3879,57 @@
     "power": 55,
     "pokeapiId": 1017,
     "image": "chars/pkm-ogerpon.webp"
+  },
+  {
+    "id": "doctor-eggman",
+    "name": "Doctor Eggman",
+    "category": "games",
+    "series": "Sonic the Hedgehog",
+    "tier": 1,
+    "power": 55,
+    "wikipedia": "Doctor Eggman",
+    "image": "chars/doctor-eggman.webp"
+  },
+  {
+    "id": "squall-leonhart",
+    "name": "Squall Leonhart",
+    "category": "games",
+    "series": "Final Fantasy VIII",
+    "tier": 2,
+    "power": 55,
+    "wikipedia": "Squall Leonhart",
+    "image": "chars/squall-leonhart.webp"
+  },
+  {
+    "id": "joker-persona",
+    "name": "Joker",
+    "category": "games",
+    "series": "Persona 5",
+    "tier": 2,
+    "power": 55,
+    "wikipedia": "Joker (Persona)",
+    "image": "chars/joker-persona.webp"
+  },
+  {
+    "id": "ness",
+    "name": "Ness",
+    "category": "games",
+    "series": "EarthBound",
+    "tier": 2,
+    "power": 55,
+    "wikipedia": "Ness (EarthBound)",
+    "image": "chars/ness.webp"
+  },
+  {
+    "id": "midna",
+    "name": "Midna",
+    "category": "games",
+    "series": "The Legend of Zelda",
+    "tier": 2,
+    "version": "True form",
+    "power": 55,
+    "wikipedia": "Midna",
+    "image": "chars/midna.webp"
   },
   {
     "id": "genos",
@@ -4122,6 +4365,76 @@
     "image": "chars/pkm-pecharunt.webp"
   },
   {
+    "id": "wario",
+    "name": "Wario",
+    "category": "games",
+    "series": "Super Mario",
+    "tier": 2,
+    "power": 50,
+    "wikipedia": "Wario",
+    "image": "chars/wario.webp"
+  },
+  {
+    "id": "kitana",
+    "name": "Kitana",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "tier": 1,
+    "power": 50,
+    "wikipedia": "Kitana",
+    "image": "chars/kitana.webp"
+  },
+  {
+    "id": "vincent-valentine",
+    "name": "Vincent Valentine",
+    "category": "games",
+    "series": "Final Fantasy VII",
+    "tier": 2,
+    "power": 50,
+    "wikipedia": "Vincent Valentine",
+    "image": "chars/vincent-valentine.webp"
+  },
+  {
+    "id": "tidus",
+    "name": "Tidus",
+    "category": "games",
+    "series": "Final Fantasy X",
+    "tier": 2,
+    "power": 50,
+    "wikipedia": "Tidus",
+    "image": "chars/tidus.webp"
+  },
+  {
+    "id": "ridley",
+    "name": "Ridley",
+    "category": "games",
+    "series": "Metroid",
+    "tier": 2,
+    "power": 50,
+    "wikipedia": "Ridley (Metroid)",
+    "image": "chars/ridley.webp"
+  },
+  {
+    "id": "herobrine",
+    "name": "Herobrine",
+    "category": "games",
+    "series": "Minecraft",
+    "tier": 2,
+    "power": 50,
+    "wikipedia": "Herobrine",
+    "image": "chars/herobrine.webp"
+  },
+  {
+    "id": "ciri",
+    "name": "Ciri",
+    "category": "games",
+    "series": "The Witcher 3: Wild Hunt",
+    "tier": 2,
+    "power": 50,
+    "image": "chars/ciri.webp",
+    "imageVersion": "muqgsk1s"
+  },
+  {
     "id": "pkm-salamence",
     "name": "Salamence",
     "category": "pokemon",
@@ -4301,6 +4614,36 @@
     "wikipedia": "Jin Kazama",
     "image": "chars/jin-kazama.webp",
     "imageVersion": "mumsntzv"
+  },
+  {
+    "id": "lucario",
+    "name": "Lucario",
+    "category": "games",
+    "series": "Pokémon",
+    "tier": 1,
+    "power": 48,
+    "wikipedia": "Lucario",
+    "image": "chars/lucario.webp"
+  },
+  {
+    "id": "ken-masters",
+    "name": "Ken Masters",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 1,
+    "power": 48,
+    "wikipedia": "Ken Masters",
+    "image": "chars/ken-masters.webp"
+  },
+  {
+    "id": "mileena",
+    "name": "Mileena",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "tier": 2,
+    "power": 48,
+    "wikipedia": "Mileena",
+    "image": "chars/mileena.webp"
   },
   {
     "id": "pkm-roaring-moon",
@@ -4612,6 +4955,96 @@
     "power": 45,
     "pokeapiId": 772,
     "image": "chars/pkm-type-null.webp"
+  },
+  {
+    "id": "princess-peach",
+    "name": "Princess Peach",
+    "category": "games",
+    "series": "Super Mario",
+    "tier": 1,
+    "power": 45,
+    "wikipedia": "Princess Peach",
+    "image": "chars/princess-peach.webp"
+  },
+  {
+    "id": "bowser-jr",
+    "name": "Bowser Jr.",
+    "category": "games",
+    "series": "Super Mario",
+    "tier": 2,
+    "power": 45,
+    "wikipedia": "Bowser Jr.",
+    "image": "chars/bowser-jr.webp"
+  },
+  {
+    "id": "johnny-cage",
+    "name": "Johnny Cage",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "tier": 1,
+    "power": 45,
+    "wikipedia": "Johnny Cage",
+    "image": "chars/johnny-cage.webp"
+  },
+  {
+    "id": "sagat",
+    "name": "Sagat",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 2,
+    "power": 45,
+    "wikipedia": "Sagat (Street Fighter)",
+    "image": "chars/sagat.webp"
+  },
+  {
+    "id": "mega-man",
+    "name": "Mega Man",
+    "category": "games",
+    "series": "Mega Man",
+    "tier": 1,
+    "power": 45,
+    "wikipedia": "Mega Man (character)",
+    "image": "chars/mega-man.webp"
+  },
+  {
+    "id": "zack-fair",
+    "name": "Zack Fair",
+    "category": "games",
+    "series": "Final Fantasy VII",
+    "tier": 2,
+    "power": 45,
+    "wikipedia": "Zack Fair",
+    "image": "chars/zack-fair.webp"
+  },
+  {
+    "id": "mother-brain",
+    "name": "Mother Brain",
+    "category": "games",
+    "series": "Metroid",
+    "tier": 3,
+    "power": 45,
+    "wikipedia": "Mother Brain",
+    "image": "chars/mother-brain.webp"
+  },
+  {
+    "id": "hornet",
+    "name": "Hornet",
+    "category": "games",
+    "series": "Hollow Knight",
+    "tier": 2,
+    "power": 45,
+    "wikipedia": "Hornet (Hollow Knight)",
+    "image": "chars/hornet.webp"
+  },
+  {
+    "id": "chun-li",
+    "name": "Chun-Li",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 1,
+    "power": 45,
+    "image": "chars/chun-li.webp",
+    "imageVersion": "muqgsix8"
   },
   {
     "id": "pkm-nihilego",
@@ -5033,6 +5466,36 @@
     "power": 42,
     "pokeapiId": 289,
     "image": "chars/pkm-slaking.webp"
+  },
+  {
+    "id": "heihachi-mishima",
+    "name": "Heihachi Mishima",
+    "category": "games",
+    "series": "Tekken",
+    "tier": 1,
+    "power": 42,
+    "wikipedia": "Heihachi Mishima",
+    "image": "chars/heihachi-mishima.webp"
+  },
+  {
+    "id": "dhalsim",
+    "name": "Dhalsim",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 1,
+    "power": 42,
+    "wikipedia": "Dhalsim",
+    "image": "chars/dhalsim.webp"
+  },
+  {
+    "id": "guile",
+    "name": "Guile",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 1,
+    "power": 42,
+    "image": "chars/guile.webp",
+    "imageVersion": "muqgsjhd"
   },
   {
     "id": "pkm-gyarados",
@@ -5642,7 +6105,8 @@
     "tier": 1,
     "power": 40,
     "image": "chars/wesker.webp",
-    "igdbId": 8297
+    "igdbId": 8297,
+    "imageVersion": "muqgsmah"
   },
   {
     "id": "pkm-venusaur",
@@ -5863,6 +6327,56 @@
     "power": 40,
     "pokeapiId": 970,
     "image": "chars/pkm-glimmora.webp"
+  },
+  {
+    "id": "yoshi",
+    "name": "Yoshi",
+    "category": "games",
+    "series": "Super Mario",
+    "tier": 1,
+    "power": 40,
+    "wikipedia": "Yoshi",
+    "image": "chars/yoshi.webp"
+  },
+  {
+    "id": "waluigi",
+    "name": "Waluigi",
+    "category": "games",
+    "series": "Super Mario",
+    "tier": 2,
+    "power": 40,
+    "wikipedia": "Waluigi",
+    "image": "chars/waluigi.webp"
+  },
+  {
+    "id": "blanka",
+    "name": "Blanka",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 1,
+    "power": 40,
+    "wikipedia": "Blanka",
+    "image": "chars/blanka.webp"
+  },
+  {
+    "id": "jax-briggs",
+    "name": "Jax",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "tier": 2,
+    "power": 40,
+    "wikipedia": "Jax (Mortal Kombat)",
+    "image": "chars/jax-briggs.webp"
+  },
+  {
+    "id": "ike",
+    "name": "Ike",
+    "category": "games",
+    "series": "Fire Emblem",
+    "tier": 2,
+    "power": 40,
+    "wikipedia": "Ike (Fire Emblem)",
+    "image": "chars/ike.webp"
   },
   {
     "id": "pkm-luxray",
@@ -6403,6 +6917,26 @@
     "power": 38,
     "pokeapiId": 865,
     "image": "chars/pkm-sirfetchd.webp"
+  },
+  {
+    "id": "zangief",
+    "name": "Zangief",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 1,
+    "power": 38,
+    "wikipedia": "Zangief",
+    "image": "chars/zangief.webp"
+  },
+  {
+    "id": "cammy",
+    "name": "Cammy",
+    "category": "games",
+    "series": "Street Fighter",
+    "tier": 2,
+    "power": 38,
+    "wikipedia": "Cammy",
+    "image": "chars/cammy.webp"
   },
   {
     "id": "pkm-tinkaton",
@@ -8036,6 +8570,76 @@
     "image": "chars/pkm-orthworm.webp"
   },
   {
+    "id": "princess-daisy",
+    "name": "Princess Daisy",
+    "category": "games",
+    "series": "Super Mario",
+    "tier": 2,
+    "power": 35,
+    "wikipedia": "Princess Daisy",
+    "image": "chars/princess-daisy.webp"
+  },
+  {
+    "id": "diddy-kong",
+    "name": "Diddy Kong",
+    "category": "games",
+    "series": "Donkey Kong",
+    "tier": 2,
+    "power": 35,
+    "wikipedia": "Diddy Kong",
+    "image": "chars/diddy-kong.webp"
+  },
+  {
+    "id": "tifa-lockhart",
+    "name": "Tifa Lockhart",
+    "category": "games",
+    "series": "Final Fantasy VII",
+    "tier": 1,
+    "power": 35,
+    "wikipedia": "Tifa Lockhart",
+    "image": "chars/tifa-lockhart.webp"
+  },
+  {
+    "id": "simon-belmont",
+    "name": "Simon Belmont",
+    "category": "games",
+    "series": "Castlevania",
+    "tier": 2,
+    "power": 35,
+    "wikipedia": "Simon Belmont",
+    "image": "chars/simon-belmont.webp"
+  },
+  {
+    "id": "rayman",
+    "name": "Rayman",
+    "category": "games",
+    "series": "Rayman",
+    "tier": 2,
+    "power": 35,
+    "wikipedia": "Rayman (character)",
+    "image": "chars/rayman.webp"
+  },
+  {
+    "id": "pyramid-head",
+    "name": "Pyramid Head",
+    "category": "games",
+    "series": "Silent Hill 2",
+    "tier": 2,
+    "power": 35,
+    "wikipedia": "Pyramid Head",
+    "image": "chars/pyramid-head.webp"
+  },
+  {
+    "id": "sans",
+    "name": "Sans",
+    "category": "games",
+    "series": "Undertale",
+    "tier": 2,
+    "power": 35,
+    "wikipedia": "Sans (Undertale)",
+    "image": "chars/sans.webp"
+  },
+  {
     "id": "pkm-pidgeot",
     "name": "Pidgeot",
     "category": "pokemon",
@@ -9406,6 +10010,56 @@
     "image": "chars/pkm-cosmoem.webp"
   },
   {
+    "id": "marth",
+    "name": "Marth",
+    "category": "games",
+    "series": "Fire Emblem",
+    "tier": 2,
+    "power": 30,
+    "wikipedia": "Marth (Fire Emblem)",
+    "image": "chars/marth.webp"
+  },
+  {
+    "id": "aerith-gainsborough",
+    "name": "Aerith Gainsborough",
+    "category": "games",
+    "series": "Final Fantasy VII",
+    "tier": 2,
+    "power": 30,
+    "wikipedia": "Aerith Gainsborough",
+    "image": "chars/aerith-gainsborough.webp"
+  },
+  {
+    "id": "sonya-blade",
+    "name": "Sonya Blade",
+    "category": "games",
+    "series": "Mortal Kombat",
+    "tier": 2,
+    "power": 30,
+    "wikipedia": "Sonya Blade",
+    "image": "chars/sonya-blade.webp"
+  },
+  {
+    "id": "arbiter",
+    "name": "Arbiter",
+    "category": "games",
+    "series": "Halo",
+    "tier": 2,
+    "power": 30,
+    "wikipedia": "Arbiter (Halo)",
+    "image": "chars/arbiter.webp"
+  },
+  {
+    "id": "spyro",
+    "name": "Spyro",
+    "category": "games",
+    "series": "Spyro the Dragon",
+    "tier": 2,
+    "power": 30,
+    "wikipedia": "Spyro (character)",
+    "image": "chars/spyro.webp"
+  },
+  {
     "id": "pkm-dedenne",
     "name": "Dedenne",
     "category": "pokemon",
@@ -10627,6 +11281,36 @@
     "image": "chars/pkm-phione.webp"
   },
   {
+    "id": "barret-wallace",
+    "name": "Barret Wallace",
+    "category": "games",
+    "series": "Final Fantasy VII",
+    "tier": 2,
+    "power": 25,
+    "wikipedia": "Barret Wallace",
+    "image": "chars/barret-wallace.webp"
+  },
+  {
+    "id": "fox-mccloud",
+    "name": "Fox McCloud",
+    "category": "games",
+    "series": "Star Fox",
+    "tier": 2,
+    "power": 25,
+    "wikipedia": "Fox McCloud",
+    "image": "chars/fox-mccloud.webp"
+  },
+  {
+    "id": "cuphead",
+    "name": "Cuphead",
+    "category": "games",
+    "series": "Cuphead",
+    "tier": 2,
+    "power": 25,
+    "wikipedia": "Cuphead",
+    "image": "chars/cuphead.webp"
+  },
+  {
     "id": "pkm-poliwhirl",
     "name": "Poliwhirl",
     "category": "pokemon",
@@ -11327,6 +12011,16 @@
     "image": "chars/pkm-ditto.webp"
   },
   {
+    "id": "pac-man",
+    "name": "Pac-Man",
+    "category": "games",
+    "series": "Pac-Man",
+    "tier": 1,
+    "power": 20,
+    "wikipedia": "Pac-Man (character)",
+    "image": "chars/pac-man.webp"
+  },
+  {
     "id": "pkm-spritzee",
     "name": "Spritzee",
     "category": "pokemon",
@@ -11885,6 +12579,26 @@
     "power": 18,
     "pokeapiId": 808,
     "image": "chars/pkm-meltan.webp"
+  },
+  {
+    "id": "vi-lol",
+    "name": "Vi",
+    "category": "games",
+    "series": "League of Legends",
+    "tier": 2,
+    "power": 18,
+    "wikipedia": "Vi (League of Legends)",
+    "image": "chars/vi-lol.webp"
+  },
+  {
+    "id": "commander-shepard",
+    "name": "Commander Shepard",
+    "category": "games",
+    "series": "Mass Effect",
+    "tier": 2,
+    "power": 18,
+    "wikipedia": "Commander Shepard",
+    "image": "chars/commander-shepard.webp"
   },
   {
     "id": "pkm-clefairy",
@@ -13017,6 +13731,76 @@
     "image": "chars/pkm-unown.webp"
   },
   {
+    "id": "jinx-lol",
+    "name": "Jinx",
+    "category": "games",
+    "series": "League of Legends",
+    "tier": 1,
+    "power": 15,
+    "wikipedia": "Jinx (League of Legends)",
+    "image": "chars/jinx-lol.webp"
+  },
+  {
+    "id": "nina-williams",
+    "name": "Nina Williams",
+    "category": "games",
+    "series": "Tekken",
+    "tier": 2,
+    "power": 15,
+    "wikipedia": "Nina Williams",
+    "image": "chars/nina-williams.webp"
+  },
+  {
+    "id": "king-tekken",
+    "name": "King",
+    "category": "games",
+    "series": "Tekken",
+    "tier": 2,
+    "power": 15,
+    "wikipedia": "King (Tekken)",
+    "image": "chars/king-tekken.webp"
+  },
+  {
+    "id": "toad",
+    "name": "Toad",
+    "category": "games",
+    "series": "Super Mario",
+    "tier": 2,
+    "power": 15,
+    "wikipedia": "Toad (Mario)",
+    "image": "chars/toad.webp"
+  },
+  {
+    "id": "big-daddy",
+    "name": "Big Daddy",
+    "category": "games",
+    "series": "BioShock",
+    "tier": 2,
+    "power": 15,
+    "wikipedia": "Big Daddy (BioShock)",
+    "image": "chars/big-daddy.webp"
+  },
+  {
+    "id": "jill-valentine",
+    "name": "Jill Valentine",
+    "category": "games",
+    "series": "Resident Evil",
+    "tier": 1,
+    "power": 15,
+    "image": "chars/jill-valentine.webp",
+    "imageVersion": "muqgskm7"
+  },
+  {
+    "id": "tracer",
+    "name": "Tracer",
+    "category": "games",
+    "series": "Overwatch",
+    "tier": 2,
+    "power": 15,
+    "image": "chars/tracer.webp",
+    "imageVersion": "muqgsl6b"
+  },
+  {
     "id": "pkm-tinkatink",
     "name": "Tinkatink",
     "category": "pokemon",
@@ -13608,6 +14392,76 @@
     "image": "chars/pkm-shedinja.webp"
   },
   {
+    "id": "ada-wong",
+    "name": "Ada Wong",
+    "category": "games",
+    "series": "Resident Evil",
+    "tier": 2,
+    "power": 12,
+    "wikipedia": "Ada Wong",
+    "image": "chars/ada-wong.webp"
+  },
+  {
+    "id": "gordon-freeman",
+    "name": "Gordon Freeman",
+    "category": "games",
+    "series": "Half-Life",
+    "tier": 1,
+    "power": 12,
+    "wikipedia": "Gordon Freeman",
+    "image": "chars/gordon-freeman.webp"
+  },
+  {
+    "id": "marcus-fenix",
+    "name": "Marcus Fenix",
+    "category": "games",
+    "series": "Gears of War",
+    "tier": 2,
+    "power": 12,
+    "wikipedia": "Marcus Fenix",
+    "image": "chars/marcus-fenix.webp"
+  },
+  {
+    "id": "bj-blazkowicz",
+    "name": "B.J. Blazkowicz",
+    "category": "games",
+    "series": "Wolfenstein",
+    "tier": 2,
+    "power": 12,
+    "wikipedia": "B. J. Blazkowicz",
+    "image": "chars/bj-blazkowicz.webp"
+  },
+  {
+    "id": "revolver-ocelot",
+    "name": "Revolver Ocelot",
+    "category": "games",
+    "series": "Metal Gear Solid",
+    "tier": 3,
+    "power": 12,
+    "wikipedia": "Revolver Ocelot",
+    "image": "chars/revolver-ocelot.webp"
+  },
+  {
+    "id": "little-mac",
+    "name": "Little Mac",
+    "category": "games",
+    "series": "Punch-Out!!",
+    "tier": 2,
+    "power": 12,
+    "wikipedia": "Little Mac",
+    "image": "chars/little-mac.webp"
+  },
+  {
+    "id": "big-boss",
+    "name": "Big Boss",
+    "category": "games",
+    "series": "Metal Gear Solid",
+    "tier": 2,
+    "power": 12,
+    "image": "chars/big-boss.webp",
+    "imageVersion": "muqgslqz"
+  },
+  {
     "id": "pkm-jigglypuff",
     "name": "Jigglypuff",
     "category": "pokemon",
@@ -13948,6 +14802,46 @@
     "image": "chars/pkm-yungoos.webp"
   },
   {
+    "id": "ezio-auditore",
+    "name": "Ezio Auditore",
+    "category": "games",
+    "series": "Assassin's Creed II",
+    "tier": 1,
+    "power": 10,
+    "wikipedia": "Ezio Auditore da Firenze",
+    "image": "chars/ezio-auditore.webp"
+  },
+  {
+    "id": "edward-kenway",
+    "name": "Edward Kenway",
+    "category": "games",
+    "series": "Assassin's Creed IV: Black Flag",
+    "tier": 2,
+    "power": 10,
+    "wikipedia": "Edward Kenway",
+    "image": "chars/edward-kenway.webp"
+  },
+  {
+    "id": "bayek",
+    "name": "Bayek",
+    "category": "games",
+    "series": "Assassin's Creed Origins",
+    "tier": 2,
+    "power": 10,
+    "wikipedia": "Bayek of Siwa",
+    "image": "chars/bayek.webp"
+  },
+  {
+    "id": "creeper",
+    "name": "Creeper",
+    "category": "games",
+    "series": "Minecraft",
+    "tier": 1,
+    "power": 10,
+    "wikipedia": "Creeper (Minecraft)",
+    "image": "chars/creeper.webp"
+  },
+  {
     "id": "pkm-pidgey",
     "name": "Pidgey",
     "category": "pokemon",
@@ -14128,6 +15022,16 @@
     "image": "chars/pkm-combee.webp"
   },
   {
+    "id": "agent-47",
+    "name": "Agent 47",
+    "category": "games",
+    "series": "Hitman",
+    "tier": 2,
+    "power": 9,
+    "wikipedia": "Agent 47",
+    "image": "chars/agent-47.webp"
+  },
+  {
     "id": "pkm-toxel",
     "name": "Toxel",
     "category": "pokemon",
@@ -14266,6 +15170,16 @@
     "power": 7,
     "image": "chars/joel.webp",
     "igdbId": 411
+  },
+  {
+    "id": "trevor-philips",
+    "name": "Trevor Philips",
+    "category": "games",
+    "series": "Grand Theft Auto V",
+    "tier": 1,
+    "power": 7,
+    "wikipedia": "Trevor Philips",
+    "image": "chars/trevor-philips.webp"
   },
   {
     "id": "pkm-burmy",
@@ -14457,6 +15371,16 @@
     "power": 5,
     "image": "chars/ellie.webp",
     "igdbId": 410
+  },
+  {
+    "id": "madeline-celeste",
+    "name": "Madeline",
+    "category": "games",
+    "series": "Celeste",
+    "tier": 3,
+    "power": 5,
+    "wikipedia": "Madeline (Celeste)",
+    "image": "chars/madeline-celeste.webp"
   },
   {
     "id": "pkm-metapod",
@@ -14708,6 +15632,16 @@
     "power": 2,
     "pokeapiId": 824,
     "image": "chars/pkm-blipbug.webp"
+  },
+  {
+    "id": "isabelle",
+    "name": "Isabelle",
+    "category": "games",
+    "series": "Animal Crossing",
+    "tier": 2,
+    "power": 2,
+    "wikipedia": "Isabelle (Animal Crossing)",
+    "image": "chars/isabelle.webp"
   },
   {
     "id": "pkm-wishiwashi",
