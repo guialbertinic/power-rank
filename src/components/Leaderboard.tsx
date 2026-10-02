@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { fetchLeaderboard, type LeaderboardEntry, type Period } from '../api';
-import { cosmeticById } from '../game/cosmetics';
-import { cosmeticLabel, modeLabel, useI18n, type Key } from '../i18n';
+import { modeLabel, useI18n, type Key } from '../i18n';
 import type { Mode } from '../game/modes';
 import { sameNick } from '../nick';
 import { formatDuration } from '../ui/format';
-import PlayerTag from './PlayerTag';
+import PlayerTag, { PodiumName } from './PlayerTag';
 import RankBadge from './RankBadge';
 import ReportLink from './ReportForm';
 
@@ -43,7 +42,7 @@ function detail(s: LeaderboardEntry, t: (key: Key, params?: Record<string, numbe
  * Acumulado (soma de todos os desafios). Partida solo não entra. Os 3 primeiros num pódio, o resto em lista.
  */
 export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const [period, setPeriod] = useState<Period>('daily');
   const [helpOpen, setHelpOpen] = useState(false);
   const [scores, setScores] = useState<LeaderboardEntry[] | null>(null);
@@ -87,13 +86,10 @@ export default function Leaderboard({ mode, refreshKey = 0, highlight }: Props) 
         </div>
       );
     }
-    const titleItem = s.look.title ? cosmeticById(s.look.title) : undefined;
-    const title = titleItem ? cosmeticLabel(titleItem, lang) : undefined;
     return (
       <div key={place} role="listitem" className={`podium-step ${className}${isYou(s) ? ' you' : ''}`}>
         <PlayerTag name={s.name} look={s.look} size={place === 1 ? 64 : 52} avatarOnly />
-        <span className={`podium-name${s.look.nameColor ? ` cosmetic-${s.look.nameColor}` : ''}`}>{s.name}</span>
-        {title && <span className="podium-title">{title}</span>}
+        <PodiumName name={s.name} look={s.look} />
         <span className="podium-score">{s.score}</span>
         {detail(s, t) && <span className="podium-detail">{detail(s, t)}</span>}
         <div className="podium-block">

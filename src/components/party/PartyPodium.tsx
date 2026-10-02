@@ -5,7 +5,7 @@ import { MAX_SCORE, rankLevel } from '../../game/scoring';
 import { useI18n } from '../../i18n';
 import type { CharacterInfo } from '../../game/types';
 import Coins from '../Coins';
-import PlayerTag from '../PlayerTag';
+import PlayerTag, { PodiumName } from '../PlayerTag';
 import RankBadge from '../RankBadge';
 import RankingComparison from '../RankingComparison';
 import { usePendingClick } from '../../ui/usePendingClick';
@@ -64,7 +64,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
           return (
             <div key={place} role="listitem" className={`podium-step ${className}${player.id === you ? ' you' : ''}`}>
               <PlayerTag name={player.name} look={player.look} size={44} avatarOnly />
-              <span className="podium-name">{player.name}</span>
+              <PodiumName name={player.name} look={player.look} />
               <span className="podium-score">{player.score}</span>
               <div className="podium-block">
                 <span className="podium-place">{t(`podium.place${place as 1 | 2 | 3}`)}</span>

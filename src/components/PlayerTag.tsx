@@ -56,3 +56,18 @@ export default function PlayerTag({ name, look, size = 28, avatarOnly }: Props) 
     </span>
   );
 }
+
+/**
+ * Nick (com cor) e título embaixo, centralizados: os pódios (ranking e party), que mostram o avatar à parte, em
+ * cima. Sem emblema: ao lado do nick centralizado, ele o desloca.
+ */
+export function PodiumName({ name, look }: { name: string; look: Look }) {
+  const { lang } = useI18n();
+  const titleItem = look.title ? cosmeticById(look.title) : undefined;
+  return (
+    <>
+      <span className={`podium-name${look.nameColor ? ` cosmetic-${look.nameColor}` : ''}`}>{name}</span>
+      {titleItem && <span className="podium-title">{cosmeticLabel(titleItem, lang)}</span>}
+    </>
+  );
+}
