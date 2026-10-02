@@ -256,6 +256,22 @@ export function dropPlinko(token: string, bet: number, risk: Risk): Promise<Plin
   return request('/api/plinko/drop', { method: 'POST', body: JSON.stringify({ token, bet, risk }) });
 }
 
+export interface ScratchCard {
+  /** As 9 casas, linha por linha. */
+  cells: SymbolId[];
+  /** Símbolo do trio (null = sem prêmio). */
+  symbol: SymbolId | null;
+  multiplier: number;
+  prize: number;
+  /** Saldo depois da cartela (aposta e prêmio já contados). */
+  coins: number;
+}
+
+/** Compra uma cartela da Raspadinha: o servidor debita a aposta, sorteia a cartela e credita o prêmio. */
+export function buyScratch(token: string, bet: number): Promise<ScratchCard> {
+  return request('/api/scratch/buy', { method: 'POST', body: JSON.stringify({ token, bet }) });
+}
+
 export async function fetchLeaderboard(mode: Mode, period: Period): Promise<LeaderboardEntry[]> {
   const { scores } = await request<{ scores: LeaderboardEntry[] }>(`/api/scores?mode=${mode}&period=${period}`);
   return scores;

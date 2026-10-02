@@ -3103,6 +3103,94 @@ input:focus {
   }
 }
 
+/* ---------- Raspadinha (aba do Arcade; usa o gabinete .casino) ---------- */
+
+/* Cartela: mesma janela escura com aro dourado dos rolos; o canvas da cobertura fica por cima das casas. */
+.scratch-window {
+  position: relative;
+  width: min(100%, 340px);
+  padding: 12px;
+  background: var(--bg);
+  border: 2px solid color-mix(in srgb, #ffd700 45%, var(--border));
+  clip-path: var(--clip-chamfer);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.8);
+}
+
+.scratch-window.jackpot {
+  animation: cosmetic-legend-glow 1.2s ease-in-out infinite;
+}
+
+.scratch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.scratch-cell {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  clip-path: var(--clip-chamfer-sm);
+}
+
+/* O ícone acompanha a casa (90–105 px conforme a tela); a letra fica fixa. */
+.scratch-cell .casino-icon {
+  width: 72%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.scratch-cell .casino-icon-face {
+  font-size: 1.9rem;
+}
+
+.scratch-cell.open .casino-icon {
+  animation: casino-land 0.28s var(--ease-out);
+}
+
+.scratch-cell.win {
+  box-shadow: inset 0 0 0 2px #ffd700;
+}
+
+.scratch-cell.win .casino-icon {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--tier-color) 85%, transparent));
+}
+
+/* Cobertura: só raspa com cartela comprada; sem isso a página rola normalmente por cima. */
+.scratch-cover {
+  position: absolute;
+  inset: 12px;
+  width: calc(100% - 24px);
+  height: calc(100% - 24px);
+  touch-action: auto;
+}
+
+.scratch-cover.active {
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.scratch-top {
+  align-content: center;
+}
+
+@media (max-width: 480px) {
+  .scratch-window {
+    padding: 8px;
+  }
+
+  .scratch-grid {
+    gap: 6px;
+  }
+
+  .scratch-cover {
+    inset: 8px;
+    width: calc(100% - 16px);
+    height: calc(100% - 16px);
+  }
+}
+
 /* ---------- Arcade: abas e Mystery Box ---------- */
 
 .arcade-screen {
@@ -3117,6 +3205,22 @@ input:focus {
   max-width: 480px;
   margin: 0 auto;
   text-align: center;
+}
+
+/* Celular: quatro abas na largura da tela (vem depois do .shop-tabs do celular). Nome de duas palavras quebra linha. */
+@media (max-width: 480px) {
+  .arcade-tabs {
+    gap: 4px;
+  }
+
+  .arcade-tabs .mode-option {
+    align-content: center;
+    padding: 8px 6px;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+    white-space: normal;
+  }
 }
 
 .shop-exclusive {

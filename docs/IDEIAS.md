@@ -128,7 +128,7 @@ Tudo com moedas do jogo (não compráveis, sem valor real). Sorteio sempre no se
 - ✅ **Plinko**: 12 fileiras, 3 riscos (baixo/médio/alto), ~95% de retorno em todos; várias bolinhas ao mesmo tempo.
 - 💡 **Pachinko** · `Feature` 🟡: bolinhas lançadas com força regulável, pinos e bolsos que liberam um
   mini-sorteio/jackpot; mais "evento" que o Plinko (definir o que diferencia os dois na prática).
-- 💡 Raspadinha · `Feature` 🟢 (ótima no celular).
+- ✅ **Raspadinha**: cartela 3×3 com os tiers, três iguais pagam (SS 100×), ganha em 23%, 95% de retorno; raspa no canvas.
 - 💡 "Desafio" · `Feature` 🟡: apostar na própria partida (atingir X pontos) — só depois de ter dados reais para
   calibrar.
 - 🧭 Olhar o retorno real depois de uns dias · `Manutenção` 🟢:
@@ -260,6 +260,6 @@ economia e jogadores. O resto abaixo continua 💡.
 - Conta (nick + senha) ou convidado; jogador por id (trocar nick renomeia a conta); sincronizar dispositivo.
 - Rankings do Desafio Diário (o de hoje, desempate por tempo) e Acumulado (soma dos desafios), pódio dos 3 primeiros, skeleton.
 - Desafio Diário: os mesmos 10 (Free for All) para todos no dia, uma tentativa, ranking próprio (aba Desafio).
-- Moedas, loja de cosméticos (cores, molduras, títulos, avatares), cassino (caça-níquel + Mystery Box).
+- Moedas, loja de cosméticos (cores, molduras, títulos, avatares), Arcade (caça-níquel, Plinko, Raspadinha e Mystery Box).
 - Design system "Dark Battle Interface"; testes e2e (`e2e:api`, `e2e:ui`); skills do projeto (`.claude/skills/`).
 - Produção: migrações 0001–0014; deploy pela `main` via GitHub Actions, só se build + `npm test` + `e2e:api` passarem.

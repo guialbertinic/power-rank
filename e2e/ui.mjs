@@ -420,8 +420,53 @@ try {
   check('Plinko no celular: sem scroll horizontal e tabuleiro legível', (await overflowX(ana)) <= 0 && board >= 300, String(board));
   await ana.setViewport({ width: 1280, height: 860 });
 
-  // Mystery Box (terceira aba do Arcade).
+  // Raspadinha (terceira aba do Arcade).
   await ana.click('.arcade-tabs .mode-option:nth-child(3)');
+  await ana.waitForSelector('.scratch-grid');
+  check('cartela com 9 casas cobertas', (await ana.$$('.scratch-cell')).length === 9 && Boolean(await ana.$('.scratch-cover')));
+  const cardResponse = ana.waitForResponse((r) => r.url().includes('/api/scratch/buy'));
+  await ana.click('.scratch-buy');
+  const card = await (await cardResponse).json();
+  await ana.waitForSelector('.scratch-cover.active');
+  const hiddenBalance = Number((await text(ana, '.casino-wallet .coins'))?.replace(/\D/g, ''));
+  check(
+    'cartela comprada: aposta trava e o prêmio fica escondido no saldo',
+    Boolean(await ana.$('.casino-bet button:disabled')) && hiddenBalance === card.coins - card.prize,
+    `${hiddenBalance} / ${card.coins - card.prize}`,
+  );
+  // Raspa a primeira casa com o mouse, em zigue-zague, até ela abrir.
+  const first = await ana.$eval('.scratch-cell', (el) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.left, y: r.top, w: r.width, h: r.height };
+  });
+  await ana.mouse.move(first.x + 4, first.y + 4);
+  await ana.mouse.down();
+  for (let y = 4; y < first.h; y += 10) {
+    await ana.mouse.move(first.x + first.w - 4, first.y + y, { steps: 4 });
+    await ana.mouse.move(first.x + 4, first.y + y + 5, { steps: 4 });
+  }
+  await ana.mouse.up();
+  await ana.waitForSelector('.scratch-cell.open', { timeout: 3000 }).catch(() => null);
+  check('raspar abre a casa', Boolean(await ana.$('.scratch-cell:first-child.open')));
+  await ana.click('.scratch-reveal');
+  await ana.waitForFunction(() => !document.querySelector('.scratch-cover') && document.querySelectorAll('.scratch-cell .casino-icon').length === 9, { timeout: 3000 });
+  const shownCells = await ana.$$eval('.scratch-cell .casino-icon', (els) => els.map((el) => el.textContent.toLowerCase()));
+  check('revelar tudo mostra a cartela do servidor', JSON.stringify(shownCells) === JSON.stringify(card.cells), JSON.stringify(shownCells));
+  check('trio vencedor acende', (await ana.$$('.scratch-cell.win')).length === (card.symbol ? 3 : 0));
+  const scratchBalance = Number((await text(ana, '.casino-wallet .coins'))?.replace(/\D/g, ''));
+  check('saldo na tela = saldo do servidor depois da cartela', scratchBalance === card.coins, `${scratchBalance} / ${card.coins}`);
+  await ana.click('.casino-marquee .leaderboard-help-toggle');
+  check('"?" mostra a tabela de trios', (await ana.$$('.scratch-table tbody tr')).length === 6);
+  await ana.setViewport({ width: 390, height: 844 });
+  await sleep(300);
+  const cardWidth = await ana.$eval('.scratch-window', (el) => el.getBoundingClientRect().width);
+  check('Raspadinha no celular: sem scroll horizontal e cartela legível', (await overflowX(ana)) <= 0 && cardWidth >= 280, String(cardWidth));
+  const tabsFit = await ana.$$eval('.arcade-tabs .mode-option', (els) => els.every((el) => el.scrollWidth <= el.clientWidth));
+  check('abas do Arcade cabem no celular (texto dentro do botão)', tabsFit);
+  await ana.setViewport({ width: 1280, height: 860 });
+
+  // Mystery Box (quarta aba do Arcade).
+  await ana.click('.arcade-tabs .mode-option:nth-child(4)');
   await ana.waitForSelector('.gacha-box');
   const boxResponse = ana.waitForResponse((r) => r.url().includes('/api/gacha/open'));
   await ana.click('.gacha-open');
@@ -498,7 +543,7 @@ try {
   const admin = await b.page(PHONE);
   await admin.goto('http://localhost:5173/admin', { waitUntil: 'networkidle0' });
   await admin.waitForSelector('.admin-feature');
-  check('admin: uma chave por minigame', (await admin.$$('.admin-feature')).length === 3);
+  check('admin: uma chave por minigame', (await admin.$$('.admin-feature')).length === 4);
   check('admin: não carrega o jogo', !(await admin.$('.app-header')));
   check('admin: chaves sem scroll horizontal no celular', (await overflowX(admin)) <= 0);
   await admin.click('.admin-tabs .mode-option:nth-child(2)');

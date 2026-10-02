@@ -42,6 +42,7 @@ export interface Economy {
   granted: Period<number>;
   slots: Period<{ spins: number; bet: number; prize: number; jackpots: number }> & { pot: number };
   plinko: Period<{ drops: number; bet: number; prize: number }>;
+  scratch: Period<{ cards: number; bet: number; prize: number }>;
   box: Period<{ openings: number; spent: number; refunded: number }> & {
     /** Aberturas por raridade (tudo) e a chance configurada, para comparar. */
     rarities: { rarity: Rarity; count: number; chance: number }[];
@@ -69,6 +70,7 @@ export interface AdminPlayer extends AdminPlayerRow {
   earned: number;
   slots: { spins: number; bet: number; prize: number };
   plinko: { drops: number; bet: number; prize: number };
+  scratch: { cards: number; bet: number; prize: number };
   box: { openings: number; spent: number; refunded: number };
   recentScores: { mode: string; score: number; coins: number; daily: boolean; createdAt: number }[];
   recentAccess: { event: string; ip: string; country: string | null; createdAt: number }[];

@@ -1,4 +1,4 @@
-# Arcade: caça-níquel, Plinko e Mystery Box
+# Arcade: caça-níquel, Plinko, Raspadinha e Mystery Box
 
 Parte da skill `loja`. As regras de moedas (débito/crédito seguros) estão no SKILL.md.
 
@@ -23,3 +23,9 @@ teste está jogando.
 Tabela em `src/game/plinko.ts` (`HALF_TENTHS`, décimos, da ponta ao meio) + `plinko.test.ts` (retorno exato de
 cada risco, 93–96%). Mexeu na tabela? Rode `npm test` e atualize a cópia em `e2e/api.mjs` (seção Plinko).
 Detalhes em `docs/ARQUITETURA.md` → "Plinko".
+
+## Raspadinha
+
+Tabela em `src/game/scratch.ts` (`PRIZES`: multiplicador e peso em 1/10.000 por trio) + `scratch.test.ts` (retorno
+exato, hoje 95%). Mexeu na tabela? Rode `npm test` e atualize a cópia em `e2e/api.mjs` (seção Raspadinha).
+Detalhes em `docs/ARQUITETURA.md` → "Raspadinha".

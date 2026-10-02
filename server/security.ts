@@ -19,6 +19,7 @@ const RATE_LIMITED: Record<string, Limiter> = {
   'POST /api/party': 'RL_PLAY',
   'POST /api/slots/spin': 'RL_CASINO',
   'POST /api/plinko/drop': 'RL_PLINKO',
+  'POST /api/scratch/buy': 'RL_CASINO',
   'POST /api/gacha/open': 'RL_CASINO',
   'POST /api/shop/buy': 'RL_CASINO',
 };

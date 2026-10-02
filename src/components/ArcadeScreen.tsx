@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { confirmAdult } from '../api';
 import type { Profile } from '../game/cosmetics';
 import type { FeatureId, Features } from '../game/features';
-import { serverText, useI18n } from '../i18n';
+import { serverText, useI18n, type Key } from '../i18n';
 import type { Identity } from '../nick';
 import { LegalLink } from './Legal';
 import MysteryBox from './MysteryBox';
 import PlinkoBoard from './PlinkoBoard';
+import ScratchCard from './ScratchCard';
 import SlotMachine from './SlotMachine';
 
 interface Props {
@@ -17,18 +18,20 @@ interface Props {
   onProfileChange: (profile: Profile) => void;
 }
 
-/** Minigames na ordem das abas; cada um tem a sua chave (feature flag) no banco. */
-const GAMES: { id: FeatureId; label: string }[] = [
+/** Minigames na ordem das abas; cada um tem a sua chave (feature flag) no banco. Nome próprio fixo ou chave de texto. */
+const GAMES: { id: FeatureId; label: string | { key: Key } }[] = [
   { id: 'slots', label: 'Slots' },
   { id: 'plinko', label: 'Plinko' },
+  { id: 'scratch', label: { key: 'scratch.tab' } },
   { id: 'mystery_box', label: 'Mystery Box' },
 ];
 
 /**
  * Arcade (só contas): abas com os minigames ligados. Cada jogo é uma "máquina" (gabinete .casino).
- * Só para maiores de 18: a conta declara uma vez (o servidor também recusa giros, bolinhas e caixas sem a declaração).
+ * Só para maiores de 18: a conta declara uma vez (o servidor também recusa giros, bolinhas, cartelas e caixas sem a declaração).
  */
 export default function ArcadeScreen(props: Props) {
+  const { t } = useI18n();
   const games = GAMES.filter((g) => props.features[g.id]);
   const [selected, setGame] = useState<FeatureId | null>(null);
   // A aba escolhida pode ter sido desligada: cai na primeira ligada.
@@ -46,7 +49,7 @@ export default function ArcadeScreen(props: Props) {
             className={`mode-option${game === g.id ? ' selected' : ''}`}
             onClick={() => setGame(g.id)}
           >
-            {g.label}
+            {typeof g.label === 'string' ? g.label : t(g.label.key)}
           </button>
         ))}
       </div>
@@ -54,6 +57,8 @@ export default function ArcadeScreen(props: Props) {
         <SlotMachine {...props} />
       ) : game === 'plinko' ? (
         <PlinkoBoard {...props} />
+      ) : game === 'scratch' ? (
+        <ScratchCard {...props} />
       ) : (
         <MysteryBox {...props} />
       )}

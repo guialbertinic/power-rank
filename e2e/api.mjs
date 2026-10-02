@@ -407,13 +407,56 @@ if (section('Plinko')) {
   check('toda bolinha fica registrada', /"n": 24/.test(logged));
 }
 
+// ---------- Raspadinha ----------
+if (section('Raspadinha')) {
+  const me = await player('Raspa');
+  check('convidado não joga (401)', (await post('/scratch/buy', { bet: 1 })).status === 401);
+  const underage = await post('/scratch/buy', { ...me, bet: 1 });
+  check('sem declarar 18+: 403', underage.status === 403 && underage.data.code === 'adult_required');
+  await post('/profile/adult', me);
+  check('aposta fora da regra é recusada', (await post('/scratch/buy', { ...me, bet: 11 })).status === 400);
+  check('sem saldo: 402', (await post('/scratch/buy', { ...me, bet: 1 })).status === 402);
+
+  d1(`UPDATE players SET coins = 1000 WHERE name_key = '${me.name.toLowerCase()}'`);
+  // Tabela igual à de src/game/scratch.ts.
+  const PRIZE = { ss: 100, s: 25, a: 10, b: 3, c: 2, d: 1 };
+  let expectedCoins = 1000;
+  let ok = true;
+  let detail = '';
+  for (let i = 0; i < 20; i++) {
+    const bet = i % 2 ? 1 : 10;
+    const { status, data } = await post('/scratch/buy', { ...me, bet });
+    const counts = {};
+    for (const c of data?.cells ?? []) counts[c] = (counts[c] ?? 0) + 1;
+    const trios = Object.keys(counts).filter((c) => counts[c] >= 3);
+    const multiplier = data?.symbol ? PRIZE[data.symbol] : 0;
+    const valid =
+      status === 200 &&
+      data.cells.length === 9 &&
+      data.cells.every((c) => c in PRIZE) &&
+      Object.values(counts).every((n) => n <= 3) &&
+      (data.symbol === null ? trios.length === 0 : trios.length === 1 && trios[0] === data.symbol) &&
+      data.multiplier === multiplier &&
+      data.prize === bet * multiplier;
+    expectedCoins += (data?.prize ?? 0) - bet;
+    if (!valid || data.coins !== expectedCoins) {
+      ok = false;
+      detail = JSON.stringify({ status, bet, data, expectedCoins });
+      break;
+    }
+  }
+  check('cartela coerente com o trio, prêmio da tabela e saldo fechando cartela a cartela', ok, detail);
+  const logged = d1(`SELECT COUNT(*) AS n FROM scratch_cards WHERE player_id = (SELECT id FROM players WHERE name_key = '${me.name.toLowerCase()}')`);
+  check('toda cartela fica registrada', /"n": 20/.test(logged));
+}
+
 // ---------- Chaves dos minigames (tabela features) ----------
 if (section('Chaves')) {
   const me = await player('Chaves');
   await post('/profile/adult', me);
   d1(`UPDATE players SET coins = 500 WHERE name_key = '${me.name.toLowerCase()}'`);
   const on = (await get('/config')).features;
-  check('config traz as chaves (ligadas por padrão)', on?.slots === true && on?.plinko === true && on?.mystery_box === true, JSON.stringify(on));
+  check('config traz as chaves (ligadas por padrão)', on?.slots === true && on?.plinko === true && on?.scratch === true && on?.mystery_box === true, JSON.stringify(on));
   const setFlag = (id, enabled) => d1(`UPDATE features SET enabled = ${enabled} WHERE id = '${id}'`);
   try {
     setFlag('slots', 0);
@@ -429,12 +472,16 @@ if (section('Chaves')) {
     setFlag('plinko', 0);
     const dropped = await post('/plinko/drop', { ...me, bet: 1, risk: 'low' });
     check('Plinko desligado: 403', dropped.status === 403 && dropped.data.code === 'feature_disabled');
+    setFlag('scratch', 0);
+    const card = await post('/scratch/buy', { ...me, bet: 1 });
+    check('Raspadinha desligada: 403', card.status === 403 && card.data.code === 'feature_disabled');
     const coins = (await post('/profile', me)).data.coins;
     check('desligado não cobra moedas', coins === 400, String(coins));
   } finally {
     setFlag('slots', 1);
     setFlag('mystery_box', 1);
     setFlag('plinko', 1);
+    setFlag('scratch', 1);
   }
   check('religado: caça-níquel volta', (await post('/slots/spin', { ...me, bet: 1 })).status === 200);
 }

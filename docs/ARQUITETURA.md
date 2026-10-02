@@ -67,8 +67,8 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
   abre por cima de qualquer tela (não desmonta partida/party), por `LegalLink` (tela do nick, rodapé da home,
   engrenagem) ou por URL direta `/?termos` · `/?privacidade` (`?terms`/`?privacy`). Aceite: aviso na tela do nick
   ("ao continuar... 13+"). Mudou uma regra (retenção, idade)? Atualize o texto e o `UPDATED`.
-- **18+** (Arcade: caça-níquel, Plinko e Mystery Box): a conta declara uma vez (`POST /api/profile/adult` → `players.adult_confirmed_at`,
-  sem desfazer); `Profile.adult`. `CasinoScreen` mostra a trava; `spin`, `drop` (Plinko) e `openBox` recusam sem a declaração
+- **18+** (Arcade: caça-níquel, Plinko, Raspadinha e Mystery Box): a conta declara uma vez (`POST /api/profile/adult` → `players.adult_confirmed_at`,
+  sem desfazer); `Profile.adult`. `CasinoScreen` mostra a trava; `spin`, `drop` (Plinko), `buyCard` (Raspadinha) e `openBox` recusam sem a declaração
   (403 `adult_required`, `requireAdult` em `server/profile.ts`).
 - **Registro de acesso** (`server/access.ts` → tabela `access_log`): IP (`CF-Connecting-IP`), país, user agent,
   conta/nick e evento: `signup`, `login`, `login_failed`, `score` (inclusive convidado e partida rápida demais),
@@ -146,6 +146,7 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/gacha/open` `{ token }` | Só contas. Mystery Box: cobra 100, sorteia raridade e item, entrega (ou devolve moedas se repetido) e devolve `{ rarity, itemId, duplicate, refund, profile }`. 402 sem saldo, 403 `feature_disabled` com a chave `mystery_box` desligada. |
 | `POST /api/slots/spin` `{ token, bet }` | Só contas. Aposta de 1 a 10 moedas. Sorteia no servidor, debita/credita e devolve `{ reels, outcome, prize, coins, pot, jackpot }`. 402 sem saldo, 403 `feature_disabled` com a chave `slots` desligada. |
 | `POST /api/plinko/drop` `{ token, bet, risk }` | Só contas 18+. Aposta de 1 a 10, risco `low`/`medium`/`high`. Sorteia o caminho no servidor, debita/credita no mesmo UPDATE e devolve `{ path, slot, multiplier (décimos), prize, coins }`. 402 sem saldo, 403 `feature_disabled` com a chave `plinko` desligada. Limite próprio `RL_PLINKO` (200/min). |
+| `POST /api/scratch/buy` `{ token, bet }` | Só contas 18+. Aposta de 1 a 10. Sorteia o trio e monta a cartela no servidor, debita/credita no mesmo UPDATE e devolve `{ cells (9 símbolos), symbol (trio ou null), multiplier, prize, coins }`. 402 sem saldo, 403 `feature_disabled` com a chave `scratch` desligada. Limite `RL_CASINO`. |
 | `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado e `hasPassword`. |
 | `POST /api/shop/buy` `{ token, itemId }` | Registra o item (INSERT OR IGNORE) e só então debita com `coins >= preço` no UPDATE; sem saldo, desfaz. |
 | `/api/admin/*` | Só admin (ver "Admin"; 403 `admin_denied`). `GET me` · `GET/POST features` `{ id, enabled }` · `GET economy` · `GET players?q=&sort=recent|coins` · `GET players/:id` · `POST players/:id/coins` `{ delta, reason }` · `POST players/:id/rename` `{ name }` · `POST players/:id/password` → `{ password, player }` · `GET actions`. |
@@ -231,7 +232,7 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   18+): uma aba por minigame ligado. Na tela nunca se usa "cassino"; o código interno do caça-níquel segue como
   `casino` (arquivos, classes `.casino-*`, tabelas `casino_*`, `RL_CASINO`).
 - **Chaves** na tabela `features` (`id`, `enabled`, `updated_at`), ids em `src/game/features.ts` (`slots`,
-  `plinko`, `mystery_box`). Sem linha = desligada. Servidor: `requireFeature` (`server/features.ts`) no começo de cada rota do
+  `plinko`, `scratch`, `mystery_box`). Sem linha = desligada. Servidor: `requireFeature` (`server/features.ts`) no começo de cada rota do
   minigame → 403 `feature_disabled`, antes de cobrar. Site: `GET /api/config` → `features`, lido pelo `App` ao voltar
   para a home; só as ligadas viram aba, e sem nenhuma o botão do Arcade some. Se a leitura falhar, o config manda
   tudo desligado (o Turnstile depende dessa rota). Ligar/desligar: aba Chaves do `/admin`, ou por SQL:
@@ -267,9 +268,24 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - Tela: até 4 bolinhas ao mesmo tempo; o saldo mostrado desconta a aposta ao soltar e soma o prêmio quando a
   bolinha chega. Risco trava com bolinha caindo.
 
+## Raspadinha
+
+- Regras em `src/game/scratch.ts` (compartilhado; `scratch.test.ts` confere o retorno e a cartela). Servidor em
+  `server/scratch.ts`, aba "Raspadinha" do Arcade (`ScratchCard`, no gabinete `.casino`).
+- Cartela 3×3 com os símbolos do caça-níquel (tiers SS … D). O servidor sorteia primeiro o resultado (pesos em
+  1/10.000) e depois monta a cartela: o trio (se houver) + casas tiradas de um "saco" com 2 fichas de cada outro
+  símbolo, embaralhadas. Então nunca há dois trios, e quase-vitórias aparecem naturalmente.
+- Trios: SS 100× (0,2%), S 25× (0,8%), A 10× (2%), B 3× (5%), C 2× (5%), D 1× (10%, devolve a aposta). Ganha em 23%
+  das cartelas; retorno exato de 95%. Prêmio sempre inteiro (aposta × multiplicador).
+- Débito e prêmio no mesmo UPDATE (`coins >= aposta`); toda cartela vai para `scratch_cards` (trio, multiplicador,
+  prêmio). Sem pote.
+- Tela: a cobertura é um `<canvas>` por cima das casas (raspa com o dedo/mouse, `destination-out`); uma casa abre
+  sozinha quando metade dela foi raspada. "Revelar tudo" abre de uma vez. O saldo mostrado só soma o prêmio com a
+  cartela inteira revelada; a aposta trava até lá. Sair da aba no meio não perde nada (o prêmio já foi creditado).
+
 ## Mystery Box (gacha)
 
-- Aba do Arcade (`ArcadeScreen` → `SlotMachine` | `PlinkoBoard` | `MysteryBox`). Regras em `src/game/gacha.ts`, servidor em
+- Aba do Arcade (`ArcadeScreen` → `SlotMachine` | `PlinkoBoard` | `ScratchCard` | `MysteryBox`). Regras em `src/game/gacha.ts`, servidor em
   `server/gacha.ts`. Caixa: 100 moedas.
 - Raridade (60/28/10/2%) e depois um item dela. Pools derivados do catálogo pelo preço: comum < 150 (metade das vezes
   sai um avatar aleatório), raro 150–349, épico 350+, lendário = itens `exclusive` (só saem na caixa; a loja não

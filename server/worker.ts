@@ -10,6 +10,7 @@ import { claimPlayer, playerStatus, renamePlayer, setPassword } from './players'
 import { drop } from './plinko';
 import { buyItem, confirmAdult, equipItem, getProfile } from './profile';
 import { getLeaderboard, submitScore } from './scores';
+import { buyCard } from './scratch';
 import { getConfig, rateLimit } from './security';
 
 // O Durable Object das salas da Party precisa ser exportado pelo módulo principal do Worker.
@@ -47,6 +48,8 @@ export default {
           return await spin(request, env);
         case 'POST /api/plinko/drop':
           return await drop(request, env);
+        case 'POST /api/scratch/buy':
+          return await buyCard(request, env);
         case 'POST /api/gacha/open':
           return await openBox(request, env);
         case 'POST /api/games':
