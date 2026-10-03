@@ -14,8 +14,8 @@ interface Props {
 }
 
 /**
- * Configurações (engrenagem no canto superior esquerdo, em todas as telas): idioma, modo gravação e links de
- * termos/privacidade. As escolhas ficam salvas neste navegador.
+ * Configurações (engrenagem em todas as telas: no fim da barra de perfil; sem a barra, no canto superior esquerdo, ou
+ * direito no celular): idioma, modo gravação e links de termos/privacidade. As escolhas ficam salvas neste navegador.
  */
 export default function SettingsMenu({ recording, onRecordingChange }: Props) {
   const { t, lang, setLang } = useI18n();

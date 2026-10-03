@@ -52,6 +52,12 @@ try {
     return { right: Math.round(document.documentElement.clientWidth - r.right), top: Math.round(r.top) };
   });
   check('barra de perfil no canto superior direito', bar.right <= 20 && bar.top <= 20, JSON.stringify(bar));
+  // Engrenagem no fim da barra, depois da navegação, centralizada na altura.
+  const gearInBar = await ana.evaluate(() => {
+    const [g, b, n] = ['.settings-toggle', '.profile-bar', '.profile-nav'].map((s) => document.querySelector(s).getBoundingClientRect());
+    return { afterNav: g.left >= n.right, inside: g.right <= b.right && g.top >= b.top && g.bottom <= b.bottom, off: Math.round(g.top + g.height / 2 - (b.top + b.height / 2)) };
+  });
+  check('engrenagem das configurações dentro da barra de perfil', gearInBar.afterNav && gearInBar.inside && Math.abs(gearInBar.off) <= 2, JSON.stringify(gearInBar));
   const centers = await ana.evaluate(() =>
     ['.play-setup', '.leaderboard'].map((s) => {
       const r = document.querySelector(s).getBoundingClientRect();
@@ -354,6 +360,19 @@ try {
     me.right <= coins.left && nameFits && labels && Math.round(nav.bottom) === 844 && nav.left === 0 && nav.right === 390,
     JSON.stringify({ me: me.right, coins: coins.left, nameFits, labels, nav: [nav.left, nav.right, nav.bottom] }),
   );
+  // Engrenagem dentro da faixa do perfil, depois do saldo (embaixo ela cobria a aba do Arcade).
+  const gear = await rect('.settings-toggle');
+  const strip = await rect('.profile-bar');
+  const gearOff = Math.round(gear.top + gear.height / 2 - (coins.top + coins.height / 2));
+  check(
+    'celular: engrenagem na faixa do perfil, ao lado do saldo, longe das abas',
+    gear.left >= coins.right && gear.right <= strip.right && gear.top >= strip.top && Math.abs(gearOff) <= 2 && gear.bottom < nav.top,
+    JSON.stringify({ gear: [gear.left, gear.top, gear.right, gear.bottom], coins: [coins.right, coins.top, coins.bottom], strip: [strip.top, strip.right, strip.bottom], gearOff }),
+  );
+  await bruno.click('.settings-toggle');
+  const panel = await (await bruno.waitForSelector('.settings-panel')).evaluate((el) => el.getBoundingClientRect().toJSON());
+  check('celular: painel das configurações abre para baixo, dentro da tela', panel.top >= gear.bottom && panel.left >= 0 && panel.right <= 390 && (await overflowX(bruno)) <= 0, JSON.stringify([panel.left, panel.top, panel.right]));
+  await bruno.keyboard.press('Escape');
   await bruno.click('.profile-bar-me');
   await bruno.waitForSelector('.profile-menu', { visible: true });
   check('celular: menu abre como sanfona', (await bruno.$eval('.profile-menu', (el) => getComputedStyle(el).position)) === 'static');

@@ -3929,7 +3929,7 @@ input:focus {
 
 /* ---------- Barra de perfil (canto superior direito da home) ---------- */
 
-/* ---------- Configurações (engrenagem): canto superior esquerdo; no celular, botão flutuante embaixo ---------- */
+/* ---------- Configurações (engrenagem): dentro da barra de perfil; sem a barra, no canto superior (esquerdo; no celular, direito) ---------- */
 
 .settings {
   position: absolute;
@@ -3978,25 +3978,38 @@ input:focus {
   gap: 6px;
 }
 
+/* Com a barra de perfil, a engrenagem entra nela, no fim (a barra reserva o espaço); o painel abre alinhado à direita. */
+.app:has(.profile-bar) .settings {
+  top: 19px;
+  left: auto;
+  right: 23px;
+}
+
+.app:has(.profile-bar) .settings-toggle {
+  border-color: transparent;
+  background: none;
+  backdrop-filter: none;
+}
+
+.app:has(.profile-bar) .settings-panel {
+  left: auto;
+  right: 0;
+}
+
 @media (max-width: 760px) {
+  /* Canto superior direito (embaixo fica a barra de abas). */
   .settings {
-    position: fixed;
-    top: auto;
     left: auto;
     right: 16px;
-    bottom: 16px;
   }
 
-  .settings-toggle {
-    width: 44px;
-    height: 44px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  /* Sem a barra (partida, party), o cabeçalho deixa o canto livre para o botão Início não ficar embaixo dela. */
+  .app:not(:has(.profile-bar)) .app-header:not(.hero) {
+    padding-right: 48px;
   }
 
-  /* Abre para cima, alinhado à direita. */
+  /* Abre para baixo, alinhado à direita. */
   .settings-panel {
-    top: auto;
-    bottom: calc(100% + 8px);
     left: auto;
     right: 0;
   }
@@ -4010,7 +4023,8 @@ input:focus {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 6px 8px 6px 6px;
+  /* À direita, o espaço da engrenagem das configurações. */
+  padding: 6px 52px 6px 6px;
   background: color-mix(in srgb, var(--surface) 88%, transparent);
   border: 1px solid var(--border);
   border-radius: var(--radius);

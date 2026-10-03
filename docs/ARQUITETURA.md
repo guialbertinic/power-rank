@@ -41,8 +41,8 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 - Português e inglês. `I18nProvider` (raiz do App) + `useI18n()` → `t(chave, { variáveis })`, `lang`, `setLang`.
   `pt.ts` é a base (tipo `Key`); `en.ts` precisa ter todas as chaves (erro de TypeScript se faltar).
 - Idioma: salvo no navegador (`power-rank:lang`); na primeira visita, o do navegador (pt* → português, resto →
-  inglês). Troca no menu de configurações (engrenagem, `SettingsMenu`: canto superior esquerdo; no celular, botão
-  flutuante embaixo à direita). `<html lang>` acompanha.
+  inglês). Troca no menu de configurações (engrenagem, `SettingsMenu`: no fim da barra de perfil; sem a barra, canto
+  superior esquerdo, ou direito no celular). `<html lang>` acompanha.
 - Nomes do catálogo (cores, molduras, títulos, símbolos do cassino) em inglês por id em `i18n/catalog.ts`
   (`cosmeticLabel`, `symbolLabel`); raridades e títulos do resultado (`rankLevel`) viram chaves.
 - O servidor responde em português; `serverText(mensagem, lang)` traduz pela tabela de `i18n/server.ts` (exatas +
