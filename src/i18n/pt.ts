@@ -212,6 +212,8 @@ export const pt = {
   'podium.standings': 'Classificação · rodada {n}',
   'podium.tapToView': 'Toque para ver a lista',
   'podium.rankingOf': 'Ranking de {name}',
+  'podium.matrix': 'Todos os palpites',
+  'podium.points': 'Pontos',
   'podium.left': 'saiu',
   'podium.unfinished': 'não terminou',
   'podium.yourPlace': 'Você ficou em {n}º',

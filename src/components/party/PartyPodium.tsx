@@ -1,14 +1,16 @@
 import { useRef, useState } from 'react';
 import { podiumOrder, type PartyPlayer, type PartyState } from '../../game/party';
 import { MIN_SCORE_FOR_COINS } from '../../game/economy';
-import { MAX_SCORE, rankLevel } from '../../game/scoring';
+import { MAX_SCORE, rankLevel, scoreGame, withRanks } from '../../game/scoring';
 import { useI18n } from '../../i18n';
 import type { CharacterInfo } from '../../game/types';
 import Coins from '../Coins';
 import PlayerTag, { PodiumName } from '../PlayerTag';
 import RankBadge from '../RankBadge';
 import RankingComparison from '../RankingComparison';
+import { hitLevel } from '../../ui/hits';
 import { usePendingClick } from '../../ui/usePendingClick';
+import PartyMatrix from './PartyMatrix';
 
 interface Props {
   state: PartyState;
@@ -28,8 +30,9 @@ const STEPS = [
 ];
 
 /**
- * Resultado da rodada: pódio, classificação completa e a comparação de um ranking com o correto. Tocar num jogador
- * da classificação mostra a lista dele no lugar da sua (uma lista por vez, para não lotar a tela).
+ * Resultado da rodada: pódio, classificação (com a tira de acertos de cada um), a matriz com os palpites de todos e
+ * a lista detalhada de um jogador. Tocar num jogador (na classificação ou na matriz) mostra a lista dele no lugar
+ * da sua (uma lista por vez, para não lotar a tela).
  */
 export default function PartyPodium({ state, you, charactersById, onRestart, onLobby, onLeave }: Props) {
   const { t } = useI18n();
@@ -41,9 +44,18 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
   // Jogador cuja lista aparece embaixo: você, até escolher outro (quem não terminou não tem lista).
   const [viewingId, setViewingId] = useState(you);
   const viewing = ranking.find((p) => p.id === viewingId) ?? (me?.finished ? me : ranking[0]);
-  const viewingSlots = viewing?.placements
-    ?.map((id) => charactersById.get(id))
-    .filter((c): c is CharacterInfo => Boolean(c));
+  const toCharacters = (ids: string[] = []) =>
+    ids.map((id) => charactersById.get(id)).filter((c): c is CharacterInfo => Boolean(c));
+  const viewingSlots = viewing && toCharacters(viewing.placements);
+  const ranks = state.ranks;
+  // Acertos de cada jogador, posição por posição: a tira da classificação e as colunas da matriz.
+  const columns = ranks
+    ? ranking.map((player) => ({ player, results: scoreGame(withRanks(toCharacters(player.placements), ranks)).results }))
+    : [];
+  const hitsById = new Map(columns.map((c) => [c.player.id, c.results]));
+  const correctOrder = ranks
+    ? toCharacters(state.characterIds).sort((a, b) => (ranks[a.id] ?? 0) - (ranks[b.id] ?? 0))
+    : [];
   const comparisonRef = useRef<HTMLDivElement>(null);
   const view = (id: string) => {
     setViewingId(id);
@@ -100,6 +112,9 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
                 <PlayerTag name={p.name} look={p.look} />
                 {p.newRecord && <span className="party-tag party-tag-record">{t('podium.recordTag')}</span>}
                 {!p.connected && <span className="party-tag party-tag-left">{t('podium.left')}</span>}
+              </span>
+              <span className="hit-strip" aria-hidden="true">
+                {hitsById.get(p.id)?.map((r) => <span key={r.position} className={`seg hit-${hitLevel(r.distance)}`} />)}
               </span>
               <span className="row-score">{p.score}</span>
             </li>
@@ -161,11 +176,15 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
         </button>
       </div>
 
-      {viewing && viewingSlots && viewingSlots.length > 0 && state.ranks && (
+      {columns.length > 1 && (
+        <PartyMatrix characters={correctOrder} columns={columns} you={you} selectedId={viewing?.id} onSelect={view} />
+      )}
+
+      {viewing && viewingSlots && viewingSlots.length > 0 && ranks && (
         <div ref={comparisonRef} className="party-comparison">
           <RankingComparison
             slots={viewingSlots}
-            ranks={state.ranks}
+            ranks={ranks}
             title={viewing.id === you ? undefined : t('podium.rankingOf', { name: viewing.name })}
           />
         </div>

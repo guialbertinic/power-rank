@@ -362,8 +362,12 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   Sala → cliente: `state` (completo, a cada mudança) e `error`.
 - Mesmos 10 personagens para todos; **pontuação calculada no servidor**; pontuações, posições e moedas só no pódio.
   Cada resultado é gravado (`games` + `scores`) e rende moedas, mas não entra no ranking (só o Desafio Diário).
-- Pódio (`PartyPodium`): o servidor revela as `placements` de todos; tocar num jogador da classificação troca a
-  comparação embaixo (a sua por padrão) pela lista dele. Uma lista por vez.
+- Pódio (`PartyPodium`): o servidor revela as `placements` de todos. A classificação traz a tira de acertos de cada
+  jogador (um segmento por posição) e a `PartyMatrix` mostra todos os palpites: linhas = personagens na ordem
+  correta, colunas = jogadores, célula = posição dada na cor do acerto. Tocar num jogador (classificação ou matriz)
+  troca a lista detalhada embaixo (`RankingComparison`, a sua por padrão). Uma lista por vez.
+- `RankingComparison` (solo e party): lista única na ordem correta, com o palpite em cada linha (posição na cor do
+  acerto e ▲/▼ com as casas que o personagem deveria subir/descer).
 - Cada jogador tem um `pid` secreto (sessionStorage, para reconectar na mesma vaga) e um `id` público.
 - Regras: nick repetido na sala é recusado; ninguém entra depois do início; quem cai no lobby sai; se o dono sai,
   o conectado mais antigo assume; pódio quando todos os conectados terminam ou o dono encerra; sala vazia some

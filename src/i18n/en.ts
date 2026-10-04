@@ -211,6 +211,8 @@ export const en: Record<Key, string> = {
   'podium.standings': 'Standings · round {n}',
   'podium.tapToView': 'Tap to see their list',
   'podium.rankingOf': '{name}’s ranking',
+  'podium.matrix': 'Everyone’s picks',
+  'podium.points': 'Points',
   'podium.left': 'left',
   'podium.unfinished': 'didn’t finish',
   'podium.yourPlace': 'You placed #{n}',

@@ -23,7 +23,7 @@ try {
   await page.click('.btn-solo');
   await page.click('.solo-entry .btn-primary');
   await placeAll(page);
-  await page.waitForSelector('.result-columns', { timeout: 15000 });
+  await page.waitForSelector('.result-compare', { timeout: 15000 });
   const imgs = await page.$$eval('img', (list) => list.filter((i) => i.complete && !i.naturalWidth).length);
   console.log('solo ok; imagens quebradas:', imgs);
   const font = await page.evaluate(() => document.fonts.check('700 16px "Chakra Petch"'));

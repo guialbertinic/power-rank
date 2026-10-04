@@ -188,15 +188,24 @@ try {
   await placeAll(bruno);
   await ana.waitForSelector('.podium');
   await sleep(1200);
-  check('resultado sem valores de poder', !(await ana.$('.row-power')) && !(await ana.$('.result-columns .power-meter')));
-  // Lista dos outros: uma por vez, a sua por padrão; tocar no jogador troca.
-  const listTitle = () => text(ana, '.party-comparison .result-columns .section-title');
+  check('resultado sem valores de poder', !(await ana.$('.row-power')) && !(await ana.$('.result-compare .power-meter')));
+  // Todos os palpites de uma vez: tira de acertos na classificação e matriz personagem × jogador.
+  check('classificação com a tira de acertos de cada um', (await ana.$$('.party-podium .hit-strip .seg')).length === 20);
+  const matrix = await ana.$$eval('.party-matrix tbody tr', (rows) => rows.map((r) => r.querySelectorAll('td .hit-chip').length));
+  check('matriz: 10 personagens × 2 jogadores', matrix.length === 10 && matrix.every((n) => n === 2), matrix.join(','));
+  // Lista detalhada: uma por vez, a sua por padrão; tocar no jogador (classificação ou matriz) troca.
+  const listTitle = () => text(ana, '.party-comparison .compare-pick-label');
+  const matrixSelected = () => ana.$eval('.matrix-player[aria-pressed="true"]', (el) => el.getAttribute('aria-label'));
   check('pódio mostra a sua lista por padrão', (await listTitle()) === 'Seu ranking', await listTitle());
   await ana.click(`.party-podium .row-selectable ::-p-text(${nick('Bruno')})`);
   await sleep(300);
-  const brunoList = await ana.$$eval('.party-comparison .row-yours', (els) => els.length);
+  const brunoList = await ana.$$eval('.party-comparison .row-compare .hit-chip', (els) => els.length);
   check('tocar no jogador mostra a lista dele', (await listTitle()) === `Ranking de ${nick('Bruno')}` && brunoList === 10, await listTitle());
-  check('uma lista por vez', (await ana.$$('.party-comparison .result-columns')).length === 1);
+  check('matriz marca o jogador escolhido', (await matrixSelected()) === nick('Bruno'), await matrixSelected());
+  await ana.click(`.matrix-player[aria-label="${nick('Ana')}"]`);
+  await sleep(300);
+  check('tocar no jogador da matriz troca a lista', (await listTitle()) === 'Seu ranking', await listTitle());
+  check('uma lista por vez', (await ana.$$('.party-comparison .result-compare')).length === 1);
   check('pódio da party sem scroll horizontal no celular', (await overflowX(bruno)) <= 0);
   await bruno.click(HOME);
   await bruno.waitForSelector('.play-buttons');
