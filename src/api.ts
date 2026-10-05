@@ -1,4 +1,5 @@
 import type { AchievementsState } from './game/achievements';
+import type { BossId, Factors, Outcome as BattleOutcome, RunState, RunUnit } from './game/autobattle';
 import type { Outcome, SymbolId } from './game/casino';
 import type { CosmeticSlot, Look, Profile } from './game/cosmetics';
 import type { Features } from './game/features';
@@ -309,4 +310,50 @@ export function buyScratch(token: string, bet: number): Promise<ScratchCard> {
 export async function fetchLeaderboard(mode: Mode, period: Period): Promise<LeaderboardEntry[]> {
   const { scores } = await request<{ scores: LeaderboardEntry[] }>(`/api/scores?mode=${mode}&period=${period}`);
   return scores;
+}
+
+export interface AutoBattleOpponent {
+  /** Nick de quem montou o time; null = bot ou chefe. */
+  name: string | null;
+  /** Chefe da rodada (5 e 10), no lugar de um fantasma: `team` é ele sozinho. */
+  boss?: BossId;
+  look: Look | null;
+  team: RunUnit[];
+}
+
+export interface AutoBattleFight {
+  /** Semente da luta: o site roda a mesma simulação do servidor só para animar. */
+  seed: number;
+  /** O time do jogador na hora da luta. */
+  team: RunUnit[];
+  opponent: AutoBattleOpponent;
+  outcome: BattleOutcome;
+}
+
+export interface AutoBattleEnd {
+  wins: number;
+  losses: number;
+  /** Moedas da conta pagas pela run e o saldo depois delas (null se não pagou nada). */
+  reward: number;
+  coins: number | null;
+  /** Passou pelas 10 rodadas (venceu o chefe final). */
+  cleared: boolean;
+}
+
+export interface AutoBattleResponse {
+  /** Run em andamento (null = nenhuma, ou acabou agora). */
+  run: RunState | null;
+  /** Só vem ao abrir, começar e lutar (as ações da loja devolvem só a run, para serem rápidas). */
+  factors?: Factors;
+  battle?: AutoBattleFight;
+  ended?: AutoBattleEnd;
+}
+
+/** Auto Battle: o estado da run fica no servidor; cada ação devolve a run como ficou. */
+export function autoBattle(
+  token: string,
+  action: 'state' | 'start' | 'buy' | 'sell' | 'move' | 'reroll' | 'battle' | 'abandon',
+  payload: { offer?: number; id?: string } = {},
+): Promise<AutoBattleResponse> {
+  return request(`/api/autobattle/${action}`, { method: 'POST', body: JSON.stringify({ token, ...payload }) });
 }

@@ -22,6 +22,7 @@ export const FEATURE_LABEL: Record<FeatureId, Key> = {
   plinko: 'admin.feature.plinko',
   scratch: 'admin.feature.scratch',
   mystery_box: 'admin.feature.mystery_box',
+  autobattle: 'admin.feature.autobattle',
 };
 
 /** Uma linha do registro de ações, em texto. */

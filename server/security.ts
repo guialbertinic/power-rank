@@ -26,6 +26,13 @@ const RATE_LIMITED: Record<string, Limiter> = {
   'POST /api/scratch/buy': 'RL_CASINO',
   'POST /api/gacha/open': 'RL_CASINO',
   'POST /api/shop/buy': 'RL_CASINO',
+  // Auto Battle: começar e lutar no limite das partidas; loja da run (cliques em sequência) no limite maior.
+  'POST /api/autobattle/start': 'RL_PLAY',
+  'POST /api/autobattle/battle': 'RL_PLAY',
+  'POST /api/autobattle/buy': 'RL_PLINKO',
+  'POST /api/autobattle/sell': 'RL_PLINKO',
+  'POST /api/autobattle/move': 'RL_PLINKO',
+  'POST /api/autobattle/reroll': 'RL_PLINKO',
 };
 
 /**

@@ -685,6 +685,56 @@ try {
   const boxBalance = Number((await text(ana, '.gacha-controls .casino-hint .coins'))?.replace(/\D/g, ''));
   check('saldo na tela = saldo do servidor depois da caixa', boxBalance === box.profile.coins, `${boxBalance} / ${box.profile.coins}`);
 
+  // ---------- Mais jogos: Auto Battle ----------
+  section('Auto Battle');
+  // A chave nasce desligada: liga para o teste e devolve como estava no fim da seção.
+  const abWasOn = /"enabled": 1/.test(d1("SELECT enabled FROM features WHERE id = 'autobattle'"));
+  d1("UPDATE features SET enabled = 1 WHERE id = 'autobattle'");
+  try {
+    await ana.click(HOME);
+    await (await ana.waitForSelector('.profile-nav [data-nav="extras"]')).click();
+    await ana.waitForSelector('.extras-game[data-game="autobattle"]');
+    check('"Mais jogos" lista o Auto Battle', (await text(ana, '.title-eyebrow')) === 'Mais jogos');
+    await ana.click('.extras-game .btn');
+    await ana.waitForSelector('.ab-shop .ab-card[data-unit]');
+    check(
+      'run começa com 5 ofertas e 6 moedas',
+      (await ana.$$('.ab-shop .ab-card[data-unit]')).length === 5 && (await text(ana, '[data-ab="gold"]')) === '6',
+    );
+    await ana.click('.ab-shop .ab-card[data-unit]');
+    await (await ana.waitForSelector('[data-ab="buy"]')).click();
+    await ana.waitForSelector('.ab-team .ab-card[data-unit]');
+    check(
+      'comprar põe o personagem no time e gasta moedas',
+      Number(await text(ana, '[data-ab="gold"]')) < 6 && (await ana.$$('.ab-shop .ab-card[data-unit]')).length === 4,
+    );
+    await ana.setViewport({ width: 390, height: 844 });
+    check('preparação do Auto Battle cabe no celular', (await overflowX(ana)) <= 0, String(await overflowX(ana)));
+    // Dica do personagem: abre pelo "?" e não vaza da tela nem nas colunas das pontas.
+    for (const card of ['.ab-team .ab-card[data-unit]', '.ab-shop .ab-card[data-unit]:last-child']) {
+      await ana.click(`${card} .ab-help`);
+      const tip = await ana.$eval(`${card} .ab-tip`, (el) => {
+        const r = el.getBoundingClientRect();
+        return { shown: getComputedStyle(el).display !== 'none', left: r.left, right: r.right };
+      });
+      check(`"?" abre a dica dentro da tela (${card})`, tip.shown && tip.left >= 0 && tip.right <= 390, JSON.stringify(tip));
+      await ana.click(`${card} .ab-help`);
+    }
+    check('dica fecha no segundo toque', !(await ana.$('.ab-card.tip-open')));
+    await ana.click('[data-ab="fight"]');
+    await ana.waitForSelector('[data-ab="arena"]');
+    check('luta cabe no celular', (await overflowX(ana)) <= 0, String(await overflowX(ana)));
+    await (await ana.$('[data-ab="skip"]'))?.click();
+    await ana.waitForSelector('[data-ab="outcome"]');
+    check('luta termina com resultado', ['Vitória!', 'Derrota', 'Empate'].includes(await text(ana, '[data-ab="outcome"]')));
+    await ana.click('[data-ab="continue"]');
+    await ana.waitForFunction(() => document.querySelector('.ab-status')?.textContent.includes('Rodada 2'));
+    check('depois da luta volta para a preparação, na rodada 2', (await ana.$$('.ab-shop .ab-card[data-unit]')).length === 5);
+    await ana.setViewport({ width: 1280, height: 860 });
+  } finally {
+    d1(`UPDATE features SET enabled = ${abWasOn ? 1 : 0} WHERE id = 'autobattle'`);
+  }
+
   // ---------- Trocar nick e sair ----------
   section('Trocar nick e sair');
   await ana.click(HOME);
@@ -801,7 +851,7 @@ try {
   const admin = await b.page(PHONE);
   await admin.goto('http://localhost:5173/admin', { waitUntil: 'networkidle0' });
   await admin.waitForSelector('.admin-feature');
-  check('admin: uma chave por minigame', (await admin.$$('.admin-feature')).length === 4);
+  check('admin: uma chave por minigame e por jogo', (await admin.$$('.admin-feature')).length === 5);
   check('admin: não carrega o jogo', !(await admin.$('.app-header')));
   check('admin: chaves sem scroll horizontal no celular', (await overflowX(admin)) <= 0);
   await admin.click('.admin-tabs .mode-option:nth-child(2)');

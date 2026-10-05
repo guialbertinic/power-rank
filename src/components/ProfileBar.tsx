@@ -20,6 +20,8 @@ interface Props {
   onOpenAchievements: () => void;
   /** Abre o Arcade; sem ele, o botão não aparece (todos os minigames desligados). */
   onOpenArcade?: () => void;
+  /** Abre "Mais jogos"; sem ele, o botão não aparece (nenhum jogo ligado). */
+  onOpenExtras?: () => void;
   /** Abre a tela Minha conta (nick, senha, aparelhos, excluir). */
   onOpenAccount: () => void;
   /** Conta: sair dela neste navegador. Convidado: ir para a tela do nick entrar numa conta. */
@@ -29,13 +31,13 @@ interface Props {
 
 /**
  * Canto superior direito da home, da loja, das conquistas, do Arcade e da conta: quem está jogando, saldo e a navegação
- * (Início / Loja / Conquistas / Arcade, colados, a tela atual destacada). "Minha conta" (nick, senha, aparelhos) e
+ * (Início / Loja / Conquistas / Jogos / Arcade, colados, a tela atual destacada). "Minha conta" (nick, senha, aparelhos) e
  * sair/entrar numa conta ficam num menu que abre ao tocar no nick (são usados raramente).
  * No celular a faixa (nick e saldo) fica acima do título, a navegação vira uma barra de abas fixa no rodapé e o menu
  * abre como sanfona.
  */
 export default function ProfileBar(props: Props) {
-  const { identity, profile, current, onHome, onOpenShop, onOpenAchievements, onOpenArcade, onOpenAccount, onLeave, disabled } =
+  const { identity, profile, current, onHome, onOpenShop, onOpenAchievements, onOpenArcade, onOpenExtras, onOpenAccount, onLeave, disabled } =
     props;
   const { t, lang } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,6 +65,7 @@ export default function ProfileBar(props: Props) {
       ? [
           { id: 'shop' as const, label: t('profile.shop'), onClick: onOpenShop },
           { id: 'achievements' as const, label: t('ach.title'), onClick: onOpenAchievements },
+          ...(onOpenExtras ? [{ id: 'extras' as const, label: t('profile.extras'), onClick: onOpenExtras }] : []),
           ...(onOpenArcade ? [{ id: 'arcade' as const, label: t('profile.arcade'), onClick: onOpenArcade }] : []),
         ]
       : []),

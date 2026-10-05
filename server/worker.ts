@@ -1,5 +1,6 @@
 import { getAchievements, markAchievementsSeen } from './achievements';
 import { handleAdmin } from './admin';
+import { autoBattle, type AutoBattleAction } from './autobattle';
 import { getCasino, spin } from './casino';
 import { getCharacters, getCharactersWithPower } from './catalog';
 import { dailyStatus } from './daily';
@@ -19,6 +20,7 @@ import { getConfig, rateLimit } from './security';
 export { PartyRoom } from './party';
 
 const PARTY_SOCKET = /^\/api\/party\/([A-Za-z]+)\/ws$/;
+const AUTO_BATTLE = /^\/api\/autobattle\/(state|start|buy|sell|move|reroll|battle|abandon)$/;
 
 /**
  * GET /api/health: o Worker e o D1 respondem? Para um monitor externo (ex: UptimeRobot) avisar quando o site
@@ -52,6 +54,8 @@ export default {
       const partySocket = request.method === 'GET' ? PARTY_SOCKET.exec(pathname) : null;
       if (partySocket) return await connectParty(request, env, partySocket[1].toUpperCase());
       if (pathname.startsWith('/api/admin/')) return await handleAdmin(request, env);
+      const autoBattleAction = request.method === 'POST' ? AUTO_BATTLE.exec(pathname) : null;
+      if (autoBattleAction) return await autoBattle(request, env, autoBattleAction[1] as AutoBattleAction);
       if (request.method === 'GET' && pathname.startsWith('/api/img/')) {
         const image = await characterImage(pathname, env);
         if (image) return image;

@@ -10,7 +10,7 @@ import {
   type DailyStatus,
 } from './api';
 import type { Profile } from './game/cosmetics';
-import { FEATURES, NO_FEATURES } from './game/features';
+import { ARCADE_FEATURES, EXTRA_FEATURES, NO_FEATURES } from './game/features';
 import { filterFor, GENERATIONS, poolFor, type Difficulty, type Mode, type PoolFilter } from './game/modes';
 import { isPartyCode } from './game/party';
 import { SLOTS } from './game/scoring';
@@ -43,6 +43,7 @@ import PlayingScreen from './components/PlayingScreen';
 import ResultScreen from './components/ResultScreen';
 import ShopScreen from './components/ShopScreen';
 import ArcadeScreen from './components/ArcadeScreen';
+import ExtrasScreen from './components/ExtrasScreen';
 import AccountScreen from './components/AccountScreen';
 import AchievementUnlocked from './components/AchievementUnlocked';
 import AchievementsScreen from './components/AchievementsScreen';
@@ -65,6 +66,8 @@ type State =
   | { phase: 'shop' }
   /** Arcade (minigames com moedas), só para contas. */
   | { phase: 'arcade' }
+  /** Mais jogos (jogos fora do ranking de poder, ex: Auto Battle), só para contas. */
+  | { phase: 'extras' }
   /** Conquistas (progresso e prêmios), só para contas. */
   | { phase: 'achievements' }
   /** Minha conta: nick, senha, aparelhos, excluir (convidado: criar conta). */
@@ -90,6 +93,7 @@ type Action =
   | { type: 'nick'; reason?: string }
   | { type: 'shop' }
   | { type: 'arcade' }
+  | { type: 'extras' }
   | { type: 'achievements' }
   | { type: 'account' }
   | { type: 'home' };
@@ -124,6 +128,8 @@ function reducer(state: State, action: Action): State {
       return { phase: 'shop' };
     case 'arcade':
       return { phase: 'arcade' };
+    case 'extras':
+      return { phase: 'extras' };
     case 'achievements':
       return { phase: 'achievements' };
     case 'account':
@@ -228,7 +234,7 @@ function Game() {
   const token = identity?.token;
   const name = identity?.name;
   useEffect(() => {
-    const phases: State['phase'][] = ['intro', 'shop', 'arcade', 'account'];
+    const phases: State['phase'][] = ['intro', 'shop', 'arcade', 'extras', 'account'];
     if (!name || !token || !phases.includes(state.phase)) return;
     let cancelled = false;
     fetchProfile({ name, token })
@@ -379,7 +385,7 @@ function Game() {
   const navPhase =
     state.phase === 'intro'
       ? ('home' as const)
-      : state.phase === 'shop' || state.phase === 'achievements' || state.phase === 'arcade'
+      : state.phase === 'shop' || state.phase === 'achievements' || state.phase === 'arcade' || state.phase === 'extras'
         ? state.phase
         : null;
   const showProfileBar =
@@ -393,6 +399,8 @@ function Game() {
         ? t('profile.shop')
       : state.phase === 'arcade'
         ? t('profile.arcade')
+      : state.phase === 'extras'
+        ? t('extras.title')
       : state.phase === 'achievements'
         ? t('ach.title')
       : state.phase === 'account'
@@ -409,7 +417,8 @@ function Game() {
           onHome={() => dispatch({ type: 'home' })}
           onOpenShop={() => dispatch({ type: 'shop' })}
           onOpenAchievements={() => dispatch({ type: 'achievements' })}
-          onOpenArcade={FEATURES.some((f) => features[f]) ? () => dispatch({ type: 'arcade' }) : undefined}
+          onOpenArcade={ARCADE_FEATURES.some((f) => features[f]) ? () => dispatch({ type: 'arcade' }) : undefined}
+          onOpenExtras={EXTRA_FEATURES.some((f) => features[f]) ? () => dispatch({ type: 'extras' }) : undefined}
           onOpenAccount={() => dispatch({ type: 'account' })}
           onLeave={leave}
           disabled={starting}
@@ -467,6 +476,14 @@ function Game() {
       )}
       {state.phase === 'arcade' && identity?.token && profile && (
         <ArcadeScreen
+          identity={{ ...identity, token: identity.token }}
+          profile={profile}
+          features={features}
+          onProfileChange={setProfile}
+        />
+      )}
+      {state.phase === 'extras' && identity?.token && profile && (
+        <ExtrasScreen
           identity={{ ...identity, token: identity.token }}
           profile={profile}
           features={features}

@@ -17,7 +17,7 @@ function randomToken(): string {
   return toBase64(bytes).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-async function sha256(value: string): Promise<string> {
+export async function sha256(value: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
@@ -336,6 +336,8 @@ export async function deletePlayer(request: Request, env: Env): Promise<Response
     run('DELETE FROM plinko_drops WHERE player_id = ?', id),
     run('DELETE FROM scratch_cards WHERE player_id = ?', id),
     run('DELETE FROM gacha_openings WHERE player_id = ?', id),
+    run('DELETE FROM autobattle_runs WHERE player_id = ?', id),
+    run('DELETE FROM autobattle_ghosts WHERE player_id = ?', id),
     run('UPDATE casino_pot SET last_winner_id = NULL WHERE last_winner_id = ?', id),
     run('UPDATE admin_actions SET player_id = NULL WHERE player_id = ?', id),
     run('DELETE FROM players WHERE id = ?', id),

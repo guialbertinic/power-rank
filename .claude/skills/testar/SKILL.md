@@ -38,7 +38,7 @@ O `e2e:csp` precisa de `npx vite preview --port 4173`: peça também (ou pergunt
 - Filtro de seções do e2e:api (parte do nome, sem diferenciar maiúsculas): `npm run e2e:api -- slots party`.
   Seções: Catálogo, Pokémon, Dificuldade, Segurança, Conta e convidado, Trocar nick, Economia e loja, Ranking,
   Desafio Diário, Slots, Plinko, Raspadinha, Chaves, Admin, Mystery Box, Party, Excluir conta, Senha e aparelhos,
-  Suspensão, Denúncias, Admin personagens, Saúde.
+  Suspensão, Denúncias, Admin personagens, Auto Battle, Saúde.
   O e2e:ui não filtra (as seções dependem umas das outras: a Ana é criada no começo e usada até o fim).
 - Os e2e limpam sozinhos os nicks de teste (prefixo `E2e`) do D1 local, no começo e no fim.
 - `e2e:ui` **não tira screenshots** (custa tokens): valide layout com checagens (`overflowX()`, posição via

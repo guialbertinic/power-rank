@@ -966,6 +966,134 @@ if (section('Admin personagens')) {
   }
 }
 
+// ---------- Auto Battle (seção "Mais jogos") ----------
+if (section('Auto Battle')) {
+  const me = await player('AutoBattle');
+  const rival = await player('AutoRival');
+  const key = (who) => who.name.toLowerCase();
+  const ab = (action, body = {}, who = me) => post(`/autobattle/${action}`, { ...who, ...body });
+  // A chave nasce desligada (migração); o teste liga e, no fim, devolve como estava.
+  const wasOn = /"enabled": 1/.test(d1("SELECT enabled FROM features WHERE id = 'autobattle'"));
+  const setFlag = (enabled) => d1(`UPDATE features SET enabled = ${enabled} WHERE id = 'autobattle'`);
+  try {
+    setFlag(0);
+    const off = await ab('start');
+    check('chave desligada: 403', off.status === 403 && off.data.code === 'feature_disabled');
+    check('config mostra a chave desligada', (await get('/config')).features.autobattle === false);
+    setFlag(1);
+
+    check('sem token: 401', (await post('/autobattle/state', { token: 'x' })).status === 401);
+    check('sem run: state devolve null', (await ab('state')).data.run === null);
+    check('ação sem run: 409', (await ab('reroll')).data.code === 'no_run');
+
+    const { data: started } = await ab('start');
+    const run = started.run;
+    check(
+      'começa na rodada 1 com 6 moedas, 5 ofertas e time vazio',
+      run.round === 1 && run.gold === 6 && run.shop.length === 5 && run.team.length === 0 && run.bench.length === 0 && run.wins === 0,
+      JSON.stringify(run),
+    );
+    check('fatores de força entre 0,85 e 1,15', Object.values(started.factors).every((f) => f >= 0.85 && f <= 1.15) && Object.keys(started.factors).length === 56);
+    check('o power não vai junto', !JSON.stringify(started).includes('power'));
+    check('começar de novo devolve a mesma run', JSON.stringify((await ab('start')).data.run.shop) === JSON.stringify(run.shop));
+
+    check('lutar sem time: 400', (await ab('battle')).status === 400);
+    check('oferta inexistente: 400', (await ab('buy', { offer: 9 })).status === 400);
+    const { data: bought } = await ab('buy', { offer: 0 });
+    const cost = run.gold - bought.run.gold;
+    check(
+      'comprar: debita de 1 a 3, entra no time e a oferta some',
+      cost >= 1 && cost <= 3 && bought.run.team[0]?.id === run.shop[0] && bought.run.team[0].copies === 1 && bought.run.shop[0] === null,
+      JSON.stringify(bought.run),
+    );
+    check('a mesma oferta de novo: 400', (await ab('buy', { offer: 0 })).status === 400);
+    const { data: moved } = await ab('move', { id: run.shop[0] });
+    check('mover manda para o banco', moved.run.team.length === 0 && moved.run.bench[0]?.id === run.shop[0]);
+    check('lutar só com banco: 400', (await ab('battle')).status === 400);
+    check('mover de volta para o time', (await ab('move', { id: run.shop[0] })).data.run.team.length === 1);
+    check('ações da loja não mandam os fatores (resposta enxuta)', moved.factors === undefined);
+    const { data: sold } = await ab('sell', { id: run.shop[0] });
+    check('vender devolve o custo', sold.run.gold === run.gold && sold.run.team.length === 0);
+    check('vender quem não está no time: 400', (await ab('sell', { id: run.shop[0] })).status === 400);
+    const { data: rolled } = await ab('reroll');
+    check('rolar a loja custa 1', rolled.run.gold === run.gold - 1 && rolled.run.shop.length === 5 && rolled.run.shop.every(Boolean));
+
+    // Dois cliques ao mesmo tempo na mesma oferta: só um vale.
+    const both = await Promise.all([ab('buy', { offer: 0 }), ab('buy', { offer: 0 })]);
+    const afterBoth = (await ab('state')).data.run;
+    check(
+      'compra simultânea não cobra duas vezes',
+      both.filter((r) => r.status === 200).length === 1 && afterBoth.team.length === 1 && afterBoth.team[0].copies === 1,
+      both.map((r) => r.status).join(','),
+    );
+
+    const { data: fought } = await ab('battle');
+    check(
+      'luta: semente, adversário com time e resultado',
+      Number.isInteger(fought.battle.seed) && fought.battle.opponent.team.length > 0 && ['win', 'loss', 'draw'].includes(fought.battle.outcome),
+      JSON.stringify(fought.battle),
+    );
+    check(
+      'depois da luta: rodada 2, moedas da rodada e loja nova',
+      fought.run.round === 2 && fought.run.gold === afterBoth.gold + 7 && fought.run.shop.length === 5 &&
+        fought.run.wins === (fought.battle.outcome === 'win' ? 1 : 0) && fought.run.losses === (fought.battle.outcome === 'loss' ? 1 : 0) &&
+        fought.run.history.length === 1 && fought.run.history[0] === fought.battle.outcome,
+      JSON.stringify(fought.run),
+    );
+    check('o time da rodada vira fantasma', /"n": 1/.test(d1(`SELECT COUNT(*) AS n FROM autobattle_ghosts WHERE round = 1 AND player_id = (SELECT id FROM players WHERE name_key = '${key(me)}')`)));
+
+    // Outra conta, na mesma rodada, enfrenta um fantasma (time de jogador), nunca o próprio.
+    await ab('start', {}, rival);
+    await ab('buy', { offer: 0 }, rival);
+    const { data: versus } = await ab('battle', {}, rival);
+    check('adversário é o fantasma de outro jogador', typeof versus.battle.opponent.name === 'string' && versus.battle.opponent.name !== rival.name, JSON.stringify(versus.battle.opponent));
+
+    // Desistir paga pelas vitórias que a run tinha.
+    d1(`UPDATE autobattle_runs SET wins = 5 WHERE status = 'active' AND player_id = (SELECT id FROM players WHERE name_key = '${key(rival)}')`);
+    const coinsBefore = (await post('/profile', rival)).data.coins;
+    const { data: quit } = await ab('abandon', {}, rival);
+    check('desistir com 5 vitórias paga 25', quit.run === null && quit.ended.reward === 25 && quit.ended.coins === coinsBefore + 25, JSON.stringify(quit.ended));
+    check('run encerrada não volta', (await ab('state', {}, rival)).data.run === null);
+
+    // Rodada 10 com 9 vitórias e o time no máximo: vence o chefe final, a run fecha completa e paga 100.
+    const maxed = JSON.stringify(['goku', 'vegeta', 'luffy', 'naruto', 'ichigo', 'sukuna'].map((id) => ({ id, copies: 9 })));
+    const myRun = `status = 'active' AND player_id = (SELECT id FROM players WHERE name_key = '${key(me)}')`;
+    d1(`UPDATE autobattle_runs SET wins = 9, round = 10, team = '${maxed}' WHERE ${myRun}`);
+    const mine = (await post('/profile', me)).data.coins;
+    const { data: last } = await ab('battle');
+    check(
+      'rodada 10: o adversário é o chefe final, sozinho',
+      last.battle.opponent.boss === 'final' && last.battle.opponent.name === null && last.battle.opponent.team.length === 1 && last.battle.opponent.team[0].id === 'saitama',
+      JSON.stringify(last.battle.opponent),
+    );
+    check(
+      'vencer o chefe final fecha a run completa e paga 100 moedas',
+      last.battle.outcome === 'win' && last.run === null && last.ended.wins === 10 && last.ended.cleared === true &&
+        last.ended.reward === 100 && last.ended.coins === mine + 100,
+      JSON.stringify(last.ended),
+    );
+    check('rodada de chefe não vira fantasma', /"n": 0/.test(d1(`SELECT COUNT(*) AS n FROM autobattle_ghosts WHERE round = 10 AND player_id = (SELECT id FROM players WHERE name_key = '${key(me)}')`)));
+
+    // Chefe da rodada 5 contra um personagem só: derrota, e a run acaba ali mesmo com as 3 vidas.
+    await ab('start');
+    d1(`UPDATE autobattle_runs SET round = 5, wins = 4, team = '[{"id":"nami","copies":1}]' WHERE ${myRun}`);
+    const { data: lostBoss } = await ab('battle');
+    check(
+      'perder para o chefe encerra a run (sem completar)',
+      lostBoss.battle.opponent.boss === 'mid' && lostBoss.battle.outcome === 'loss' && lostBoss.run === null &&
+        lostBoss.ended.cleared === false && lostBoss.ended.reward === 15,
+      JSON.stringify(lostBoss.ended),
+    );
+    check('saldo da conta bate (100 da run completa + 15 da que parou no chefe)', (await post('/profile', me)).data.coins === mine + 115);
+    check('depois do fim dá para começar outra', (await ab('start')).data.run.round === 1);
+
+    // Excluir a conta leva runs e fantasmas junto (chaves estrangeiras).
+    check('excluir conta com run e fantasma', (await post('/players/delete', { token: rival.token, password: PASSWORD })).status === 200);
+  } finally {
+    setFlag(wasOn ? 1 : 0);
+  }
+}
+
 // ---------- Saúde ----------
 if (section('Saúde')) {
   const res = await fetch(`${BASE}/api/health`);

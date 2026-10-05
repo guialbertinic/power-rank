@@ -60,6 +60,15 @@ Pontos de arquitetura que valem para todos (decidir uma vez) — `Arquitetura` �
 - 💡 Depois: "desafio de ontem" com o gabarito e a distribuição de pontuações; sequência de dias seguidos
   (conquista); link de desafio na party. Convidado pode repetir trocando de nick (aceitável por ora).
 
+### ✅ Auto Battle (seção "Mais jogos") · `Feature` 🔴
+Roguelike de montar time com luta automática contra times de outros jogadores (detalhes em `ARQUITETURA.md`).
+- Primeira versão: 8 obras de anime × 7 personagens, papéis, estrelas por cópia, sinergia de obra, fantasmas.
+- 💡 Depois: **itens** na loja (escudo, reviver, etc.); **papéis novos**; set de **games/filmes** com o mesmo motor;
+  **Pokémon** com sinergia por tipo (precisa importar os tipos da PokeAPI); ranking de runs (mais vitórias, menos
+  rodadas); conquistas do modo; limite diário de prêmio se virar farm; tela de admin com o balanceamento
+  (taxa de vitória por personagem/obra a partir de `autobattle_runs`).
+- 💡 "Mais jogos" foi criada para receber outros jogos fora do ranking (ex: Size Comparison).
+
 ### 💡 Blind Power Ranking — novas categorias
 - ✅ **Filmes e Séries** (uma categoria, 103 personagens; heróis pela versão da tela; imagens da Wikipédia).
 - ✅ **Free for All** com escolha das categorias (Pokémon desligado por padrão; sorteio equilibrado por categoria).

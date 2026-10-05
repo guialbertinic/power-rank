@@ -16,20 +16,23 @@ migrations/               schema do D1 (0001 scores · 0002 melhor por jogador �
                           0009 tempo da partida · 0010 cassino · 0011 mystery box ·
                           0012 personagens no banco · 0013 18+ e registro de acesso · 0014/0015 desafio diário ·
                           0016 chaves dos minigames · 0017 registro do admin · … · 0022 suspensão, edição de
-                          personagens pelo admin, imagens no banco e denúncias)
+                          personagens pelo admin, imagens no banco e denúncias · 0023 conquistas ·
+                          0024 Auto Battle · 0025 banco de reservas e 0026 histórico das rodadas do Auto Battle)
 scripts/                  fetch-images, import-image, validate-data, rescore, contact-sheet, sync/pull-characters (+ lib/images.mjs)
 e2e/                      testes e2e: api.mjs (sem navegador), ui.mjs (Edge headless), lib.mjs (utilitários)
 server/                   Worker: worker.ts (roteador), games.ts, scores.ts, players.ts (nick),
                           profile.ts (moedas, loja), party.ts (Durable Object), admin.ts + accessJwt.ts (admin),
                           reports.ts (denúncias e imagens enviadas pelo admin), lib.ts
 src/game/                 lógica pura, compartilhada com o server (sem DOM): types, draw, scoring, modes,
-                          party (protocolo), economy (moedas), cosmetics (catálogo da loja)
+                          party (protocolo), economy (moedas), cosmetics (catálogo da loja),
+                          autobattle (elenco, regras da run e simulação da luta)
 src/data.ts               base de personagens para o front (POOL, POOL_BY_ID)
 src/party/                cliente da party: usePartyRoom (WebSocket + reconexão), session (pid, convite)
 src/components/           telas: NickScreen, IntroScreen (home), PlayingScreen, ResultScreen, ShopScreen,
                           AccountScreen, ProfileBar, PlayerTag, Leaderboard, RankingComparison, ReportForm, ReviewScreen (dev)...
 src/components/admin/     tela de admin (/admin, pacote separado): AdminApp, chaves, economia, jogadores, personagens,
                           moderação, registro
+src/components/autobattle/ AutoBattle (fila de ações, fim), AutoBattlePrep (time, banco, loja), AutoBattleArena (luta), UnitCard (cartão + dica + ações)
 src/components/party/     PartyScreen, PartyLobby, PartySettings, PartyPlay, PartyWaiting, PartyPodium, PlayerList
 src/links.ts              links externos (SUPPORT_URL do "Apoie"; vazio = botão escondido)
 src/styles/tokens.css     design tokens · src/styles.css componentes
@@ -174,6 +177,7 @@ src/ui/                   tiers (posição/poder → cor), fallback (URL de imag
 | `POST /api/slots/spin` `{ token, bet }` | Só contas. Aposta de 1 a 10 moedas. Sorteia no servidor, debita/credita e devolve `{ reels, outcome, prize, coins, pot, jackpot }`. 402 sem saldo, 403 `feature_disabled` com a chave `slots` desligada. |
 | `POST /api/plinko/drop` `{ token, bet, risk }` | Só contas 18+. Aposta de 1 a 10, risco `low`/`medium`/`high`. Sorteia o caminho no servidor, debita/credita no mesmo UPDATE e devolve `{ path, slot, multiplier (décimos), prize, coins }`. 402 sem saldo, 403 `feature_disabled` com a chave `plinko` desligada. Limite próprio `RL_PLINKO` (200/min). |
 | `POST /api/scratch/buy` `{ token, bet }` | Só contas 18+. Aposta de 1 a 10. Sorteia o trio e monta a cartela no servidor, debita/credita no mesmo UPDATE e devolve `{ cells (9 símbolos), symbol (trio ou null), multiplier, prize, coins }`. 402 sem saldo, 403 `feature_disabled` com a chave `scratch` desligada. Limite `RL_CASINO`. |
+| `POST /api/autobattle/<ação>` `{ token, ... }` | Só contas, chave `autobattle`. Ações: `state` · `start` · `buy` `{ offer }` · `sell` `{ id }` · `move` `{ id }` · `reroll` · `battle` · `abandon`. Devolve `{ run }` (+ `factors` em state/start/battle, `battle`, `ended`). Ver "Mais jogos e Auto Battle". |
 | `POST /api/profile` `{ token }` | Nick atual, saldo, itens comprados, visual equipado, `hasPassword` e `newAchievements` (desbloqueadas e ainda não vistas: as da party). |
 | `POST /api/achievements` `{ token }` | Contadores (`stats`) e conquistas desbloqueadas (`unlocked`: id → data). |
 | `POST /api/achievements/seen` `{ token }` | Marca as conquistas novas como vistas (o jogador fechou o aviso na home). |
@@ -290,12 +294,55 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
   18+): uma aba por minigame ligado. Na tela nunca se usa "cassino"; o código interno do caça-níquel segue como
   `casino` (arquivos, classes `.casino-*`, tabelas `casino_*`, `RL_CASINO`).
 - **Chaves** na tabela `features` (`id`, `enabled`, `updated_at`), ids em `src/game/features.ts` (`slots`,
-  `plinko`, `scratch`, `mystery_box`). Sem linha = desligada. Servidor: `requireFeature` (`server/features.ts`) no começo de cada rota do
+  `plinko`, `scratch`, `mystery_box`, `autobattle`; `ARCADE_FEATURES` = as do Arcade, `EXTRA_FEATURES` = as de
+  "Mais jogos"). Sem linha = desligada. Servidor: `requireFeature` (`server/features.ts`) no começo de cada rota do
   minigame → 403 `feature_disabled`, antes de cobrar. Site: `GET /api/config` → `features`, lido pelo `App` ao voltar
   para a home; só as ligadas viram aba, e sem nenhuma o botão do Arcade some. Se a leitura falhar, o config manda
   tudo desligado (o Turnstile depende dessa rota). Ligar/desligar: aba Chaves do `/admin`, ou por SQL:
   `UPDATE features SET enabled = 0, updated_at = unixepoch() * 1000 WHERE id = 'slots'`.
   Minigame novo: id em `FEATURES`, `INSERT` numa migração, `requireFeature` nas rotas e entrada em `GAMES` do `ArcadeScreen`.
+
+## Mais jogos e Auto Battle
+
+- **Mais jogos** (`ExtrasScreen`, fase `extras`, botão "Jogos" na `ProfileBar`, só contas): lista dos jogos que
+  não são o ranking de poder, um por chave de `EXTRA_FEATURES`; sem nenhuma ligada, o botão some. Jogo novo: id em
+  `FEATURES` + `EXTRA_FEATURES`, `INSERT` numa migração, `requireFeature` nas rotas e entrada em `GAMES` do
+  `ExtrasScreen`.
+- **Auto Battle** (chave `autobattle`, nasce desligada): roguelike de montar time, estilo TFT. Regras e simulação em
+  `src/game/autobattle.ts` (puro, testado em `autobattle.test.ts`); servidor em `server/autobattle.ts`.
+  - **Elenco fixo** (`ROSTER`): 8 obras de anime × 7 personagens (3 de tier 1, 2 de tier 2, 2 de tier 3), cada um
+    com um papel (`Role`: atacante, tanque, crítico, veloz, fúria, queimadura, cura, escudo, enfraquece, acelera).
+    Tier = custo na loja (1/2/3).
+  - **Run**: 6 a 10 moedas da run por rodada (`incomeFor`, o que sobra fica), loja de 5 ofertas (chance por tier
+    cresce com a rodada, `shopOdds`), rolar custa 1, vender devolve o custo (−1 se já subiu de estrela). Time de 3
+    espaços na rodada 1, +1 por rodada até 6, mais um **banco** de 5 (`bench`: não luta nem conta para a
+    sinergia; `moveUnit` troca de lado). Personagem novo vai para o time se couber, senão para o banco. Cópia
+    repetida soma no mesmo personagem, onde ele estiver: 3 cópias = 2★, 9 = 3★.
+    A run tem 10 rodadas e 3 vidas (derrota tira uma; empate não conta para nenhum lado).
+  - **Chefes** (`BOSSES`, rodadas 5 e 10): um personagem só, de fora do elenco (Madara e Saitama), com papel e
+    atributos próprios (`Boss.stats`, sem tier nem `power`), no lugar do fantasma. É preciso vencer:
+    derrota ou empate zera as vidas e a run acaba. Vencer o da rodada 10 fecha a run como completa (`cleared`).
+    Vida e ataque foram calibrados simulando bots contra eles.
+  - **Atributos**: tier × estrela × papel × fator. O **fator** (0,85 a 1,15) é a única coisa que vem do `power`:
+    `powerFactors` ordena os 7 da obra por poder, em degraus iguais (toda obra soma o mesmo). O servidor manda os
+    fatores (`factors`), nunca o `power`; o site calcula os atributos com o mesmo `unitStats`.
+  - **Luta** (`simulateBattle`): a vida do time é uma barra só (soma + escudo), cada personagem bate no seu
+    intervalo e o dano sai da barra do outro lado; quem zera perde (60 s: maior % de vida). Sinergia de obra com
+    2/4/6 personagens (`SYNERGY`). Determinística pela semente: o servidor resolve e manda `{ seed, team,
+    opponent, outcome }`; o site roda a mesma função só para animar (`AutoBattleArena`).
+  - **Fantasmas** (`autobattle_ghosts`, um por conta e rodada, o mais recente): o adversário é o time salvo de
+    outra conta na mesma rodada, com o número de vitórias mais próximo; sem nenhum, `botTeam`. Rodada de chefe não
+    usa nem salva fantasma.
+  - **Estado** em `autobattle_runs` (uma ativa por conta, índice único parcial). Toda mudança é um UPDATE
+    condicionado à `version` lida: dois cliques simultâneos não aplicam duas vezes (o segundo recebe 409 `stale`).
+  - **Velocidade**: cada ação da loja faz só duas idas ao D1 (`loadContext` lê conta + chave + run numa consulta;
+    depois o UPDATE) e não carrega o catálogo. No site, comprar, vender e mover são **otimistas** (`AutoBattle.act`):
+    a tela aplica `buyOffer`/`sellUnit`/`moveUnit` na hora e envia em fila, uma por vez; a resposta só é aplicada
+    com a fila vazia, e uma recusa relê a run. Rolar e lutar esperam o servidor (o sorteio é dele).
+  - **Prêmio** (`REWARD_BY_WINS`): moedas da conta no fim da run (ou ao desistir), de 10 com 3 vitórias a 100 com
+    10; menos de 3 não paga. Creditadas só depois de a run ser gravada como `done`.
+  - Balancear: mexa em `TIER_POWER`, `ROLE_SHAPE`, `SYNERGY` e confira simulando bots contra bots (`botTeam` +
+    `simulateBattle`); as lutas devem durar uns 15 s.
 
 ## Caça-níquel (Slots)
 
@@ -383,7 +430,7 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 
 ## Front
 
-- `App.tsx`: reducer `nick` → `intro` (home) → `playing` → `result`, ou `intro` → `party` / `shop` / `arcade` / `account`.
+- `App.tsx`: reducer `nick` → `intro` (home) → `playing` → `result`, ou `intro` → `party` / `shop` / `arcade` / `extras` / `account`.
   `playing`/`result` têm `daily`: o título mostra "Desafio diário · <categoria>", o resultado mostra a posição no
   desafio e não tem "Jogar de novo". A home consulta `/api/daily` (ao abrir e ao trocar de categoria); o botão trava
   depois da tentativa e mostra a pontuação.

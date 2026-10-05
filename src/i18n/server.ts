@@ -34,6 +34,16 @@ const EXACT_EN: Record<string, string> = {
   'Personagem desconhecido': 'Unknown character',
   'Desafio de hoje indisponível': 'Today’s challenge is unavailable',
   'Sem conexão com o servidor. Tente de novo.': 'No connection to the server. Try again.',
+  // Auto Battle
+  'Moedas da run insuficientes': 'Not enough run coins',
+  'Time e banco cheios': 'Team and bench are full',
+  'Banco cheio': 'Bench full',
+  'Oferta indisponível': 'Offer unavailable',
+  'Esse personagem já está no máximo': 'This character is already maxed',
+  'Você não tem esse personagem': 'You don’t have this character',
+  'Nenhuma run em andamento': 'No run in progress',
+  'Ação repetida. Tente de novo.': 'Repeated action. Try again.',
+  'Monte um time antes de lutar': 'Build a team before fighting',
   // Party
   'Sala não encontrada': 'Room not found',
   'A partida já começou': 'The game has already started',

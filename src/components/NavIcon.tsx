@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export type NavId = 'home' | 'shop' | 'achievements' | 'arcade';
+export type NavId = 'home' | 'shop' | 'achievements' | 'extras' | 'arcade';
 
 /**
  * Ícones da navegação da barra de perfil (SVG 24×24, `currentColor`). Os furos (janela da casa, controles do
@@ -19,6 +19,14 @@ const SHAPES: Record<NavId, ReactNode> = {
       <path d="M6.5 2.5h11V9a5.5 5.5 0 0 1-11 0z" />
       <path className="nav-icon-line" d="M6.5 4.5H3.5v1.5a3.5 3.5 0 0 0 3.5 3.5M17.5 4.5h3v1.5A3.5 3.5 0 0 1 17 9.5" />
       <path d="M10.8 14h2.4v3.5h-2.4zM6.5 18h11v3.5h-11z" />
+    </>
+  ),
+  // Duas espadas cruzadas (jogos de luta/estratégia fora do ranking).
+  extras: (
+    <>
+      <path d="M19.5 2.5l2 2L10 16l-2.5.5.5-2.5z" />
+      <path d="M4.5 2.5l-2 2L14 16l2.5.5-.5-2.5z" />
+      <path d="M4 17l3 3-2 1.5L2.5 19zM20 17l-3 3 2 1.5 2.5-2.5z" />
     </>
   ),
   arcade: (

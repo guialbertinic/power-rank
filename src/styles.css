@@ -5389,3 +5389,1223 @@ input:focus {
 .app.recording .settings-toggle:not([aria-expanded='true']):not(:hover):not(:focus-visible) {
   opacity: 0.3;
 }
+
+/* ---------- Mais jogos (jogos fora do ranking de poder) ---------- */
+
+.extras-screen {
+  display: grid;
+  gap: 14px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.extras-back {
+  justify-self: start;
+}
+
+/* O Auto Battle usa a largura toda: coluna de sinergias ao lado do campo. */
+.extras-screen:has(.ab-prep) {
+  max-width: none;
+}
+
+.extras-game {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+/* ---------- Auto Battle ---------- */
+
+/* Visual próprio do jogo: painéis translúcidos com contorno claro e cartões tingidos pela cor do tier. Sem desfoque
+   de fundo nem animação nos cartões (são dezenas na tela: pesava e atrasava o toque). Tudo a partir dos tokens. */
+.ab-prep,
+.ab-arena,
+.ab-end {
+  --ab-glass: color-mix(in srgb, var(--surface) 62%, transparent);
+  --ab-glass-2: color-mix(in srgb, var(--surface-2) 55%, transparent);
+  --ab-line: color-mix(in srgb, var(--text-2) 24%, transparent);
+  --ab-line-soft: color-mix(in srgb, var(--text-2) 12%, transparent);
+  --ab-highlight: inset 0 1px 0 color-mix(in srgb, var(--text) 9%, transparent);
+}
+
+.ab-prep {
+  display: grid;
+  gap: 14px;
+}
+
+.ab-loading {
+  text-align: center;
+}
+
+.ab-prep .panel,
+.ab-arena,
+.ab-end {
+  border-color: var(--ab-line);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--text) 4%, transparent), transparent 42%),
+    var(--ab-glass);
+  box-shadow: var(--ab-highlight);
+}
+
+.ab-prep .section-title {
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+/* Título de seção com um fio que se apaga até a borda do painel. */
+.ab-prep .section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--ab-line), transparent);
+}
+
+/* ----- Placar da run: quatro blocos separados por um fio ----- */
+
+.ab-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0;
+}
+
+.ab-stat {
+  display: grid;
+  gap: 2px;
+  align-content: center;
+  min-width: 0;
+  min-height: 58px;
+  padding: 8px 16px;
+  border-left: 1px solid var(--ab-line-soft);
+}
+
+.ab-stat:first-child {
+  border-left: 0;
+}
+
+.ab-stat-label {
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* A rodada não tem número separado: o próprio rótulo é o destaque. */
+.ab-stat:first-child .ab-stat-label {
+  color: var(--text);
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+}
+
+.ab-stat strong {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+
+.ab-lives {
+  color: var(--accent);
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.ab-lives-lost {
+  color: var(--border);
+  text-shadow: none;
+}
+
+.ab-gold {
+  color: var(--tier-ss);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--tier-ss) 45%, transparent);
+}
+
+/* ----- Grades de cartões ----- */
+
+.ab-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.ab-team {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.ab-bench {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.ab-shop {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+/* Cartão de personagem (time, banco e loja): vidro tingido pela cor do tier (S laranja, A azul, B cinza), com a
+   letra e as estrelas no canto de cima. --tint cai no cinza do texto quando não há tier (espaço vazio). */
+.ab-card {
+  --tint: var(--tier-color, var(--text-2));
+  position: relative;
+  display: grid;
+  gap: 3px;
+  align-content: start;
+  justify-items: center;
+  min-width: 0;
+  padding: 6px 6px 8px;
+  border: 1px solid color-mix(in srgb, var(--tint) 42%, transparent);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--tint) 34%, transparent), color-mix(in srgb, var(--tint) 7%, transparent) 62%),
+    var(--ab-glass-2);
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.ab-card:focus-visible {
+  outline: 2px solid var(--tint);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .ab-card[data-unit]:hover {
+    border-color: color-mix(in srgb, var(--tint) 85%, transparent);
+  }
+}
+
+.ab-card.tip-open,
+.ab-card.selected {
+  z-index: 10;
+}
+
+.ab-card.selected {
+  border-color: var(--tint);
+  box-shadow: 0 0 0 1px var(--tint);
+}
+
+/* Espaço vazio, fechado (abre numa rodada seguinte) ou oferta já comprada: só o contorno tracejado, hachurado. */
+.ab-slot {
+  place-content: center;
+  min-height: 118px;
+  border: 1px dashed var(--ab-line);
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 9px,
+    color-mix(in srgb, var(--text-2) 5%, transparent) 9px 10px
+  );
+  box-shadow: none;
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: default;
+}
+
+.ab-slot.locked {
+  opacity: 0.45;
+}
+
+/* Estrelas (uma por fusão: sem estrela vazia) e, ao lado, as cópias rumo à próxima. */
+.ab-rank {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Foto do cartão, com os selos por cima: estrelas e cópias (em cima, à esquerda), custo (em cima, à direita) e o
+   "?" da dica (embaixo, à direita). */
+.ab-photo {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 96px;
+}
+
+.ab-photo .ab-rank {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  max-width: calc(100% - 6px);
+  padding: 2px 4px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+}
+
+.ab-copies {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ab-help {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--text) 40%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ab-help:hover,
+.ab-help[aria-expanded='true'] {
+  border-color: var(--tint);
+  background: var(--tint);
+  color: var(--bg);
+}
+
+.ab-stars {
+  color: var(--tier-ss);
+  font-size: 0.82rem;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+/* Retrato quadrado (cartão mais baixo), com contorno na cor do tier. */
+.ab-portrait {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--tint, var(--tier-color)) 55%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+}
+
+.ab-portrait img,
+.ab-portrait-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.ab-card-name,
+.ab-card-series {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ab-card-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* Obra (abreviada) embaixo do nome; o papel fica só na dica. */
+.ab-card-series {
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+/* Custo da oferta: moeda dourada no canto; apagada quando as moedas da run não chegam. */
+.ab-cost {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid color-mix(in srgb, var(--text) 45%, transparent);
+  border-radius: 50%;
+  background: var(--tier-ss-fill);
+  color: var(--bg);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ab-cost.short {
+  border-color: var(--ab-line);
+  background: var(--border);
+  box-shadow: none;
+  color: var(--text-2);
+}
+
+/* ----- Sinergias: uma ficha por obra presente no time, com os degraus 2/4/6 ----- */
+
+.ab-synergies {
+  display: grid;
+  gap: 8px;
+}
+
+.ab-synergy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--ab-line-soft);
+  border-radius: var(--radius);
+  background: var(--ab-glass-2);
+  color: var(--text-2);
+  font-size: 0.85rem;
+  line-height: 1.2;
+}
+
+.ab-synergy-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ab-synergy.active {
+  border-color: color-mix(in srgb, var(--tier-c) 60%, transparent);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--tier-c) 16%, transparent), transparent 70%),
+    var(--ab-glass-2);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--tier-c) 16%, transparent);
+  color: var(--text);
+}
+
+.ab-synergy.active strong {
+  color: var(--tier-c);
+}
+
+.ab-pips {
+  display: flex;
+  gap: 3px;
+}
+
+.ab-pip {
+  min-width: 16px;
+  padding: 0 3px;
+  border: 1px solid var(--ab-line);
+  border-radius: var(--radius);
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+}
+
+.ab-pip.on {
+  border-color: var(--tier-c);
+  background: var(--tier-c);
+  color: var(--bg);
+}
+
+.ab-hint {
+  font-size: 0.9rem;
+}
+
+/* ----- Dica do personagem (papel, sinergia da obra, atributos): abre pelo "?", em cima do cartão ----- */
+
+.ab-tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 20;
+  display: none;
+  gap: 5px;
+  width: 250px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--tint) 60%, transparent);
+  border-top: 2px solid var(--tint);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--bg) 85%, transparent);
+  color: var(--text);
+  font-size: 0.84rem;
+  line-height: 1.25;
+  text-align: left;
+  transform: translateX(-50%);
+  cursor: default;
+  pointer-events: none;
+}
+
+.ab-card.tip-open .ab-tip {
+  display: grid;
+}
+
+/* Nas colunas das pontas a dica alinha pela borda do cartão, para não sair do painel. */
+.ab-team > :nth-child(6n + 1) .ab-tip,
+.ab-bench > :nth-child(5n + 1) .ab-tip,
+.ab-shop > :nth-child(5n + 1) .ab-tip {
+  left: 0;
+  transform: none;
+}
+
+.ab-team > :nth-child(6n) .ab-tip,
+.ab-bench > :nth-child(5n) .ab-tip,
+.ab-shop > :nth-child(5n) .ab-tip {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+.ab-tip-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--ab-line-soft);
+}
+
+.ab-tip-head strong {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.ab-tip-role {
+  color: var(--text);
+}
+
+.ab-tip-series {
+  color: var(--tier-c);
+}
+
+.ab-tip-stats {
+  padding-top: 5px;
+  border-top: 1px solid var(--ab-line-soft);
+  color: var(--text-2);
+}
+
+.ab-tip-stats strong {
+  color: var(--text);
+  font-family: var(--font-display);
+}
+
+/* ----- Ações do cartão selecionado, por cima dele (comprar; banco / time; vender) ----- */
+
+.ab-actions {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+}
+
+.ab-action {
+  padding: 8px 2px;
+  border: 1px solid color-mix(in srgb, var(--text) 30%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--tier-a) 88%, transparent);
+  color: var(--bg);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.ab-action.primary {
+  background: var(--accent-fill);
+  color: var(--text);
+}
+
+.ab-action:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+
+.ab-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ----- Lutar: o brilho fica no invólucro (o clip-path do botão cortaria a sombra) ----- */
+
+.ab-fight-wrap {
+  justify-self: center;
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent) 55%, transparent));
+}
+
+.ab-fight {
+  min-width: 220px;
+  padding-block: 14px;
+  font-size: 1.15rem;
+}
+
+.ab-fight-wrap:has(:disabled) {
+  filter: none;
+}
+
+.ab-fight-hint,
+.ab-error {
+  text-align: center;
+}
+
+.ab-abandon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 14px;
+  text-align: center;
+}
+
+.ab-abandon-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
+}
+
+/* ----- Luta: adversário em cima, jogador embaixo; cada lado com a barra de vida do time ----- */
+
+.ab-arena {
+  display: grid;
+  gap: 14px;
+}
+
+.ab-side {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--ab-line-soft);
+  border-radius: var(--radius);
+  background: var(--ab-glass-2);
+}
+
+.ab-side-foe {
+  --side: var(--accent);
+}
+
+.ab-side-mine {
+  --side: var(--tier-c);
+}
+
+.ab-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ab-side-name {
+  overflow: hidden;
+  font-family: var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ab-hp-text {
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ab-shield-text {
+  color: var(--tier-a);
+}
+
+/* Barra de vida: preenchimento em degradê na cor do lado, com brilho e marcações a cada 10%. */
+.ab-bar {
+  position: relative;
+  height: 20px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--side) 45%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--side) 18%, transparent);
+}
+
+.ab-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--text) 22%, transparent), transparent 45%),
+    repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), color-mix(in srgb, var(--bg) 55%, transparent) calc(10% - 1px) 10%);
+  pointer-events: none;
+}
+
+.ab-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--side) 60%, var(--bg)), var(--side));
+  transition: width 0.15s linear;
+}
+
+/* Escudo: faixa por cima da vida, some conforme é gasto. */
+.ab-bar-shield {
+  position: absolute;
+  inset: 0 auto auto 0;
+  z-index: 1;
+  height: 5px;
+  background: var(--tier-a);
+  box-shadow: 0 0 8px var(--tier-a);
+  transition: width 0.15s linear;
+}
+
+.ab-fighters {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  justify-items: center;
+}
+
+.ab-fighter {
+  --tint: var(--tier-color);
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  width: 100%;
+  max-width: 76px;
+  padding: 3px;
+  border: 1px solid color-mix(in srgb, var(--tint) 42%, transparent);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--tint) 34%, transparent), color-mix(in srgb, var(--tint) 7%, transparent) 62%),
+    var(--ab-glass-2);
+}
+
+/* Meio da arena: controles (ou o resultado) entre dois fios. */
+.ab-arena-mid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+}
+
+.ab-arena-mid::before,
+.ab-arena-mid::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ab-line));
+}
+
+.ab-arena-mid::after {
+  background: linear-gradient(90deg, var(--ab-line), transparent);
+}
+
+.ab-outcome {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-style: italic;
+  letter-spacing: var(--tracking-display);
+  text-shadow: 0 0 24px currentColor;
+  text-transform: uppercase;
+}
+
+.ab-outcome-win {
+  color: var(--tier-c);
+}
+
+.ab-outcome-loss {
+  color: var(--accent);
+}
+
+.ab-outcome-draw {
+  color: var(--text-2);
+}
+
+.ab-continue {
+  justify-self: center;
+}
+
+/* ----- Fim da run ----- */
+
+.ab-end {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  padding-block: 28px;
+  text-align: center;
+}
+
+.ab-end-score {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-style: italic;
+  font-weight: 700;
+}
+
+.ab-end-reward {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.15rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ab-bar-fill,
+  .ab-bar-shield {
+    transition: none;
+  }
+
+  .ab-card:is(.mark-owned, .mark-upgrade)::before {
+    animation: none;
+  }
+}
+
+/* Celular: regras depois das base. */
+@media (max-width: 560px) {
+  .ab-prep .panel,
+  .ab-arena {
+    padding: 14px 12px;
+  }
+
+  .ab-prep .ab-status {
+    padding: 0;
+  }
+
+  .ab-stat {
+    min-height: 48px;
+    padding: 6px 10px;
+  }
+
+  .ab-stat strong {
+    font-size: 1.05rem;
+  }
+
+  .ab-lives {
+    letter-spacing: 1px;
+  }
+
+  .ab-grid {
+    gap: 8px;
+  }
+
+  .ab-team {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ab-bench,
+  .ab-shop {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .ab-bench .ab-card,
+  .ab-shop .ab-card {
+    padding: 4px 3px 6px;
+  }
+
+  .ab-slot {
+    min-height: 84px;
+  }
+
+  .ab-bench :is(.ab-stars, .ab-copies),
+  .ab-shop :is(.ab-stars, .ab-copies) {
+    font-size: 0.6rem;
+  }
+
+  .ab-bench .ab-help,
+  .ab-shop .ab-help {
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+  }
+
+  .ab-card-name {
+    font-size: 0.8rem;
+  }
+
+  .ab-bench .ab-card-name,
+  .ab-shop .ab-card-name {
+    font-size: 0.72rem;
+  }
+
+  .ab-cost {
+    width: 17px;
+    height: 17px;
+    font-size: 0.7rem;
+  }
+
+  .ab-side {
+    padding: 10px 8px;
+  }
+
+  .ab-fighters {
+    gap: 4px;
+  }
+
+  .ab-fighter {
+    padding: 2px;
+  }
+
+  .ab-fight {
+    min-width: 0;
+  }
+
+  .ab-tip {
+    width: 224px;
+  }
+
+  /* Time em 3 colunas e banco em 5: as pontas mudam (desfaz as regras de 6 colunas e refaz). */
+  .ab-team > :nth-child(n) .ab-tip {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .ab-team > :nth-child(3n + 1) .ab-tip,
+  .ab-bench > :nth-child(n) .ab-tip,
+  .ab-shop > :nth-child(n) .ab-tip {
+    right: auto;
+    left: 0;
+    transform: none;
+  }
+
+  .ab-team > :nth-child(3n) .ab-tip,
+  .ab-bench > :nth-child(n + 4) .ab-tip,
+  .ab-shop > :nth-child(n + 4) .ab-tip {
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+
+  /* Coluna do meio do banco e da loja (5 colunas estreitas): centralizada. */
+  .ab-bench > :nth-child(3) .ab-tip,
+  .ab-shop > :nth-child(3) .ab-tip {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+/* ----- Preparação: sinergias ao lado do campo (time + banco) e a loja embaixo ----- */
+
+.ab-board {
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+/* Contador ao lado do título (3/4 no time, 1/5 no banco). */
+.ab-count {
+  padding: 0 6px;
+  border: 1px solid var(--ab-line);
+  border-radius: var(--radius);
+  color: var(--text-2);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  line-height: 16px;
+}
+
+/* Campo: o time em cartões grandes, sobre uma grade discreta. */
+.ab-prep .ab-field {
+  background:
+    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 100% 28px,
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 28px 100%,
+    var(--ab-glass);
+}
+
+.ab-team .ab-photo {
+  max-width: 116px;
+}
+
+.ab-team .ab-card-name {
+  font-size: 0.92rem;
+}
+
+/* Banco: prateleira rebaixada embaixo do campo, com cartões menores. */
+.ab-shelf {
+  margin-top: 14px;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--ab-line-soft);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+}
+
+.ab-prep .ab-shelf .section-title {
+  margin-bottom: 8px;
+  color: var(--text-2);
+  font-size: 0.75rem;
+}
+
+.ab-bench .ab-photo {
+  max-width: 72px;
+}
+
+.ab-bench .ab-card-name {
+  font-size: 0.8rem;
+}
+
+.ab-bench .ab-slot {
+  min-height: 96px;
+}
+
+/* Sinergias na coluna: uma linha por obra presente no time. */
+.ab-synergy-desc {
+  color: var(--text-2);
+  font-size: 0.82rem;
+}
+
+.ab-synergy.active .ab-synergy-desc {
+  color: var(--text);
+}
+
+.ab-synergy-head {
+  justify-content: space-between;
+}
+
+/* Loja: cabeçalho com as chances de cada tier, as moedas da run e o botão de rolar. */
+.ab-prep .ab-shop-panel {
+  border-top-color: color-mix(in srgb, var(--tier-ss) 55%, transparent);
+}
+
+.ab-shop-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.ab-prep .ab-shop-head .section-title {
+  flex: 1 1 90px;
+  margin-bottom: 0;
+}
+
+.ab-odds {
+  display: flex;
+  gap: 4px;
+}
+
+.ab-odd {
+  padding: 0 6px;
+  border: 1px solid color-mix(in srgb, var(--tier-color) 55%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--tier-color) 22%, transparent);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.ab-purse {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 10px;
+  border: 1px solid color-mix(in srgb, var(--tier-ss) 50%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--tier-ss) 12%, transparent);
+}
+
+.ab-purse-icon {
+  width: 10px;
+  height: 10px;
+  background: var(--tier-ss-fill);
+  transform: rotate(45deg);
+}
+
+.ab-purse .ab-gold {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  line-height: 1.2;
+  text-shadow: none;
+}
+
+/* Oferta de quem o jogador já tem: moldura branca animada, como as molduras da conta (um conic-gradient girando,
+   aparecendo só numa borda de 2px em volta do cartão). Dois feixes de luz correndo pela borda; se é a cópia que
+   sobe a estrela, giram mais rápido e a borda inteira fica acesa. São no máximo 5 ofertas: a animação não pesa. */
+.ab-card:is(.mark-owned, .mark-upgrade) {
+  border-color: transparent;
+}
+
+.ab-card:is(.mark-owned, .mark-upgrade)::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  pointer-events: none;
+  border-radius: var(--radius);
+  background: conic-gradient(
+    from var(--cosmetic-angle),
+    var(--text),
+    color-mix(in srgb, var(--text) 12%, transparent) 25%,
+    var(--text) 50%,
+    color-mix(in srgb, var(--text) 12%, transparent) 75%,
+    var(--text)
+  );
+  /* Só o anel: recorta o miolo, para o cartão continuar translúcido. */
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  animation: cosmetic-spin 4s linear infinite;
+}
+
+.ab-card.mark-upgrade::before {
+  background: conic-gradient(
+    from var(--cosmetic-angle),
+    var(--text),
+    color-mix(in srgb, var(--text) 45%, transparent) 25%,
+    var(--text) 50%,
+    color-mix(in srgb, var(--text) 45%, transparent) 75%,
+    var(--text)
+  );
+  animation-duration: 1.6s;
+}
+
+.ab-card.mark-upgrade {
+  box-shadow: 0 0 14px color-mix(in srgb, var(--text) 30%, transparent);
+}
+
+/* Trilha das rodadas no placar: cada rodada pintada pelo resultado (verde vitória, rosa derrota, cinza empate),
+   a atual em branco e as de chefe em losango (dourado enquanto não chegam). */
+.ab-track {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.ab-step {
+  flex: 1;
+  max-width: 34px;
+  height: 8px;
+  border-radius: var(--radius);
+  background: var(--border);
+}
+
+.ab-step.boss {
+  flex: 0 0 13px;
+  height: 13px;
+  margin-inline: 3px;
+  background: color-mix(in srgb, var(--tier-ss) 55%, var(--border));
+  transform: rotate(45deg);
+}
+
+.ab-step.win {
+  background: var(--tier-c);
+}
+
+.ab-step.loss {
+  background: var(--accent);
+}
+
+.ab-step.draw {
+  background: var(--text-2);
+}
+
+.ab-step.now {
+  background: var(--text);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--text) 25%, transparent);
+}
+
+/* Aviso de rodada de chefe, em cima do botão de lutar. */
+.ab-boss-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-self: center;
+  max-width: 560px;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  text-align: center;
+}
+
+.ab-boss-alert strong,
+.ab-boss-name {
+  color: var(--accent);
+}
+
+.ab-boss-alert .ab-portrait {
+  --tint: var(--accent);
+  flex: 0 0 56px;
+}
+
+.ab-boss-alert p {
+  text-align: left;
+}
+
+/* Chefe na arena: um retrato só, grande, no meio da linha. */
+.ab-fighter-boss {
+  --tint: var(--accent);
+  grid-column: 1 / -1;
+  max-width: 132px;
+}
+
+.ab-upgrade {
+  position: absolute;
+  bottom: 3px;
+  left: 3px;
+  padding: 0 4px;
+  border-radius: var(--radius);
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 15px;
+}
+
+/* Tela média e celular: uma coluna só, com as sinergias embaixo do campo, em fichas lado a lado. */
+@media (max-width: 900px) {
+  .ab-board {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ab-traits {
+    order: 2;
+  }
+
+  .ab-synergies {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .ab-synergy-head {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .ab-shelf {
+    padding: 8px;
+  }
+
+  .ab-bench .ab-slot {
+    min-height: 78px;
+  }
+
+  .ab-bench .ab-card-name {
+    font-size: 0.72rem;
+  }
+
+  .ab-shop-head {
+    gap: 6px 8px;
+  }
+
+  .ab-upgrade {
+    font-size: 0.58rem;
+    line-height: 13px;
+  }
+}

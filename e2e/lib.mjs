@@ -108,6 +108,7 @@ export function cleanTestData() {
   d1(
     `DELETE FROM player_items WHERE player_id IN ${accounts}; DELETE FROM player_stats WHERE player_id IN ${accounts}; DELETE FROM player_achievements WHERE player_id IN ${accounts}; DELETE FROM player_tokens WHERE player_id IN ${accounts}; ` +
       `DELETE FROM admin_actions WHERE player_id IN ${accounts}; DELETE FROM casino_spins WHERE player_id IN ${accounts}; DELETE FROM plinko_drops WHERE player_id IN ${accounts}; DELETE FROM scratch_cards WHERE player_id IN ${accounts}; DELETE FROM gacha_openings WHERE player_id IN ${accounts}; ` +
+      `DELETE FROM autobattle_runs WHERE player_id IN ${accounts}; DELETE FROM autobattle_ghosts WHERE player_id IN ${accounts}; ` +
       `UPDATE casino_pot SET last_winner_id = NULL WHERE last_winner_id IN ${accounts}; ` +
       `DELETE FROM daily_attempts WHERE player_key LIKE 'g:e2e%' OR player_key IN (SELECT 'p:' || id FROM players WHERE name_key LIKE 'e2e%'); ` +
       `DELETE FROM access_log WHERE lower(name) LIKE 'e2e%' OR player_id IN ${accounts}; ` +
@@ -254,9 +255,9 @@ export async function launchBrowser() {
         if (!localStorage.getItem('power-rank:lang')) localStorage.setItem('power-rank:lang', 'pt');
       });
       page.on('pageerror', (e) => errors.push(e.message));
-      // "Failed to load resource" não diz qual URL: as respostas 5xx são registradas com a URL.
+      // "Failed to load resource" não diz qual URL: as respostas 5xx e 404 são registradas com a URL.
       page.on('console', (m) => m.type() === 'error' && !/status of (40[1239]|5dd)/.test(m.text()) && errors.push(m.text()));
-      page.on('response', (r) => r.status() >= 500 && errors.push(`HTTP ${r.status()} ${r.request().method()} ${r.url()}`));
+      page.on('response', (r) => (r.status() >= 500 || r.status() === 404) && errors.push(`HTTP ${r.status()} ${r.request().method()} ${r.url()}`));
       return page;
     },
     async close() {
