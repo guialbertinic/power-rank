@@ -410,9 +410,11 @@ No navegador, a identidade `{ name, token }` e os tokens de nicks já usados fic
 - Mesmos 10 personagens para todos; **pontuação calculada no servidor**; pontuações, posições e moedas só no pódio.
   Cada resultado é gravado (`games` + `scores`) e rende moedas, mas não entra no ranking (só o Desafio Diário).
 - Pódio (`PartyPodium`): o servidor revela as `placements` de todos. A classificação traz a tira de acertos de cada
-  jogador (um segmento por posição) e a `PartyMatrix` mostra todos os palpites: linhas = personagens na ordem
-  correta, colunas = jogadores, célula = posição dada na cor do acerto. Tocar num jogador (classificação ou matriz)
-  troca a lista detalhada embaixo (`RankingComparison`, a sua por padrão). Uma lista por vez.
+  jogador (um segmento por posição) e a `PartyMatrix` mostra todos os palpites: linhas = posições (1 a 10),
+  primeira coluna = ordem correta, depois uma coluna por jogador; célula = avatar do personagem que ele pôs ali, com
+  a moldura na cor do acerto. Tocar num personagem destaca ele em todas as colunas (e mostra o nome); tocar num
+  jogador (classificação ou matriz) troca a lista detalhada embaixo (`RankingComparison`, a sua por padrão). Uma
+  lista por vez.
 - `RankingComparison` (solo e party): lista única na ordem correta, com o palpite em cada linha (posição na cor do
   acerto e ▲/▼ com as casas que o personagem deveria subir/descer).
 - Cada jogador tem um `pid` secreto (sessionStorage, para reconectar na mesma vaga) e um `id` público.

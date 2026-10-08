@@ -850,7 +850,7 @@ input:focus {
 .hit-3 { --hit-color: var(--tier-s); }
 .hit-4 { --hit-color: var(--tier-d); }
 
-/* Posição que o jogador deu, pintada pelo acerto (lista do resultado e matriz da party). */
+/* Posição que o jogador deu, pintada pelo acerto (lista do resultado). */
 .hit-chip {
   flex: none;
   display: grid;
@@ -890,55 +890,89 @@ input:focus {
   background: var(--hit-color);
 }
 
-/* Matriz da party: personagens (ordem correta) × jogadores. */
+/* Matriz da party: posições × jogadores, com a ordem correta na primeira coluna. */
 .party-matrix {
-  --matrix-cell: 40px;
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
 }
 
-.party-matrix .matrix-col {
-  width: var(--matrix-cell);
+.party-matrix .matrix-rank-col {
+  width: 22px;
 }
 
 .party-matrix th,
 .party-matrix td {
-  padding: 3px 0;
+  padding: 3px 2px;
   text-align: center;
+  vertical-align: middle;
   font-weight: inherit;
 }
 
-.party-matrix tbody th,
-.party-matrix tfoot th {
-  text-align: left;
+.party-matrix thead th {
+  vertical-align: bottom;
 }
 
 .party-matrix .is-you {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
-.party-matrix .hit-chip {
-  margin: 0 auto;
+.party-matrix .matrix-correct {
+  border-right: 1px solid var(--border);
 }
 
-.matrix-char {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding-right: 6px;
+.party-matrix thead .matrix-correct,
+.party-matrix tfoot .matrix-correct {
+  padding-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.6rem;
+  color: var(--text-2);
 }
 
-.matrix-rank {
-  flex: none;
-  width: 1.3em;
-  text-align: right;
+.party-matrix .matrix-rank {
   font-family: var(--font-display);
   font-weight: 700;
   font-style: italic;
   font-variant-numeric: tabular-nums;
   color: var(--text-2);
+}
+
+.matrix-caption {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+/* Personagem numa posição: a moldura é a cor do acerto (neutra na coluna da ordem correta). */
+.matrix-pick {
+  display: block;
+  width: min(100%, 44px);
+  margin: 0 auto;
+  padding: 2px;
+  background: var(--hit-color, var(--border));
+  border: 0;
+  clip-path: var(--clip-chamfer-sm);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.matrix-pick .avatar {
+  display: grid;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  font-size: 0.7rem;
+}
+
+.matrix-pick:hover,
+.matrix-pick:focus-visible {
+  outline: none;
+  filter: brightness(1.25);
+}
+
+.party-matrix.has-focus .matrix-pick:not(.is-focus) {
+  opacity: 0.22;
 }
 
 .matrix-player {
@@ -971,16 +1005,6 @@ input:focus {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.6rem;
-  color: var(--text-2);
-}
-
-.party-matrix tfoot th {
-  padding-top: 8px;
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--text-2);
 }
 
@@ -1277,23 +1301,8 @@ input:focus {
     min-height: 46px;
   }
 
-  .party-matrix {
-    --matrix-cell: 30px;
-  }
-
-  .party-matrix .hit-chip {
-    width: 24px;
-    height: 24px;
-    font-size: 0.8rem;
-  }
-
   .party-matrix tfoot td {
     font-size: 0.68rem;
-  }
-
-  .matrix-char {
-    gap: 5px;
-    padding-right: 4px;
   }
 
   .hit-strip .seg {

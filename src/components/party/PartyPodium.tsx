@@ -48,7 +48,7 @@ export default function PartyPodium({ state, you, charactersById, onRestart, onL
     ids.map((id) => charactersById.get(id)).filter((c): c is CharacterInfo => Boolean(c));
   const viewingSlots = viewing && toCharacters(viewing.placements);
   const ranks = state.ranks;
-  // Acertos de cada jogador, posição por posição: a tira da classificação e as colunas da matriz.
+  // Resultado de cada jogador, posição por posição: a tira da classificação e as colunas da matriz.
   const columns = ranks
     ? ranking.map((player) => ({ player, results: scoreGame(withRanks(toCharacters(player.placements), ranks)).results }))
     : [];

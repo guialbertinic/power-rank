@@ -189,10 +189,22 @@ try {
   await ana.waitForSelector('.podium');
   await sleep(1200);
   check('resultado sem valores de poder', !(await ana.$('.row-power')) && !(await ana.$('.result-compare .power-meter')));
-  // Todos os palpites de uma vez: tira de acertos na classificação e matriz personagem × jogador.
+  // Todos os palpites de uma vez: tira de acertos na classificação e matriz posição × jogador (em avatares).
   check('classificação com a tira de acertos de cada um', (await ana.$$('.party-podium .hit-strip .seg')).length === 20);
-  const matrix = await ana.$$eval('.party-matrix tbody tr', (rows) => rows.map((r) => r.querySelectorAll('td .hit-chip').length));
-  check('matriz: 10 personagens × 2 jogadores', matrix.length === 10 && matrix.every((n) => n === 2), matrix.join(','));
+  const matrix = await ana.$$eval('.party-matrix tbody tr', (rows) =>
+    rows.map((r) => `${r.querySelectorAll('.matrix-correct .matrix-pick .avatar').length}+${r.querySelectorAll('td .matrix-pick[class*="hit-"] .avatar').length}`),
+  );
+  check('matriz: 10 posições × (ordem correta + 2 jogadores)', matrix.length === 10 && matrix.every((n) => n === '1+2'), matrix.join(','));
+  // Tocar num personagem destaca ele em todas as colunas (e mostra o nome); tocar de novo tira o destaque.
+  const focusCount = () => ana.$$eval('.party-matrix .matrix-pick.is-focus', (els) => els.length);
+  const focusName = await ana.$eval('.party-matrix tbody .matrix-correct .matrix-pick', (el) => el.getAttribute('aria-label'));
+  await ana.click('.party-matrix tbody .matrix-correct .matrix-pick');
+  const caption = await text(ana, '.matrix-caption');
+  check('tocar num personagem destaca ele em todas as colunas', (await focusCount()) === 3 && caption.startsWith(focusName), `${await focusCount()} · ${caption}`);
+  await ana.click('.party-matrix tbody .matrix-correct .matrix-pick');
+  check('tocar de novo tira o destaque', (await focusCount()) === 0);
+  const pickSize = await ana.$eval('.party-matrix td:not(.matrix-correct) .matrix-pick', (el) => Math.round(el.getBoundingClientRect().width));
+  check('avatar da matriz com tamanho legível', pickSize >= 28 && pickSize <= 44, String(pickSize));
   // Lista detalhada: uma por vez, a sua por padrão; tocar no jogador (classificação ou matriz) troca.
   const listTitle = () => text(ana, '.party-comparison .compare-pick-label');
   const matrixSelected = () => ana.$eval('.matrix-player[aria-pressed="true"]', (el) => el.getAttribute('aria-label'));

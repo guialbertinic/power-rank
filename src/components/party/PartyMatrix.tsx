@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { PartyPlayer } from '../../game/party';
 import type { SlotResult } from '../../game/scoring';
 import type { CharacterInfo } from '../../game/types';
@@ -23,27 +24,52 @@ interface Props {
 }
 
 /**
- * Todos os palpites de uma vez: uma linha por personagem (na ordem correta) e uma coluna por jogador, com a posição
- * que ele deu na cor do acerto. Tocar no jogador abre a lista dele embaixo.
+ * Todos os palpites de uma vez: uma linha por posição e uma coluna por jogador com o personagem que ele pôs ali
+ * (borda na cor do acerto); a primeira coluna é a ordem correta. Tocar num personagem destaca onde cada um o
+ * colocou; tocar no jogador abre a lista dele embaixo.
  */
 export default function PartyMatrix({ characters, columns, you, selectedId, onSelect }: Props) {
   const { t } = useI18n();
-  const picks = columns.map((col) => new Map(col.results.map((r) => [r.character.id, r])));
+  // Personagem em destaque (o mesmo em todas as colunas).
+  const [focusId, setFocusId] = useState<string>();
+  const picks = columns.map((col) => new Map(col.results.map((r) => [r.position, r])));
   const colClass = (p: PartyPlayer) => (p.id === you ? 'is-you' : undefined);
+  const focusIndex = characters.findIndex((c) => c.id === focusId);
+  const focused = characters[focusIndex];
+
+  const pick = (c: CharacterInfo, hit?: number) => (
+    <button
+      type="button"
+      className={`matrix-pick${hit === undefined ? '' : ` hit-${hit}`}${c.id === focusId ? ' is-focus' : ''}`}
+      title={c.name}
+      aria-label={c.name}
+      aria-pressed={c.id === focusId}
+      onClick={() => setFocusId(c.id === focusId ? undefined : c.id)}
+    >
+      <Avatar character={c} />
+    </button>
+  );
 
   return (
     <div className="panel">
       <h3 className="section-title">{t('podium.matrix')}</h3>
-      <table className="party-matrix">
+      <p className="matrix-caption" aria-live="polite">
+        {focused ? t('podium.matrixFocus', { name: focused.name, n: focusIndex + 1 }) : t('podium.matrixHint')}
+      </p>
+      <table className={`party-matrix${focused ? ' has-focus' : ''}`}>
         <colgroup>
+          <col className="matrix-rank-col" />
           <col />
           {columns.map(({ player }) => (
-            <col key={player.id} className="matrix-col" />
+            <col key={player.id} />
           ))}
         </colgroup>
         <thead>
           <tr>
             <td />
+            <th scope="col" className="matrix-correct">
+              {t('podium.matrixCorrect')}
+            </th>
             {columns.map(({ player }) => (
               <th key={player.id} scope="col" className={colClass(player)}>
                 <button
@@ -63,18 +89,15 @@ export default function PartyMatrix({ characters, columns, you, selectedId, onSe
         <tbody>
           {characters.map((c, i) => (
             <tr key={c.id}>
-              <th scope="row">
-                <span className="matrix-char">
-                  <span className="matrix-rank">{i + 1}</span>
-                  <Avatar character={c} size={28} />
-                  <span className="row-name">{c.name}</span>
-                </span>
+              <th scope="row" className="matrix-rank">
+                {i + 1}
               </th>
+              <td className="matrix-correct">{pick(c)}</td>
               {columns.map(({ player }, j) => {
-                const pick = picks[j].get(c.id);
+                const result = picks[j].get(i + 1);
                 return (
                   <td key={player.id} className={colClass(player)}>
-                    {pick ? <span className={`hit-chip hit-${hitLevel(pick.distance)}`}>{pick.position}</span> : '–'}
+                    {result ? pick(result.character, hitLevel(result.distance)) : '–'}
                   </td>
                 );
               })}
@@ -83,7 +106,10 @@ export default function PartyMatrix({ characters, columns, you, selectedId, onSe
         </tbody>
         <tfoot>
           <tr>
-            <th scope="row">{t('podium.points')}</th>
+            <td />
+            <th scope="row" className="matrix-correct">
+              {t('podium.points')}
+            </th>
             {columns.map(({ player }) => (
               <td key={player.id} className={colClass(player)}>
                 {player.score}
